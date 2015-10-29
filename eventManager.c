@@ -64,8 +64,8 @@ typedef enum state_e
 }state_t;
 
 // typedefs for functions called on entry/exit to/from a state
-typedef void (* tranEnterFunc_t   )( state_t from );
-typedef void (* tranExitFunc_t )   ( state_t to   );
+typedef void    (* tranEnterFunc_t )( state_t from );
+typedef state_t (* tranExitFunc_t  )( state_t to   );
 
 // Array of functions for each enter/exit transition
 typedef struct transFuncs_s
@@ -116,8 +116,8 @@ static void enterHumanMoveForComp( state_t from);
 static void enterComputerMove( state_t from);
 static void enterGameOver( state_t from);
 static void enterTestJoystick( state_t from);
-static void exitInit( state_t to);
-static void exitTopMenus( state_t to);
+static state_t exitInit( state_t to);
+static state_t exitTopMenus( state_t to);
 
 // If these are used in the table below, no function is called for the given transition
 #define NULL_TRAN_ENTER_FUNC   (tranEnterFunc_t)NULL
@@ -210,7 +210,7 @@ static color_t selectedColor;
 static piece_t selectedPiece;
 
 // State transition logic
-static void transState(event_t to);
+static void transState(state_t to);
 
 // Event handlers...
 static void boardChangeHandler( int sq, event_t ev );
@@ -971,15 +971,26 @@ static void timerEventHandler( int tmr )
 }
 
 // Make state transitions
-static void transState( event_t to)
+static void transState( state_t to)
 {
 
-   DPRINT("Moving from state %d [%s] to %d [%s]\n", state, stateNames[state], to, stateNames[to]);
+   if(to == TOTAL_STATES)
+   {
+      if(transTable.exit[state] != NULL_TRAN_EXIT_FUNC) to = transTable.exit[state](TOTAL_STATES);
+   }
 
-   if(transTable.exit[state] != NULL_TRAN_EXIT_FUNC) transTable.exit[state](to);
-   prevState = state;
-   state = to;
-   if(transTable.enter[to] !=NULL_TRAN_ENTER_FUNC)   transTable.enter[to](prevState);
+   else
+   {
+      if(transTable.exit[state] != NULL_TRAN_EXIT_FUNC) (void)transTable.exit[state](to);
+   }
+
+   if(to != TOTAL_STATES)
+   {
+      DPRINT("Moving from state '%s' to '%s'\n", stateNames[state], stateNames[to]);
+      prevState = state;
+      state = to;
+      if(transTable.enter[to] !=NULL_TRAN_ENTER_FUNC)   transTable.enter[to](prevState);
+   }
 
 }
 
@@ -1076,14 +1087,16 @@ static void enterTestJoystick( state_t from )
    displayWriteLine(3, "Press 5 sec. to exit", FALSE);
 }
 
-static void exitInit( state_t to)
+static state_t exitInit( state_t to)
 {
    // In case user pressed button to get out, kill the timer...
    timerKill(TMR_UI_TIMEOUT);
    displayClear();
+
+   return TOTAL_STATES;
 }
 
-static void exitTopMenus( state_t to)
+static state_t exitTopMenus( state_t to)
 {
 
    // Menu no longer has focus...
@@ -1091,6 +1104,8 @@ static void exitTopMenus( state_t to)
 
    // Remove menu from screen
    displayClear();
+
+   return TOTAL_STATES;
 }
 
 ///////////////////////
