@@ -60,7 +60,7 @@ int main ( void )
 
    // TODO... should we simply call event manager here?
 
-#if 1
+#if 0
    // TESTING
    ev.ev = EV_PIECE_DROP;
 
