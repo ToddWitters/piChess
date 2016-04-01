@@ -47,11 +47,11 @@ typedef struct menu_s
 
    int        selectedItem;   // Currently selected item
 
-   int        cursorLine;     // Line which conatins currently selected item
+   int        cursorLine;     // Line which contains currently selected item
    
    int        itemCount;      // Total items in following list
 
-   menuItem_t *items;         // A list of items.  First item wtih NULL for the text marks the end of the list
+   menuItem_t *items;         // A list of items.  First item with NULL for the text marks the end of the list
    
 }menu_t;
 

@@ -21,6 +21,12 @@
 #include <semaphore.h>
 #include <stdio.h>
 
+// Ideas for refactoring this huge file:
+//   1) Move State variable manipulation and transitions into a separate file
+//   2) Offload display manipulation logic
+//   3) Create a context that contains state, current menu, board position,
+//      dirty bits, etc... that can be passed to/from functions in other files
+
 // Holds a valid move for the current board along with the resulting
 //   dirtySquares and occupiedSquares
 typedef struct moveEffect_s
@@ -34,7 +40,7 @@ typedef struct moveEffect_s
 
 typedef enum moveVal_t
 {
-   MV_ILLEGAL,    // Move primitive is not part of any  legal move
+   MV_ILLEGAL,    // Move primitive is not part of any legal move
    MV_PRECURSOR,  // Move primitive is a precursor to one or more legal moves.
    MV_LEGAL       // Move primitive has completed a legal move
 }moveVal_t;
@@ -65,6 +71,8 @@ typedef enum state_e
 
 // typedefs for functions called on entry/exit to/from a state
 typedef void    (* tranEnterFunc_t )( state_t from );
+
+// if to == TOTAL_STATES, must return desired entry state
 typedef state_t (* tranExitFunc_t  )( state_t to   );
 
 // Array of functions for each enter/exit transition
@@ -73,7 +81,6 @@ typedef struct transFuncs_s
    tranEnterFunc_t  enter[TOTAL_STATES];
    tranExitFunc_t   exit[TOTAL_STATES];
 }transFuncs_t;
-
 
 char *stateNames[TOTAL_STATES] =
 {
@@ -354,7 +361,7 @@ static void boardChangeHandler( int sq, event_t ev )
    {
       if( !(squareMask[sq] & occupiedSquares))
       {
-         DPRINT("ERROR: Lift event to square %d occurred with no piece on square\n", sq);
+         DPRINT("ERROR: Lift event from square %d occurred with no piece on square\n", sq);
          return;
       }
       occupiedSquares &= ~squareMask[sq];
@@ -364,6 +371,9 @@ static void boardChangeHandler( int sq, event_t ev )
 
    // update dirty square info
    dirtySquares |= squareMask[sq];
+   
+   // DEBUG
+   LED_SetGridState(occupiedSquares);
 
    // Now handle the event based upon state...
    switch(state)
@@ -426,8 +436,11 @@ static void boardChangeHandler( int sq, event_t ev )
                {
                   // Piece activity so far cannot result in a valid move.  Flash squares that need to be reset
                   case MV_ILLEGAL:
+                     #if 0
                      displayWriteLine( 1, "Illegal move", TRUE);
                      displayWriteLine( 2, "Please return pieces", TRUE);
+                     #endif
+
                      LED_FlashGridState(dirtySquares);
                      break;
 
@@ -512,14 +525,12 @@ static void buttonPressEventHandler( buttonPress_t bEvent )
 
                case ST_HUMAN_MV:
 
-                  if (onMoveMenu != NULL)
-                  {
-                     destroyMenu(onMoveMenu);
-                  }
+                  if (onMoveMenu != NULL) destroyMenu(onMoveMenu);
+
 
                   onMoveMenu = createMenu("--- In-game Menu ---", TRUE);/* code */
 
-                  menuAddItem(onMoveMenu, ADD_TO_END, "Cancel",             M_EV_BACK,       M_EV_IGNORED, NULL);
+                  menuAddItem(onMoveMenu, ADD_TO_END, "Return to Game",     M_EV_BACK,       M_EV_IGNORED, NULL);
                   menuAddItem(onMoveMenu, ADD_TO_END, "Resign",             M_EV_IGNORED,    M_EV_IGNORED, NULL);
                   menuAddItem(onMoveMenu, ADD_TO_END, "Adjourn Game",       M_EV_IGNORED,    M_EV_IGNORED, NULL);
 
@@ -589,7 +600,7 @@ static void buttonPosEventHandler  (buttonPos_t bPos )
       // Handle based upon state
       switch(state)
       {
-         eventData_t ev;
+      //   eventData_t ev;
 
          // Button position changes in this state determine what the next dropped piece will become...
          case ST_SETUP:
@@ -674,6 +685,7 @@ static void buttonPosEventHandler  (buttonPos_t bPos )
 
          case ST_HUMAN_MV:
 
+         #if 0
          // DEBUG  - Use position change in human move state to simulate user trying to make a move...
          ev.ev = EV_PIECE_LIFT;
          ev.param = B1;
@@ -682,6 +694,8 @@ static void buttonPosEventHandler  (buttonPos_t bPos )
          ev.ev = EV_PIECE_DROP;
          ev.param = C3;
          putEvent(EVQ_EVENT_MANAGER, &ev);
+         #endif
+
          break;
 
          case ST_TOP_MENUS:
@@ -747,7 +761,7 @@ static void menuEventHandler(menuEvent_t ev)
                menuAddItem(settingsMenu, ADD_TO_END, "Opening Book", M_EV_IGNORED, M_EV_IGNORED, openingBookPicker);
             }
 
-            menuAddItem(settingsMenu, ADD_TO_END, "Time Settings",     M_EV_TIME_SETTINGS, M_EV_IGNORED, NULL);
+            // menuAddItem(settingsMenu, ADD_TO_END, "Time Settings",     M_EV_TIME_SETTINGS, M_EV_IGNORED, NULL);
             menuAddItem(settingsMenu, ADD_TO_END, "Back to Main Menu", M_EV_BACK, M_EV_IGNORED, NULL);
 
             currentMenu = settingsMenu;
@@ -761,6 +775,7 @@ static void menuEventHandler(menuEvent_t ev)
                menuAddItem(playersMenu, ADD_TO_END, "Player vs. Computer", M_EV_HUMAN_WHITE, M_EV_IGNORED, NULL);
                menuAddItem(playersMenu, ADD_TO_END, "Computer vs. Player", M_EV_HUMAN_BLACK, M_EV_IGNORED, NULL);
                menuAddItem(playersMenu, ADD_TO_END, "Player vs. Player",   M_EV_HUMAN_BOTH, M_EV_IGNORED, NULL);
+               // menuAddItem(playersMenu, ADD_TO_END, "Comp. vs. Comp.",   M_EV_COMPUTER_BOTH, M_EV_IGNORED, NULL);
             }
             currentMenu = playersMenu;
             drawMenu(playersMenu);
@@ -793,7 +808,16 @@ static void menuEventHandler(menuEvent_t ev)
                drawMenu(currentMenu);
             }
             break;
-
+#if 0
+         case M_EV_COMPUTER_BOTH:
+            {
+               options.game.white = PLAYER_COMPUTER;
+               options.game.black = PLAYER_COMPUTER;
+               currentMenu = settingsMenu;
+               drawMenu(currentMenu);
+            }
+            break;
+#endif   
          case M_EV_SETUP_POS:
             DPRINT("Setting up a position...\n");
             transState(ST_SETUP);
@@ -850,7 +874,7 @@ static void menuEventHandler(menuEvent_t ev)
             {
                timeSettingMenu = createMenu("---Time Settings---_", FALSE);
                menuAddItem(timeSettingMenu, ADD_TO_END, "Cancel",      M_EV_BACK,    M_EV_IGNORED, NULL);
-               menuAddItem(timeSettingMenu, ADD_TO_END, "Standard..",  M_EV_IGNORED, M_EV_IGNORED, NULL);
+               menuAddItem(timeSettingMenu, ADD_TO_END, "Equal..",     M_EV_IGNORED, M_EV_IGNORED, NULL);
                menuAddItem(timeSettingMenu, ADD_TO_END, "Time Odds..", M_EV_IGNORED, M_EV_IGNORED, NULL);
                menuAddItem(timeSettingMenu, ADD_TO_END, "None",        M_EV_IGNORED, M_EV_IGNORED, NULL);
             }
@@ -1009,10 +1033,10 @@ static void enterTopMenus( state_t from)
       //          menu      offset      text               press               right                  picker
       menuAddItem(mainMenu, ADD_TO_END, "Play Chess",       M_EV_START_GAME,    M_EV_IGNORED,          NULL);
       menuAddItem(mainMenu, ADD_TO_END, "Game Settings...", M_EV_GAME_SETTINGS, M_EV_GAME_SETTINGS,    NULL);
-      menuAddItem(mainMenu, ADD_TO_END, "Setup Position",   M_EV_SETUP_POS,     M_EV_IGNORED,          NULL);
-      menuAddItem(mainMenu, ADD_TO_END, "Load Game",        M_EV_LOAD_GAME,     M_EV_IGNORED,          NULL);
+      // menuAddItem(mainMenu, ADD_TO_END, "Setup Position",   M_EV_SETUP_POS,     M_EV_IGNORED,          NULL);
+      // menuAddItem(mainMenu, ADD_TO_END, "Load Game",        M_EV_LOAD_GAME,     M_EV_IGNORED,          NULL);
       menuAddItem(mainMenu, ADD_TO_END, "Diagnostics",      M_EV_DIAGNOSTICS,   M_EV_IGNORED,          NULL);
-      menuAddItem(mainMenu, ADD_TO_END, "About",            M_EV_ABOUT,         M_EV_IGNORED,          NULL);
+      // menuAddItem(mainMenu, ADD_TO_END, "About",            M_EV_ABOUT,         M_EV_IGNORED,          NULL);
    }
    else
    {

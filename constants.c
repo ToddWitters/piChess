@@ -146,7 +146,7 @@ const BB kingCoverage[64] =
 const BB knightCoverage[64] =
 {
 		(c7 | b6          ), // a8
-	    (d7 | c6 | a6     ), // b8
+	   (d7 | c6 | a6     ), // b8
 		(e7 | d6 | b6 | a7), // c8
 		(f7 | e6 | c6 | b7), // d8
 		(g7 | f6 | d6 | c7), // e8
@@ -155,16 +155,16 @@ const BB knightCoverage[64] =
 		(          g6 | f7), // h8
 
 		(c6 | c8 | b5               ), // a7
-	    (d6 | d8 | c5 | a5          ), // b7
+	   (d6 | d8 | c5 | a5          ), // b7
 		(e6 | e8 | d5 | b5 | a6 | a8), // c7
 		(f6 | f8 | e5 | c5 | b6 | b8), // d7
 		(g6 | g8 | f5 | d5 | c6 | c8), // e7
 		(h6 | h8 | g5 | e5 | d6 | d8), // f7
-		(	       h5 | f5 | e6 | e8), // g7
+		(	        h5 | f5 | e6 | e8), // g7
 		(               g5 | f6 | f8), // h7
 
 		(c5 | c7 | b4 | b8                    ), // a6
-	    (d5 | d7 | c4 | c8 | a4 | a8          ), // b6
+	   (d5 | d7 | c4 | c8 | a4 | a8          ), // b6
 		(e5 | e7 | d4 | d8 | b4 | b8 | a5 | a7), // c6
 		(f5 | f7 | e4 | e8 | c4 | c8 | b5 | b7), // d6
 		(g5 | g7 | f4 | f8 | d4 | d8 | c5 | c7), // e6
@@ -173,7 +173,7 @@ const BB knightCoverage[64] =
 		(                    g4 | g8 | f5 | f7), // h6
 
 		(c4 | c6 | b3 | b7                    ), // a5
-	    (d4 | d6 | c3 | c7 | a3 | a7          ), // b5
+	   (d4 | d6 | c3 | c7 | a3 | a7          ), // b5
 		(e4 | e6 | d3 | d7 | b3 | b7 | a4 | a6), // c5
 		(f4 | f6 | e3 | e7 | c3 | c7 | b4 | b6), // d5
 		(g4 | g6 | f3 | f7 | d3 | d7 | c4 | c6), // e5
@@ -182,7 +182,7 @@ const BB knightCoverage[64] =
 		(                    g3 | g7 | f4 | f6), // h5
 
 		(c3 | c5 | b2 | b6                    ), // a4
-	    (d3 | d5 | c2 | c6 | a2 | a6          ), // b4
+	   (d3 | d5 | c2 | c6 | a2 | a6          ), // b4
 		(e3 | e5 | d2 | d6 | b2 | b6 | a3 | a5), // c4
 		(f3 | f5 | e2 | e6 | c2 | c6 | b3 | b5), // d4
 		(g3 | g5 | f2 | f6 | d2 | d6 | c3 | c5), // e4
@@ -191,7 +191,7 @@ const BB knightCoverage[64] =
 		(                    g2 | g6 | f3 | f5), // h4
 
 		(c2 | c4 | b1 | b5                    ), // a3
-	    (d2 | d4 | c1 | c5 | a1 | a5          ), // b3
+	   (d2 | d4 | c1 | c5 | a1 | a5          ), // b3
 		(e2 | e4 | d1 | d5 | b1 | b5 | a2 | a4), // c3
 		(f2 | f4 | e1 | e5 | c1 | c5 | b2 | b4), // d3
 		(g2 | g4 | f1 | f5 | d1 | d5 | c2 | c4), // e3
@@ -200,7 +200,7 @@ const BB knightCoverage[64] =
 		(                    g1 | g5 | f2 | f4), // h3
 
 		(c1 | c3 | b4               ), // a2
-	    (d1 | d3 | c4 | a4          ), // b2
+	   (d1 | d3 | c4 | a4          ), // b2
 		(e1 | e3 | d4 | b4 | a1 | a3), // c2
 		(f1 | f3 | e4 | c4 | b1 | b3), // d2
 		(g1 | g3 | f4 | d4 | c1 | c3), // e2
@@ -209,7 +209,7 @@ const BB knightCoverage[64] =
 		(               g4 | f1 | f3), // h2
 
 		(c2 | b3          ), // a1
-	    (d2 | c3 | a3     ), // b1
+	   (d2 | c3 | a3     ), // b1
 		(e2 | d3 | b3 | a2), // c1
 		(f2 | e3 | c3 | b2), // d1
 		(g2 | f3 | d3 | c2), // e1

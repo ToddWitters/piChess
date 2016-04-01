@@ -77,5 +77,6 @@ void LED_SetGridState ( unsigned long long bits );
 // Set an arbitrary flashing pattern
 void LED_FlashGridState ( unsigned long long bits );
 
+void LED_SetBrightness( unsigned char level);
 
 #endif

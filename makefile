@@ -28,7 +28,7 @@ sources = bcm2835.c      \
 
 objects = $(sources:.c=.o)
 
-#default rulße
+#default rule
 piChess : $(objects)
 	gcc -o piChess -pthread $(objects)
 

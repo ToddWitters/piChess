@@ -16,7 +16,7 @@ void SF_initEngine( void )
    char skillLevelText[3];
 
    // Start Stockfish, pipe output to sfOutput.txt
-   sfPipe = popen("Stockfish6/stockfish > sfOutput.txt", "w");
+   sfPipe = popen("stockfish > sfOutput.txt", "w");
 
    // Verify pipe was successfull.
    if(sfPipe == NULL)

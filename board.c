@@ -44,11 +44,8 @@ fenErr_t setBoard(board_t *brd, const char *FEN)
 	 b.hash = 0;
 	 b.castleBits = 0;
 
-     if (FEN == NULL)
-     {
-        FEN = startString;
-     }
-
+    if (FEN == NULL) FEN = startString;
+    
 	 // parse piece placement field...
 	 while(index < 64)
 	 {

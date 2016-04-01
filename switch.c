@@ -205,11 +205,11 @@ void switchPoll ( void )
             // Count it
             debounceCounters[i]++;
 
-            // Is this square marked as unoccupied?
+            // Is this square marked as occupied?
             if(mask & debouncedState)
             {
                // Has it been occupied long enough?
-               if(debounceCounters[i] >= options.board.pieceLiftDebounce)
+               if(debounceCounters[i] >= options.board.pieceDropDebounce)
                {
                   switchChanged(i, FALSE);
                   debouncedState &= ~mask;
@@ -218,7 +218,7 @@ void switchPoll ( void )
             }
             else // Square is currently occupied
             {
-               if(debounceCounters[i] >= options.board.pieceDropDebounce)
+               if(debounceCounters[i] >= options.board.pieceLiftDebounce)
                {
                   switchChanged(i, TRUE);
                   debouncedState |= mask;

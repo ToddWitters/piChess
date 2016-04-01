@@ -27,14 +27,13 @@ menu_t *createMenu(char *title, bool_t allowBack)
          free(ptr);
          return NULL;
       }
+
+      strcpy(ptr->title, title);
    }
    else
    {
       ptr->title = NULL;
    }
-
-   // Copy menu title into this space
-   strcpy(ptr->title, title);
 
    // Set the other parameters...
    ptr->allowLeftBack = allowBack;
