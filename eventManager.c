@@ -123,6 +123,7 @@ static void enterHumanMoveForComp( state_t from);
 static void enterComputerMove( state_t from);
 static void enterGameOver( state_t from);
 static void enterTestJoystick( state_t from);
+static void enterTestSwitches( state_t from );
 static state_t exitInit( state_t to);
 static state_t exitTopMenus( state_t to);
 
@@ -144,7 +145,7 @@ transFuncs_t transTable =
       enterGameOver,           // entering ST_GAME_OVER
       NULL_TRAN_ENTER_FUNC,    // entering ST_FIX_BOARD,
       NULL_TRAN_ENTER_FUNC,    // entering ST_VERIFY,
-      NULL_TRAN_ENTER_FUNC,    // entering ST_DIAG_SWITCHES,
+      enterTestSwitches,       // entering ST_DIAG_SWITCHES,
       NULL_TRAN_ENTER_FUNC,    // entering ST_DIAG_DISPLAY,
       enterTestJoystick,       // entering ST_DIAG_JOYSTICK,
       NULL_TRAN_ENTER_FUNC,    // entering ST_DIAG_LEDS,
@@ -371,9 +372,8 @@ static void boardChangeHandler( int sq, event_t ev )
 
    // update dirty square info
    dirtySquares |= squareMask[sq];
-   
+
    // DEBUG
-   LED_SetGridState(occupiedSquares);
 
    // Now handle the event based upon state...
    switch(state)
@@ -465,6 +465,11 @@ static void boardChangeHandler( int sq, event_t ev )
          }
          break;
 
+         case ST_DIAG_SWITCHES:
+            LED_SetGridState(occupiedSquares);
+            break;
+
+
       default:
          break;
    }
@@ -514,6 +519,10 @@ static void buttonPressEventHandler( buttonPress_t bEvent )
 
                case ST_GAME_OVER:
                   // User has acknowledged game outcome... return to top menu.
+                  transState(ST_TOP_MENUS);
+                  break;
+
+               case ST_DIAG_SWITCHES
                   transState(ST_TOP_MENUS);
                   break;
 
@@ -817,7 +826,7 @@ static void menuEventHandler(menuEvent_t ev)
                drawMenu(currentMenu);
             }
             break;
-#endif   
+#endif
          case M_EV_SETUP_POS:
             DPRINT("Setting up a position...\n");
             transState(ST_SETUP);
@@ -885,6 +894,7 @@ static void menuEventHandler(menuEvent_t ev)
 
          case M_EV_DIAG_SWITCHES:
             DPRINT("Debug Switches & LEDs\n");
+            transState(ST_DIAG_SWITCHES);
             break;
 
          case M_EV_DIAG_JOYSTICK:
@@ -987,6 +997,7 @@ static void timerEventHandler( int tmr )
          {
             transState(ST_TOP_MENUS);
          }
+
          break;
 
       default:
@@ -1110,6 +1121,18 @@ static void enterTestJoystick( state_t from )
    displayWriteLine(1, "         +          ", FALSE);
    displayWriteLine(3, "Press 5 sec. to exit", FALSE);
 }
+
+static void enterTestSwitches( state_t from )
+{
+   // Displayed already cleared from leaving main menus.  Only output lines that will change...
+   displayClear();
+   displayWriteLine(1, "Sensor Test Mode", TRUE);
+   displayWriteLine(2, "press button to exit", TRUE);
+
+   LED_SetGridState(occupiedSquares);
+
+}
+
 
 static state_t exitInit( state_t to)
 {

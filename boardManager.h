@@ -1,3 +1,18 @@
 
-void boardManagerInit( void );
-void boardManagerSetGameBoard( board_t *board );
+
+registerPieceChange
+getOccupiedSquares
+
+setTargetPattern
+getTargetPattern
+getTargetDelta
+
+trackLegalMovePrimatives
+   OK
+   ILLEGAL_POS
+getReference
+getMoveDisposition
+   
+
+getDirtySquares
+resetDirtySquares

@@ -10,6 +10,7 @@ static uint16_t findIndexForEvent(const transDef_t *table, uint16_t tableSize, u
 static uint16_t findKey(const transDef_t *table, uint16_t key, uint16_t min, uint16_t max);
 static uint16_t findLca(const HSM_Handle_t *hsm, uint16_t stateA, uint16_t stateB);
 static uint16_t findLineFromAToB(const HSM_Handle_t *hsm, uint16_t stateA, uint16_t stateB );
+static HSM_Error_t traverseCompositeState(HSM_Handle_t *hsm );
 
 
 #define HSM_DPRINT(...) printf("HSM>> "); printf(__VA_ARGS__); printf("\n");
@@ -18,7 +19,7 @@ extern const char *eventName[];
 
 
 // Create a state machine, verify passed structures
-HSM_Error_t createHSM( const stateDef_t *states,
+HSM_Error_t HSM_createHSM( const stateDef_t *states,
                        const transDef_t *transitions,
                        uint16_t stateCount,
                        uint16_t transCount,
@@ -31,6 +32,8 @@ HSM_Error_t createHSM( const stateDef_t *states,
    uint16_t *boolArray;
 
    int i,j;
+
+   HSM_DPRINT("Running %s", __FUNCTION__);
 
    // Verify passed parameters....
    if( (NULL == states) || (NULL == transitions) )
@@ -199,7 +202,8 @@ HSM_Error_t createHSM( const stateDef_t *states,
       {
          if(states[i].pickerFunc != NULL_SUBSTATE_PICKER_FUNC)
          {
-            HSM_DPRINT("WARNING: Useless substate picker function defined for non-composite state ""%s""", states[i].displayName);
+            HSM_DPRINT("ERROR: Unexpected substate picker function on state %s", states[i].displayName);
+            return HSM_MISSING_PICKER_FUNC;
          }
       }
    }
@@ -226,11 +230,15 @@ HSM_Error_t createHSM( const stateDef_t *states,
 }
 
 // initialize hsm (enter top state)
-HSM_Error_t initHSM( HSM_Handle_t *hsm )
+HSM_Error_t HSM_init( HSM_Handle_t *hsm )
 {
+   HSM_Error_t err;
+   
    // Traverse downward from top to leaf node following initState pointers,
    //   running all entry functions on the way down
    event_t junk = {0, NULL};
+
+   HSM_DPRINT("Running %s", __FUNCTION__);
 
    if(hsm->hsmDisposition != HSM_CREATED) return HSM_NOT_INITIALIZED;
 
@@ -241,55 +249,37 @@ HSM_Error_t initHSM( HSM_Handle_t *hsm )
    if(hsm->states[hsm->currentState].entryFunc != NULL)
       hsm->states[hsm->currentState].entryFunc(junk);
 
-   // As long as there are substates, enter them and exeucte their entry function, if any
-   while(hsm->states[hsm->currentState].pickerFunc != NULL_SUBSTATE_PICKER_FUNC)
+   err = traverseCompositeState(hsm);
+   
+   if(err == HSM_NO_ERROR)
    {
-      uint16_t test = hsm->states[hsm->currentState].pickerFunc(junk);
-
-      if(test >= hsm->stateCount)
-      {
-         HSM_DPRINT("ERROR: Substate picker function defined for composite state %s, returned inavlid state %d", hsm->states[hsm->currentState].displayName, test);
-         return HSM_PICKER_RETURNED_INVALID_STATE;
-      }
-
-      if(hsm->states[test].parent != hsm->currentState)
-      {
-         HSM_DPRINT("ERROR: Substate picker function defined for composite state %s, returned state %s, which is not a child", hsm->states[hsm->currentState].displayName, hsm->states[test].displayName);
-         return HSM_PICKER_RETURNED_NON_CHILD;
-      }
-
-      hsm->currentState = test;
-
-      printf("Set current state to %s\n", hsm->states[hsm->currentState].displayName);
-
-      if(hsm->states[hsm->currentState].entryFunc != NULL)
-         hsm->states[hsm->currentState].entryFunc(junk);
-
+      hsm->hsmDisposition = HSM_INITIALIZED;
    }
 
-   hsm->hsmDisposition = HSM_INITIALIZED;
-
-   return HSM_NO_ERROR;
+   return err;
 }
 
 // Destroy a state machine
-HSM_Error_t destroyHSM( HSM_Handle_t *hsm)
+HSM_Error_t HSM_destroy( HSM_Handle_t *hsm)
 {
    // Free memory created when sm was built
+   HSM_DPRINT("Running %s", __FUNCTION__);
+
    free(hsm);
 
    return HSM_NO_ERROR;
 }
 
 // Process a new event,
-HSM_Error_t processEvent( HSM_Handle_t *hsm, event_t ev)
+HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
 {
    uint16_t tempState, lcaState;
    uint16_t transTableListOffset;
    uint16_t transTo = hsm->stateCount;
    bool_t found, localTrans, movingFromLca;
+   HSM_Error_t err;
 
-   HSM_DPRINT("Processing Event %s", eventName[ev.ev]);
+   HSM_DPRINT("Running %s. [event %s, state %s]", __FUNCTION__, eventName[ev.ev], hsm->states[hsm->currentState].displayName  );
 
    // Bail if this hsm is not initialized
    if(hsm->hsmDisposition != HSM_INITIALIZED)
@@ -338,7 +328,7 @@ HSM_Error_t processEvent( HSM_Handle_t *hsm, event_t ev)
                localTrans = hsm->transitions[scanOffset].local;
 
                // Note that we found something
-               printf("Found transition at line %d\n", scanOffset);
+               // printf("Found matching transition at line %d\n", scanOffset);
                found = true;
 
                // Exit the do/while loop
@@ -356,25 +346,42 @@ HSM_Error_t processEvent( HSM_Handle_t *hsm, event_t ev)
          if(transTo != hsm->stateCount)
          {
 
-            // move upward to lca ancestor
+            // compute lca between current state, and the state to move to...
             lca = findLca(hsm, hsm->currentState, transTo);
 
+            // validity check...            
+            if(lca == hsm->stateCount)
+            {
+               // NOTE:  Error already printed by findLca()
+               return HSM_NO_COMMON_ANCESTOR_FOUND;
+            }
+
+            // Before we change the current state, compare to see if it is
+            //   the computed lca.  We'll need this info later...
             if(lca == hsm->currentState) movingFromLca = true;
             else movingFromLca = false;
 
-            while(hsm->currentState != lca)
+            // move upward to lca ancestor
+            while(hsm->currentState != lca && hsm->currentState < hsm->stateCount)
             {
+               // Run the exit funtion of our current state
                if(hsm->states[hsm->currentState].exitFunc != NULL_EXIT_FUNC)
                   hsm->states[hsm->currentState].exitFunc(ev);
 
+               // Move up...
                hsm->currentState = hsm->states[hsm->currentState].parent;
-               printf("Set current state to %s\n", hsm->states[hsm->currentState].displayName);
-
             }
 
-            // if we just entered the destination state &&
-            //    the destination is also the LCM &&
-            //    this wasn't a local transitions &&
+            // Make sure we didn't hit an invalid state...
+            if(hsm->currentState >= hsm->stateCount)
+            {
+               HSM_DPRINT("ERROR: Found invalid parent state reference during tree traversal");
+               return HSM_INVALID_STATE;
+            }
+
+
+            // If the lca was our target, we need to run the exit and entry functions
+            //   if this was not a local transition...
             if(hsm->currentState == transTo && localTrans == false)
             {
                if(hsm->states[hsm->currentState].exitFunc != NULL_EXIT_FUNC)
@@ -389,19 +396,15 @@ HSM_Error_t processEvent( HSM_Handle_t *hsm, event_t ev)
 
          // Execute action function associated with the transition
          if(hsm->transitions[scanOffset].action != NULL)
-         {
-            printf("Execute Action function for transition %d\n", scanOffset);
             hsm->transitions[scanOffset].action(ev);
-         }
 
-         // If this is not an internal transition...
+
+         // If this was not an internal transition...
          if(transTo != hsm->stateCount)
          {
-
-            // If we we started at LCA &&
-            //   this wasn't a local transition
-            //   && the exit function is defined
-
+            
+            // If the lca was our source, we need to run the exit and entry functions
+            //   if this was not a local transition...
             if(movingFromLca && localTrans == false)
             {
                if(hsm->states[hsm->currentState].exitFunc != NULL_EXIT_FUNC)
@@ -412,45 +415,30 @@ HSM_Error_t processEvent( HSM_Handle_t *hsm, event_t ev)
 
             }
 
+            // Move down the tree towards the target..
             do
             {
+               // Find the child of the current node that is on the line of descent for the target state...
                hsm->currentState = findLineFromAToB(hsm, hsm->currentState, transTo);
-               printf("Set current state to %s\n", hsm->states[hsm->currentState].displayName);
+               
+               // Validity check..
+               if(hsm->currentState >= hsm->stateCount)
+               {
+                  HSM_DPRINT("ERROR: Invalid state returned from findLineFromAToB()");
+                  return HSM_INVALID_STATE;
+               }
 
+               // Run the entry function...
                if(hsm->states[hsm->currentState].entryFunc != NULL_EXIT_FUNC)
                   hsm->states[hsm->currentState].entryFunc(ev);
 
             }while(hsm->currentState != transTo);
          }
 
-         while(hsm->states[hsm->currentState].pickerFunc != NULL_SUBSTATE_PICKER_FUNC)
-         {
-
-            event_t junk = {0, NULL};
-
-            uint16_t test = hsm->states[hsm->currentState].pickerFunc(junk);
-
-            if(test >= hsm->stateCount)
-            {
-               HSM_DPRINT("ERROR: Substate picker function defined for composite state %s, returned inavlid state %d", hsm->states[hsm->currentState].displayName, test);
-               return HSM_PICKER_RETURNED_INVALID_STATE;
-            }
-
-            if(hsm->states[test].parent != hsm->currentState)
-            {
-               HSM_DPRINT("ERROR: Substate picker function defined for composite state %s, returned state %s, which is not a child", hsm->states[hsm->currentState].displayName, hsm->states[test].displayName);
-               return HSM_PICKER_RETURNED_NON_CHILD;
-            }
-
-            hsm->currentState = test;
-
-            printf("Set current state to %s\n", hsm->states[hsm->currentState].displayName);
-
-            if(hsm->states[hsm->currentState].entryFunc != NULL)
-               hsm->states[hsm->currentState].entryFunc(junk);
-
-         }
-
+         err = traverseCompositeState(hsm);
+         
+         if(err != HSM_NO_ERROR)
+            return err;
 
          break; // We don't need to look any  further
 
@@ -463,18 +451,25 @@ HSM_Error_t processEvent( HSM_Handle_t *hsm, event_t ev)
 
    if(found == false)
    {
-      HSM_DPRINT("WARNING: No handler for event %d not found in state %s or its ancestors", (uint16_t)ev.ev, hsm->states[hsm->currentState].displayName);
+      HSM_DPRINT("WARNING: Handler not found");
       return HSM_NO_EV_HANDLER_FOUND;
    }
 
    return HSM_NO_ERROR;
 }
 
+//////////////////
+// LOCAL FUNCTIONS
+//////////////////
+
+// Find the first line in the transition table that matches the given event
+//   Uses a binary search for quick access.  
 static uint16_t findIndexForEvent(const transDef_t *table, uint16_t tableSize, uint16_t ev )
 {
    return (findKey(table, ev, 0, tableSize - 1));
 }
 
+// Recursive helper functions for binary search
 static uint16_t findKey(const transDef_t *table, uint16_t key, uint16_t min, uint16_t max)
 {
    uint16_t mid = (min + max)/2;
@@ -482,7 +477,7 @@ static uint16_t findKey(const transDef_t *table, uint16_t key, uint16_t min, uin
 
    if(thisKey == key)
    {
-      // back up to first match in this group...
+      // back up to first entry in this group...
       while(mid--)
       {
          if(table[mid].ev != key) return mid + 1;
@@ -508,6 +503,7 @@ static uint16_t findKey(const transDef_t *table, uint16_t key, uint16_t min, uin
    }
 }
 
+// Find the lowest common ancestor for the two states.
 static uint16_t findLca(const HSM_Handle_t *hsm, uint16_t stateA, uint16_t stateB)
 {
       uint16_t aAncestor, bAncestor;
@@ -532,19 +528,57 @@ static uint16_t findLca(const HSM_Handle_t *hsm, uint16_t stateA, uint16_t state
 
      }while(aAncestor != hsm->stateCount);
 
+     // Ideally, since every state has been checked in the init function for
+     //   validity and an upward path to the top state, we should never be here.
      HSM_DPRINT("ERROR: No common ancestor found for states %s and %s", hsm->states[stateA].displayName, hsm->states[stateB].displayName);
-
      return hsm->stateCount;
 }
 
+// Find the child of A that is B OR that is a direct ancestor of B.
 static uint16_t findLineFromAToB(const HSM_Handle_t *hsm, uint16_t stateA, uint16_t stateB )
 {
    uint16_t walkingState = stateB;
 
-   while(hsm->states[walkingState].parent != stateA)
+   while(hsm->states[walkingState].parent != stateA && hsm->states[walkingState].parent < hsm->stateCount)
    {
       walkingState = hsm->states[walkingState].parent;
    }
 
    return walkingState;
+}
+
+// Call the "pickerFunc" for this state and all contained states.  Since the init
+//  function confirmed that all composite states have picker functions, we know
+//  that a leaf node will be reached.
+static HSM_Error_t traverseCompositeState(HSM_Handle_t *hsm )
+{
+   // As long as there are substates, enter them and exeucte their entry function, if any
+   while(hsm->states[hsm->currentState].pickerFunc != NULL_SUBSTATE_PICKER_FUNC)
+   {
+      event_t junk = {0, NULL};
+      uint16_t test = hsm->states[hsm->currentState].pickerFunc(junk);
+
+      // Verify valid state returned
+      if(test >= hsm->stateCount)
+      {
+         HSM_DPRINT("ERROR: Substate picker function defined for composite state %s, returned inavlid state %d", hsm->states[hsm->currentState].displayName, test);
+         return HSM_PICKER_RETURNED_INVALID_STATE;
+      }
+
+      // Verify returned state is actually a child of current state
+      if(hsm->states[test].parent != hsm->currentState)
+      {
+         HSM_DPRINT("ERROR: Substate picker function defined for composite state %s, returned state %s, which is not a child", hsm->states[hsm->currentState].displayName, hsm->states[test].displayName);
+         return HSM_PICKER_RETURNED_NON_CHILD;
+      }
+
+      // Update current state
+      hsm->currentState = test;
+
+      // Call the entry function if it exists.
+      if(hsm->states[hsm->currentState].entryFunc != NULL)
+         hsm->states[hsm->currentState].entryFunc(junk);
+
+   }
+   
 }

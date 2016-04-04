@@ -5,7 +5,7 @@
 
 #include "types.h"
 
-#define EVENT_QUEUE_SIZE 10
+#define EVENT_QUEUE_SIZE 50
 
 typedef enum eQueIndex_e
 {

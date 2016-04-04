@@ -99,13 +99,14 @@ typedef enum HSM_Error_e
    HSM_CIRCULAR_HIERARCY,
    HSM_PICKER_RETURNED_INVALID_STATE,
    HSM_PICKER_RETURNED_NON_CHILD,
+   HSM_NO_COMMON_ANCESTOR_FOUND,
    HSM_OUT_OF_MEMORY,
 }HSM_Error_t;
 
 // public interface
 
 // Create a state machine, verify passed structure
-HSM_Error_t createHSM( const stateDef_t *states,
+HSM_Error_t HSM_createHSM( const stateDef_t *states,
                        const transDef_t *transitions,
                        uint16_t stateCount,
                        uint16_t transCount,
