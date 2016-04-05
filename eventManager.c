@@ -1453,7 +1453,7 @@ static void displaySplashScreen( void )
    displayWriteLine( 2, "powered by", TRUE );
 
    // FIX - retrieve version info from engine itself?
-   displayWriteLine( 3, "Stockfish6", TRUE );
+   displayWriteLine( 3, "Stockfish 7", TRUE );
 }
 
 // Draw the entire screen presented during the game
