@@ -125,6 +125,7 @@ static void enterGameOver( state_t from);
 static void enterTestJoystick( state_t from);
 static void enterTestSwitches( state_t from );
 static state_t exitInit( state_t to);
+static state_t exitTestSwitches( state_t from );
 static state_t exitTopMenus( state_t to);
 
 // If these are used in the table below, no function is called for the given transition
@@ -162,7 +163,7 @@ transFuncs_t transTable =
       NULL_TRAN_EXIT_FUNC,     // exiting ST_GAME_OVER
       NULL_TRAN_EXIT_FUNC,     // exiting ST_FIX_BOARD,
       NULL_TRAN_EXIT_FUNC,     // exiting ST_VERIFY,
-      NULL_TRAN_EXIT_FUNC,     // exiting ST_DIAG_SWITCHES,
+      exitTestSwitches,        // exiting ST_DIAG_SWITCHES,
       NULL_TRAN_EXIT_FUNC,     // exiting ST_DIAG_DISPLAY,
       NULL_TRAN_EXIT_FUNC,     // exiting ST_DIAG_JOYSTICK,
       NULL_TRAN_EXIT_FUNC,     // exiting ST_DIAG_LEDS,
@@ -522,7 +523,7 @@ static void buttonPressEventHandler( buttonPress_t bEvent )
                   transState(ST_TOP_MENUS);
                   break;
 
-               case ST_DIAG_SWITCHES
+               case ST_DIAG_SWITCHES:
                   transState(ST_TOP_MENUS);
                   break;
 
@@ -1129,8 +1130,19 @@ static void enterTestSwitches( state_t from )
    displayWriteLine(1, "Sensor Test Mode", TRUE);
    displayWriteLine(2, "press button to exit", TRUE);
 
+   options.board.pieceDropDebounce = (50 / MS_PER_TIC);
+   options.board.pieceLiftDebounce = (50 / MS_PER_TIC);
+
    LED_SetGridState(occupiedSquares);
 
+}
+
+static state_t exitTestSwitches( state_t from )
+{
+   options.board.pieceDropDebounce = (600 / MS_PER_TIC);
+   options.board.pieceLiftDebounce = (150 / MS_PER_TIC);
+
+   return TOTAL_STATES;
 }
 
 
