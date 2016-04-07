@@ -1142,6 +1142,8 @@ static state_t exitTestSwitches( state_t from )
    options.board.pieceDropDebounce = (600 / MS_PER_TIC);
    options.board.pieceLiftDebounce = (150 / MS_PER_TIC);
 
+   LED_AllOff();
+
    return TOTAL_STATES;
 }
 
