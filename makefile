@@ -31,6 +31,7 @@ sources = bcm2835.c      \
 			 st_initPosSetup.c \
 			 st_inGame.c  \
 			 st_playingGame.c \
+			 st_optionMenu.c \
 			 switch.c       \
 			 timer.c        \
 			 util.c         \

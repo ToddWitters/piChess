@@ -10,15 +10,16 @@ typedef enum stateId_e
 {
    ST_TOP,                         // Top-most containing state
      ST_SPLASH_SCREEN,             // Displaying splash screen
-     ST_MENUS,                     // In one of the top menus 
+     ST_MENUS,                     // In one of the top menus
        ST_MAINMENU,                // Top-most menu
        ST_DIAGMENU,                // Diagnostic menu
+       ST_OPTIONMENU,
      ST_INIT_POS_SETUP,            // Set up initial position
      ST_IN_GAME,                   // A game is in progress
        ST_PLAYING_GAME,            // Actively making moves (or thinking)
          ST_PLAYER_MOVE,           // Player is moving
          ST_COMPUTER_MOVE,         // Computer is thinking
-         ST_MOVE_FOR_COMPUTER,     // Player is making computer's chosen move 
+         ST_MOVE_FOR_COMPUTER,     // Player is making computer's chosen move
 /*
        ST_GAMEMENU,                // Navigating in-game menu
        ST_FIXING_BOARD,            // Player(s) are being guided to fix the board position
@@ -50,7 +51,8 @@ typedef enum eventId_e
    EV_START_INIT_POS_SETUP,
    EV_GOTO_MAIN_MENU,
    EV_GOTO_DIAG_MENU,
-   
+   EV_GOTO_OPTION_MENU,
+
    // TIMER EVENTS
    EV_MOVE_CLOCK_TIC,
 

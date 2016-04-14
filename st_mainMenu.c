@@ -15,7 +15,7 @@ void mainMenuEntry( event_t ev )
 
       //          menu      offset      text           press                     right                    picker
       menuAddItem(mainMenu, ADD_TO_END, "Play",        EV_START_INIT_POS_SETUP,  EV_START_INIT_POS_SETUP, NULL);
-      menuAddItem(mainMenu, ADD_TO_END, "Options",     0,                        0,                       NULL);
+      menuAddItem(mainMenu, ADD_TO_END, "Options",     EV_GOTO_OPTION_MENU,      EV_GOTO_OPTION_MENU,     NULL);
       menuAddItem(mainMenu, ADD_TO_END, "Diagnostics", EV_GOTO_DIAG_MENU,        EV_GOTO_DIAG_MENU,       NULL);
    }
 

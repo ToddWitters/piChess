@@ -12,6 +12,7 @@
 #include "st_initPosSetup.h"
 #include "st_inGame.h"
 #include "st_playingGame.h"
+#include "st_optionMenu.h"
 #include "util.h"
 
 // Used for diagnostics only
@@ -40,6 +41,7 @@ stateDef_t myStateDef[] =
    { "menus",           ST_TOP,           NULL_SUBSTATE_PICKER_FUNC,  NULL_ENTRY_FUNC,    menusExit         },
    { "mainMenu",        ST_MENUS,         NULL_SUBSTATE_PICKER_FUNC,  mainMenuEntry,      mainMenuExit      },
    { "diagMenu",        ST_MENUS,         NULL_SUBSTATE_PICKER_FUNC,  diagMenuEntry,      diagMenuExit      },
+   { "optionMenu",      ST_MENUS,         NULL_SUBSTATE_PICKER_FUNC,  optionMenuEntry,    optionMenuExit    },
    { "initPosSetup",    ST_TOP,           NULL_SUBSTATE_PICKER_FUNC,  initPosSetupEntry,  initPosSetupExit  },
    { "inGame",          ST_TOP,           inGamePickSubstate,         inGameEntry,        inGameExit        },
    { "playingGame",     ST_IN_GAME,       playingGamePickSubstate,    playingGameEntry,   playingGameExit   },
@@ -83,10 +85,12 @@ transDef_t myTransDef[] =
 
    { EV_GOTO_MAIN_MENU,         ST_TOP,            ST_MAINMENU,        NULL_GUARD_FUNC,  NULL_ACTION_FUNC,          TRUE  },
 
-   { EV_GOTO_DIAG_MENU,         ST_MAINMENU,       ST_DIAGMENU,        NULL_GUARD_FUNC,  NULL_ACTION_FUNC,          FALSE }, 
-   
+   { EV_GOTO_DIAG_MENU,         ST_MAINMENU,       ST_DIAGMENU,        NULL_GUARD_FUNC,  NULL_ACTION_FUNC,          FALSE },
+
+   { EV_GOTO_OPTION_MENU,       ST_MAINMENU,       ST_OPTIONMENU,      NULL_GUARD_FUNC,  NULL_ACTION_FUNC,          FALSE },
+
    { EV_MOVE_CLOCK_TIC,         ST_IN_GAME,        ST_NONE,            NULL_GUARD_FUNC,  inGame_moveClockTick,      FALSE },
-   
+
 };
 
 const uint16_t transDefCount = (sizeof(myTransDef)/sizeof(myTransDef[0]));
