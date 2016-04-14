@@ -32,6 +32,9 @@ sources = bcm2835.c      \
 			 st_inGame.c  \
 			 st_playingGame.c \
 			 st_optionMenu.c \
+			 st_playerMove.c \
+			 st_computerMove.c \
+			 st_moveForComputer.c \
 			 switch.c       \
 			 timer.c        \
 			 util.c         \

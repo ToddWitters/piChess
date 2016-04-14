@@ -13,6 +13,9 @@
 #include "st_inGame.h"
 #include "st_playingGame.h"
 #include "st_optionMenu.h"
+#include "st_playerMove.h"
+#include "st_computerMove.h"
+#include "st_moveForComputer.h"
 #include "util.h"
 
 // Used for diagnostics only
@@ -45,9 +48,9 @@ stateDef_t myStateDef[] =
    { "initPosSetup",    ST_TOP,           NULL_SUBSTATE_PICKER_FUNC,  initPosSetupEntry,  initPosSetupExit  },
    { "inGame",          ST_TOP,           inGamePickSubstate,         inGameEntry,        inGameExit        },
    { "playingGame",     ST_IN_GAME,       playingGamePickSubstate,    playingGameEntry,   playingGameExit   },
-   { "playerMove",      ST_PLAYING_GAME,  NULL_SUBSTATE_PICKER_FUNC,   NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    },
-   { "computerMove",    ST_PLAYING_GAME,  NULL_SUBSTATE_PICKER_FUNC,   NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    },
-   { "moveForComputer", ST_PLAYING_GAME,  NULL_SUBSTATE_PICKER_FUNC ,  NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    },
+   { "playerMove",      ST_PLAYING_GAME,  NULL_SUBSTATE_PICKER_FUNC,  playerMoveEntry,    playerMoveExit    },
+   { "computerMove",    ST_PLAYING_GAME,  NULL_SUBSTATE_PICKER_FUNC,  computerMoveEntry,  computerMoveExit  },
+   { "moveForComputer", ST_PLAYING_GAME,  NULL_SUBSTATE_PICKER_FUNC , moveForComputerEntry, moveForComputerExit },
 /*
    { "gameMenu",        ST_IN_GAME,       NULL_SUBSTATE_PICKER_FUNC   NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    },
    { "fixingBoard",     ST_IN_GAME,       NULL_SUBSTATE_PICKER_FUNC   NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    },
