@@ -13,6 +13,7 @@ typedef struct timerEntry_s
 {
    uint32_t            val;
    uint32_t            rel;
+   uint16_t             ev;
 }timerEntry_t;
 
 typedef enum timerRef_e
@@ -33,7 +34,7 @@ typedef enum timerErr_e
 
 
 timerErr_t timerInit( void );
-timerErr_t timerStart( timerRef_t id, uint32_t val, uint32_t rel);
+timerErr_t timerStart( timerRef_t id, uint32_t val, uint32_t rel, uint16_t event);
 timerErr_t timerKill( timerRef_t id );
 timerErr_t timerGetVal( timerRef_t id, uint32_t *val);
 

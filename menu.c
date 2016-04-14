@@ -4,10 +4,11 @@
 #include "menu.h"
 #include "display.h"
 #include "diag.h"
-
+#include "st_menus.h"
+#include "event.h"
 
 // Create a new menu
-menu_t *createMenu(char *title, bool_t allowBack)
+menu_t *createMenu(char *title, uint16_t backEvent)
 {
 
    // Create memory space
@@ -36,7 +37,7 @@ menu_t *createMenu(char *title, bool_t allowBack)
    }
 
    // Set the other parameters...
-   ptr->allowLeftBack = allowBack;
+   ptr->backEvent = backEvent;
    ptr->selectedItem = 0;
    ptr->cursorLine = strlen(title) == 0 ? 0 : 1;
    ptr->itemCount = 0;
@@ -70,8 +71,8 @@ void destroyMenu(menu_t *menu)
 bool_t menuAddItem(menu_t *menu,
                    int offset,
                    char   *text,
-                   int    pressEv,
-                   int    rightEv,
+                   uint16_t    pressEv,
+                   uint16_t    rightEv,
                    itemValuePicker_t pick)
 {
 
@@ -154,9 +155,12 @@ bool_t menuDeleteItem(menu_t *menu, char *text)
 
 }
 
-int menuProcessButtonPos(menu_t *menu, buttonPos_t pos)
+void menuProcessButtonPos(menu_t *menu, buttonPos_t pos)
 {
-   if(menu == NULL) return M_EV_IGNORED;
+
+   event_t ev = {0, 0};
+
+   if(menu == NULL) return;
 
    switch(pos)
    {
@@ -164,7 +168,7 @@ int menuProcessButtonPos(menu_t *menu, buttonPos_t pos)
          // If the selected item doesn't have a picker, return the event
          if(menu->items[menu->selectedItem].picker == NULL)
          {
-            return menu->items[menu->selectedItem].rightEvent;
+            ev.ev = menu->items[menu->selectedItem].rightEvent;
          }
          else
          {
@@ -185,8 +189,6 @@ int menuProcessButtonPos(menu_t *menu, buttonPos_t pos)
 
             // Fill in the new
             displayWriteChars( menu->cursorLine, LINE_LENGTH-len,    len,    option);
-
-            return M_EV_PICK_RIGHT;
          }
          break;
 
@@ -195,15 +197,9 @@ int menuProcessButtonPos(menu_t *menu, buttonPos_t pos)
          if(menu->items[menu->selectedItem].picker == NULL)
          {
             // .. and this menu allows exit via the left button....
-            if(menu->allowLeftBack)
+            if(menu->backEvent)
             {
-               // Return the "back" command
-               return M_EV_BACK;
-            }
-            else
-            {
-               // this button is ignored
-               return M_EV_IGNORED;
+               ev.ev = menu->backEvent;
             }
          }
          else
@@ -226,8 +222,6 @@ int menuProcessButtonPos(menu_t *menu, buttonPos_t pos)
 
             // Fill in the new
             displayWriteChars( menu->cursorLine, LINE_LENGTH-len,    len,    option);
-
-            return M_EV_PICK_LEFT;
          }
          break;
 
@@ -275,12 +269,6 @@ int menuProcessButtonPos(menu_t *menu, buttonPos_t pos)
 
             displayWriteChars( menu->cursorLine, 0, 1, ">" );
 
-            return M_EV_SCROLL;
-
-         }
-         else
-         {
-            return M_EV_TOP;
          }
          break;
 
@@ -319,32 +307,31 @@ int menuProcessButtonPos(menu_t *menu, buttonPos_t pos)
             }
 
             displayWriteChars( menu->cursorLine, 0, 1, ">" );
-
-            return M_EV_SCROLL;
-
-         }
-         else
-         {
-            return M_EV_BOTTOM;
          }
          break;
 
       default:
-      // DPRINT("Unhandled button event in menuProcessButtonPos\n");
          break;
    }
-   return M_EV_IGNORED;
+   if(ev.ev != 0)
+   {
+      putEvent(EVQ_EVENT_MANAGER, &ev);
+   }
+
 }
 
-int menuProcessButtonPress(menu_t *menu)
+void menuProcessButtonPress(menu_t *menu)
 {
-   if(menu == NULL)
+
+   if(menu != NULL)
    {
-      return M_EV_IGNORED;
-   }
-   else
-   {
-      return menu->items[menu->selectedItem].pressEvent;
+      if(menu->items[menu->selectedItem].pressEvent != 0);
+      {
+         event_t ev;
+         ev.ev = menu->items[menu->selectedItem].pressEvent;
+         ev.data = 0;
+         if(ev.ev !=0) putEvent(EVQ_EVENT_MANAGER, &ev);
+      }
    }
 }
 
@@ -404,6 +391,8 @@ void drawMenu(menu_t *menu)
 
    // Start by clearing the display
    displayClear();
+
+   menuRegisterButtonEvents(menu);
 
    // Display the title centered
    if(menu->title != NULL) displayWriteLine(0, menu->title, TRUE);

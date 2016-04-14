@@ -1,5 +1,7 @@
 #include "hsm.h"
 
+#include "diag.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -13,7 +15,7 @@ static uint16_t findLineFromAToB(const HSM_Handle_t *hsm, uint16_t stateA, uint1
 static HSM_Error_t traverseCompositeState(HSM_Handle_t *hsm );
 
 
-#define HSM_DPRINT(...) printf("HSM>> "); printf(__VA_ARGS__); printf("\n");
+#define HSM_DPRINT(...)    printf(__VA_ARGS__)
 
 extern const char *eventName[];
 
@@ -27,18 +29,15 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
 {
 
    uint16_t last;
-   bool_t    found;
    uint16_t *childCountArray;
    uint16_t *boolArray;
 
    int i,j;
 
-   HSM_DPRINT("Running %s", __FUNCTION__);
-
    // Verify passed parameters....
    if( (NULL == states) || (NULL == transitions) )
    {
-      HSM_DPRINT("ERROR: One or more passed pointers are NULL");
+      HSM_DPRINT("ERROR: One or more passed pointers are NULL\n");
       return HSM_NULL_POINTER;
    }
 
@@ -53,7 +52,7 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
       {
          if((states[i].parent != stateCount))
          {
-            HSM_DPRINT("ERROR: Topmost state ""%s"" has a non-NULL parent", states[i].displayName);
+            HSM_DPRINT("ERROR: Topmost state ""%s"" has a non-NULL parent\n", states[i].displayName);
             return HSM_TOP_PARENT_NOT_NULL;
          }
       }
@@ -61,19 +60,18 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
       {
          if((states[i].parent == stateCount))
          {
-            HSM_DPRINT("ERROR: State ""%s"" has no parent defined", states[i].displayName);
+            HSM_DPRINT("ERROR: State ""%s"" has no parent defined\n", states[i].displayName);
             return HSM_MISSING_PARENT_ON_SUBNODE;
          }
       }
 
       if( states[i].parent     > stateCount )
       {
-         HSM_DPRINT("ERROR: State ""%s"" has an invalid parent state definition", states[i].displayName);
+         HSM_DPRINT("ERROR: State ""%s"" has an invalid parent state definition\n", states[i].displayName);
          return HSM_INVALID_STATE;
       }
 
    }
-
    // For each node, work towards top, ensuring we don't revisit any
    //   nodes (circular reference) and we eventually reach the top;
 
@@ -83,7 +81,7 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
 
    if(boolArray == NULL)
    {
-      HSM_DPRINT("ERROR: Out of memory");
+      HSM_DPRINT("ERROR: Out of memory\n");
       return HSM_OUT_OF_MEMORY;
    }
 
@@ -100,10 +98,10 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
       //     (1) Invalid state encountered
       //     (2) Top reached
       //     (3) Previously visited node hit again
-      while( (walkingState < stateCount) && (walkingState != 0) && (boolArray[walkingState] == false) )
+      while( (walkingState < stateCount) && (walkingState != 0) && (boolArray[walkingState] == FALSE) )
       {
          // mark this node as visited...
-         boolArray[walkingState] = true;
+         boolArray[walkingState] = TRUE;
 
          // Move up...
          walkingState = states[walkingState].parent;
@@ -113,14 +111,14 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
       if(walkingState >= stateCount)
       {
          free(boolArray);
-         HSM_DPRINT("ERROR: Traversing upward from state ""%s"" found an invalid parent state reference", states[i].displayName);
+         HSM_DPRINT("ERROR: Traversing upward from state ""%s"" found an invalid parent state reference\n", states[i].displayName);
          return HSM_INVALID_STATE;
       }
 
       if(walkingState != 0)
       {
          free(boolArray);
-         HSM_DPRINT("ERROR: Traversing upward from state ""%s"" found a circular reference loop", states[i].displayName);
+         HSM_DPRINT("ERROR: Traversing upward from state ""%s"" found a circular reference loop\n", states[i].displayName);
          return HSM_CIRCULAR_HIERARCY;
       }
    }
@@ -132,19 +130,19 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
    {
       if(transitions[i].ev < last)
       {
-         HSM_DPRINT("ERROR: Found transition table event out of order at position %d", i);
+         HSM_DPRINT("ERROR: Found transition table event out of order at position %d\n", i);
          return HSM_EVENT_LIST_NOT_SORTED;
       }
 
       if(transitions[i].to > stateCount)
       {
-         HSM_DPRINT("ERROR: Found invalid ""to"" state %d at position %d",transitions[i].to, i);
+         HSM_DPRINT("ERROR: Found invalid ""to"" state %d at position %d\n",transitions[i].to, i);
          return HSM_INVALID_STATE;
       }
 
       if(transitions[i].from >= stateCount)
       {
-         HSM_DPRINT("ERROR: Found invalid ""from"" state %d at position %d",transitions[i].from, i);
+         HSM_DPRINT("ERROR: Found invalid ""from"" state %d at position %d\n",transitions[i].from, i);
          return HSM_INVALID_STATE;
       }
 
@@ -157,7 +155,7 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
 
    if(childCountArray == NULL)
    {
-      HSM_DPRINT("ERROR: Out of memory");
+      HSM_DPRINT("ERROR: Out of memory\n");
       return HSM_OUT_OF_MEMORY;
    }
 
@@ -185,7 +183,7 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
                if(states[i].pickerFunc == NULL_SUBSTATE_PICKER_FUNC)
                {
                   free(childCountArray);
-                  HSM_DPRINT("ERROR: Missing substate picker function for composite state ""%s"" which is a target of one or more transitions", states[i].displayName);
+                  HSM_DPRINT("ERROR: Missing substate picker function for composite state ""%s"" which is a target of one or more transitions\n", states[i].displayName);
                   return HSM_MISSING_PICKER_FUNC;
                }
 
@@ -195,14 +193,14 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
          }
          if( i != 0 && j == transCount && states[i].pickerFunc != NULL_SUBSTATE_PICKER_FUNC)
          {
-            HSM_DPRINT("WARNING: Substate picker function defined for composite state ""%s"", but no transitions terminate here", states[i].displayName);
+            HSM_DPRINT("WARNING: Substate picker function defined for composite state ""%s"", but no transitions terminate here\n", states[i].displayName);
          }
       }
       else
       {
          if(states[i].pickerFunc != NULL_SUBSTATE_PICKER_FUNC)
          {
-            HSM_DPRINT("ERROR: Unexpected substate picker function on state %s", states[i].displayName);
+            HSM_DPRINT("ERROR: Unexpected substate picker function on state %s\n", states[i].displayName);
             return HSM_MISSING_PICKER_FUNC;
          }
       }
@@ -215,7 +213,7 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
 
    if(hsm == NULL )
    {
-      HSM_DPRINT("ERROR: Out of memory");
+      HSM_DPRINT("ERROR: Out of memory\n");
       return HSM_OUT_OF_MEMORY;
    }
 
@@ -233,12 +231,10 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
 HSM_Error_t HSM_init( HSM_Handle_t *hsm )
 {
    HSM_Error_t err;
-   
+
    // Traverse downward from top to leaf node following initState pointers,
    //   running all entry functions on the way down
-   event_t junk = {0, NULL};
-
-   HSM_DPRINT("Running %s", __FUNCTION__);
+   event_t junk = {0, 0};
 
    if(hsm->hsmDisposition != HSM_CREATED) return HSM_NOT_INITIALIZED;
 
@@ -250,7 +246,7 @@ HSM_Error_t HSM_init( HSM_Handle_t *hsm )
       hsm->states[hsm->currentState].entryFunc(junk);
 
    err = traverseCompositeState(hsm);
-   
+
    if(err == HSM_NO_ERROR)
    {
       hsm->hsmDisposition = HSM_INITIALIZED;
@@ -263,8 +259,6 @@ HSM_Error_t HSM_init( HSM_Handle_t *hsm )
 HSM_Error_t HSM_destroy( HSM_Handle_t *hsm)
 {
    // Free memory created when sm was built
-   HSM_DPRINT("Running %s", __FUNCTION__);
-
    free(hsm);
 
    return HSM_NO_ERROR;
@@ -273,18 +267,18 @@ HSM_Error_t HSM_destroy( HSM_Handle_t *hsm)
 // Process a new event,
 HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
 {
-   uint16_t tempState, lcaState;
+   uint16_t tempState;
    uint16_t transTableListOffset;
    uint16_t transTo = hsm->stateCount;
-   bool_t found, localTrans, movingFromLca;
+   bool_t found, localTrans;
    HSM_Error_t err;
 
-   HSM_DPRINT("Running %s. [event %s, state %s]", __FUNCTION__, eventName[ev.ev], hsm->states[hsm->currentState].displayName  );
+   // HSM_DPRINT("Running %s. [event %s, state %s]\n", __FUNCTION__, eventName[ev.ev], hsm->states[hsm->currentState].displayName  );
 
    // Bail if this hsm is not initialized
    if(hsm->hsmDisposition != HSM_INITIALIZED)
    {
-      HSM_DPRINT("ERROR: Call to processEvent with uninitialized state machine");
+      HSM_DPRINT("ERROR: Call to processEvent with uninitialized state machine\n");
       return HSM_NOT_INITIALIZED;
    }
 
@@ -294,7 +288,7 @@ HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
    // Bail out if the event doesn't exist in the table
    if(transTableListOffset == 0xFFFF)
    {
-      HSM_DPRINT("WARNING: Event %d not found in transition table", (uint16_t)ev.ev);
+      HSM_DPRINT("WARNING: Event %d not handled by this state or its ancestors\n", (uint16_t)ev.ev);
       return HSM_EV_NOT_IN_TABLE;
    }
 
@@ -310,7 +304,7 @@ HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
       // Id of lowest common ancestor
       uint16_t lca;
 
-      found = false;
+      found = FALSE;
 
       do // Scan through event table for this state
       {
@@ -320,7 +314,7 @@ HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
          {
             // .. and the guard function passes (or isn't defined)
             if ( (hsm->transitions[scanOffset].guard     == NULL) ||
-                 (hsm->transitions[scanOffset].guard(ev) == true) )
+                 (hsm->transitions[scanOffset].guard(ev) == TRUE) )
             {
                // Mark the state we wish to move to...
                transTo = hsm->transitions[scanOffset].to;
@@ -329,7 +323,7 @@ HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
 
                // Note that we found something
                // printf("Found matching transition at line %d\n", scanOffset);
-               found = true;
+               found = TRUE;
 
                // Exit the do/while loop
                break;
@@ -339,58 +333,39 @@ HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
       }while(hsm->transitions[++scanOffset].ev == ev.ev);
 
       // Did we find a match?
-      if(found == true)
+      if(found == TRUE)
       {
 
-         // If this is not an internal transition, call exit functions up to lca
+         // If this is not an internal transition, call exit functions up to, but
+         //   not including the lca
          if(transTo != hsm->stateCount)
          {
 
             // compute lca between current state, and the state to move to...
             lca = findLca(hsm, hsm->currentState, transTo);
 
-            // validity check...            
-            if(lca == hsm->stateCount)
+            // move upward towards lca ancestor
+            while(hsm->currentState != lca)
             {
-               // NOTE:  Error already printed by findLca()
-               return HSM_NO_COMMON_ANCESTOR_FOUND;
-            }
-
-            // Before we change the current state, compare to see if it is
-            //   the computed lca.  We'll need this info later...
-            if(lca == hsm->currentState) movingFromLca = true;
-            else movingFromLca = false;
-
-            // move upward to lca ancestor
-            while(hsm->currentState != lca && hsm->currentState < hsm->stateCount)
-            {
-               // Run the exit funtion of our current state
-               if(hsm->states[hsm->currentState].exitFunc != NULL_EXIT_FUNC)
-                  hsm->states[hsm->currentState].exitFunc(ev);
+               // If the state we are transitioning to is in this line, don't execute the
+               //   exit function if this is a local transition...
+               if(hsm->currentState != transTo || localTrans == FALSE)
+               {
+                  // Run the exit funtion of our current state
+                  if(hsm->states[hsm->currentState].exitFunc != NULL_EXIT_FUNC)
+                     hsm->states[hsm->currentState].exitFunc(ev);
+               }
 
                // Move up...
                hsm->currentState = hsm->states[hsm->currentState].parent;
             }
 
             // Make sure we didn't hit an invalid state...
-            if(hsm->currentState >= hsm->stateCount)
+            if(hsm->currentState > hsm->stateCount)
             {
-               HSM_DPRINT("ERROR: Found invalid parent state reference during tree traversal");
+               HSM_DPRINT("ERROR: Found invalid parent state reference during tree traversal\n");
                return HSM_INVALID_STATE;
             }
-
-
-            // If the lca was our target, we need to run the exit and entry functions
-            //   if this was not a local transition...
-            if(hsm->currentState == transTo && localTrans == false)
-            {
-               if(hsm->states[hsm->currentState].exitFunc != NULL_EXIT_FUNC)
-                  hsm->states[hsm->currentState].exitFunc(ev);
-
-               if(hsm->states[hsm->currentState].entryFunc != NULL_ENTRY_FUNC)
-                  hsm->states[hsm->currentState].entryFunc(ev);
-            }
-
 
          }
 
@@ -402,41 +377,35 @@ HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
          // If this was not an internal transition...
          if(transTo != hsm->stateCount)
          {
-            
-            // If the lca was our source, we need to run the exit and entry functions
-            //   if this was not a local transition...
-            if(movingFromLca && localTrans == false)
-            {
-               if(hsm->states[hsm->currentState].exitFunc != NULL_EXIT_FUNC)
-                  hsm->states[hsm->currentState].exitFunc(ev);
-
-               if(hsm->states[hsm->currentState].entryFunc != NULL_ENTRY_FUNC)
-                  hsm->states[hsm->currentState].entryFunc(ev);
-
-            }
 
             // Move down the tree towards the target..
             do
             {
                // Find the child of the current node that is on the line of descent for the target state...
                hsm->currentState = findLineFromAToB(hsm, hsm->currentState, transTo);
-               
+
                // Validity check..
                if(hsm->currentState >= hsm->stateCount)
                {
-                  HSM_DPRINT("ERROR: Invalid state returned from findLineFromAToB()");
+                  HSM_DPRINT("ERROR: Invalid state returned from findLineFromAToB()\n");
                   return HSM_INVALID_STATE;
                }
 
-               // Run the entry function...
-               if(hsm->states[hsm->currentState].entryFunc != NULL_EXIT_FUNC)
-                  hsm->states[hsm->currentState].entryFunc(ev);
+               // If we are on the "transitionfrom state, don't execute 
+               //   entry function if this is a local transition...
+               if(hsm->currentState != hsm->transitions[scanOffset].from || localTrans == FALSE)
+               {
+                  // Run the entry function...
+                  if(hsm->states[hsm->currentState].entryFunc != NULL_EXIT_FUNC)
+                     hsm->states[hsm->currentState].entryFunc(ev);
+               }
 
             }while(hsm->currentState != transTo);
          }
 
+         // If we landed on a composite state, drill down....
          err = traverseCompositeState(hsm);
-         
+
          if(err != HSM_NO_ERROR)
             return err;
 
@@ -444,14 +413,14 @@ HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
 
       }
 
-      if(found == true) break;
+      if(found == TRUE) break;
 
       tempState = hsm->states[tempState].parent;
    }
 
-   if(found == false)
+   if(found == FALSE)
    {
-      HSM_DPRINT("WARNING: Handler not found");
+//      HSM_DPRINT("WARNING: Handler not found\n");
       return HSM_NO_EV_HANDLER_FOUND;
    }
 
@@ -463,7 +432,7 @@ HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
 //////////////////
 
 // Find the first line in the transition table that matches the given event
-//   Uses a binary search for quick access.  
+//   Uses a binary search for quick access.
 static uint16_t findIndexForEvent(const transDef_t *table, uint16_t tableSize, uint16_t ev )
 {
    return (findKey(table, ev, 0, tableSize - 1));
@@ -511,10 +480,10 @@ static uint16_t findLca(const HSM_Handle_t *hsm, uint16_t stateA, uint16_t state
 
       if(stateA >= hsm->stateCount || stateB >= hsm->stateCount) return hsm->stateCount;
 
-      aAncestor = stateA;
+      aAncestor = hsm->states[stateA].parent;
       do
       {
-         bAncestor = stateB;
+         bAncestor = hsm->states[stateB].parent;
          do
          {
 
@@ -530,7 +499,7 @@ static uint16_t findLca(const HSM_Handle_t *hsm, uint16_t stateA, uint16_t state
 
      // Ideally, since every state has been checked in the init function for
      //   validity and an upward path to the top state, we should never be here.
-     HSM_DPRINT("ERROR: No common ancestor found for states %s and %s", hsm->states[stateA].displayName, hsm->states[stateB].displayName);
+     HSM_DPRINT("ERROR: No common ancestor found for states %s and %s\n", hsm->states[stateA].displayName, hsm->states[stateB].displayName);
      return hsm->stateCount;
 }
 
@@ -539,7 +508,7 @@ static uint16_t findLineFromAToB(const HSM_Handle_t *hsm, uint16_t stateA, uint1
 {
    uint16_t walkingState = stateB;
 
-   while(hsm->states[walkingState].parent != stateA && hsm->states[walkingState].parent < hsm->stateCount)
+   while(hsm->states[walkingState].parent != stateA && hsm->states[walkingState].parent <= hsm->stateCount)
    {
       walkingState = hsm->states[walkingState].parent;
    }
@@ -555,20 +524,20 @@ static HSM_Error_t traverseCompositeState(HSM_Handle_t *hsm )
    // As long as there are substates, enter them and exeucte their entry function, if any
    while(hsm->states[hsm->currentState].pickerFunc != NULL_SUBSTATE_PICKER_FUNC)
    {
-      event_t junk = {0, NULL};
+      event_t junk = {0, 0};
       uint16_t test = hsm->states[hsm->currentState].pickerFunc(junk);
 
       // Verify valid state returned
       if(test >= hsm->stateCount)
       {
-         HSM_DPRINT("ERROR: Substate picker function defined for composite state %s, returned inavlid state %d", hsm->states[hsm->currentState].displayName, test);
+         HSM_DPRINT("ERROR: Substate picker function defined for composite state %s, returned inavlid state %d\n", hsm->states[hsm->currentState].displayName, test);
          return HSM_PICKER_RETURNED_INVALID_STATE;
       }
 
       // Verify returned state is actually a child of current state
       if(hsm->states[test].parent != hsm->currentState)
       {
-         HSM_DPRINT("ERROR: Substate picker function defined for composite state %s, returned state %s, which is not a child", hsm->states[hsm->currentState].displayName, hsm->states[test].displayName);
+         HSM_DPRINT("ERROR: Substate picker function defined for composite state %s, returned state %s, which is not a child\n", hsm->states[hsm->currentState].displayName, hsm->states[test].displayName);
          return HSM_PICKER_RETURNED_NON_CHILD;
       }
 
@@ -580,5 +549,6 @@ static HSM_Error_t traverseCompositeState(HSM_Handle_t *hsm )
          hsm->states[hsm->currentState].entryFunc(junk);
 
    }
-   
+   return HSM_NO_ERROR;
+
 }

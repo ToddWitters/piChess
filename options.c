@@ -5,6 +5,7 @@
 static void setDefaultOptions( options_t *options );
 static void validateOptions( options_t *options );
 
+options_t options;
 
 void loadOptions( options_t *options )
 {
@@ -19,7 +20,7 @@ void loadOptions( options_t *options )
 
 void saveOptions( const options_t *options )
 {
-   
+
 }
 
 static void setDefaultOptions( options_t *options )

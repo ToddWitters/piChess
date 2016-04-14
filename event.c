@@ -1,6 +1,8 @@
-#include "event.h"
+// #include "event.h"
+#include "hsm.h"
 #include "diag.h"
 #include "string.h"
+#include "event.h"
 
 #include <pthread.h>
 #include <semaphore.h>
@@ -9,7 +11,7 @@ typedef struct eventQueue_s
 {
     int             evPushIndex;
     int             evPopIndex;
-    eventData_t     evQueue[EVENT_QUEUE_SIZE];
+    event_t         evQueue[EVENT_QUEUE_SIZE];
     sem_t           sem;
     pthread_mutex_t mutex;
 
@@ -37,7 +39,7 @@ sem_t *getQueueSem(evQueueIndex_t indx)
    return &eventQueue[indx].sem;
 }
 
-void putEvent(evQueueIndex_t indx, eventData_t *evData)
+void putEvent(evQueueIndex_t indx, event_t *evData)
 {
 
    if(indx >= EVQ_TOTAL)
@@ -55,7 +57,7 @@ void putEvent(evQueueIndex_t indx, eventData_t *evData)
       pthread_mutex_unlock(&eventQueue[indx].mutex);
       return;
    }
-   memcpy(&eventQueue[indx].evQueue[eventQueue[indx].evPushIndex], evData, sizeof(eventData_t));
+   memcpy(&eventQueue[indx].evQueue[eventQueue[indx].evPushIndex], evData, sizeof(event_t));
 
    if(++eventQueue[indx].evPushIndex >= EVENT_QUEUE_SIZE) eventQueue[indx].evPushIndex = 0;
 
@@ -65,9 +67,9 @@ void putEvent(evQueueIndex_t indx, eventData_t *evData)
 
 }
 
-eventData_t *getEvent( evQueueIndex_t indx )
+event_t *getEvent( evQueueIndex_t indx )
 {
-   static eventData_t retValue;
+   static event_t retValue;
 
    if(indx >= EVQ_TOTAL)
    {
@@ -83,7 +85,7 @@ eventData_t *getEvent( evQueueIndex_t indx )
       return NULL;
    }
 
-   memcpy(&retValue, &eventQueue[indx].evQueue[eventQueue[indx].evPopIndex], sizeof(eventData_t));
+   memcpy(&retValue, &eventQueue[indx].evQueue[eventQueue[indx].evPopIndex], sizeof(event_t));
 
    if(++eventQueue[indx].evPopIndex >= EVENT_QUEUE_SIZE) eventQueue[indx].evPopIndex = 0;
 

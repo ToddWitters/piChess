@@ -5,8 +5,11 @@
 #include "i2c.h"
 #include "gpio.h"
 #include "event.h"
+#include "hsm.h"
 #include "bcm2835.h"
 #include "options.h"
+#include "hsm.h"
+#include "hsmDefs.h"
 
 #include <string.h>
 #include <pthread.h>
@@ -35,28 +38,6 @@
 //    1  2  3  4  5  6  7  8
 
 // For diagnostics...
-#if 0
-static const char *switchStateText[16] =
-{
-   "CENTER",
-   "RIGHT",
-   "LEFT",
-   "ERROR: RIGHT/LEFT",
-   "DOWN",
-   "DOWN RIGHT",
-   "DOWN LEFT",
-   "ERROR: DOWN/LEFT/RIGHT",
-   "UP",
-   "UP RIGHT",
-   "UP LEFT",
-   "ERROR: UP/RIGHT/LEFT",
-   "ERROR: UP/DOWN",
-   "ERROR: UP/DOWN/RIGHT",
-   "ERROR: UP/DOWN/LEFT",
-   "ERROR: UP/DOWN/LEFT/RIGHT"
-};
-#endif
-
 static const buttonPos_t switchStateTable[16] =
 {
    POS_CENTER,    // 0000
@@ -119,6 +100,9 @@ void switchInit( void )
 {
    // Create a mutex to block data access from multiple threads.
    pthread_mutex_init(&Switch_dataMutex, NULL);
+
+   // Zero all switch counters
+   memset(debounceCounters, 0x00, sizeof(debounceCounters));
 }
 
 // TBD should we just always enable this at init?
@@ -155,6 +139,7 @@ void ResumeSwitchPoll( void )
     pthread_mutex_lock(&Switch_dataMutex);
 
     DPRINT("Resuming switch polling\n");
+    
     // reset counters since we dont know how long we have been shut off
     memset(debounceCounters, 0x00, sizeof(debounceCounters));
     pollingOn = TRUE;
@@ -169,11 +154,11 @@ uint64_t GetSwitchStates ( void )
 
     pthread_mutex_lock(&Switch_dataMutex);
 
-    retValue = debouncedState;
+    retValue = ~debouncedState;
 
     pthread_mutex_unlock(&Switch_dataMutex);
 
-    return retValue;
+    return reverseBitOrder64(retValue);
 }
 
 // Called periodically from timer task
@@ -345,7 +330,7 @@ static uint8_t checkRow(uint8_t row, uint8_t intPin, uint8_t portAddress, uint8_
 // If a reed switch has changed states, handle it here...
 static void switchChanged(int sq, bool_t state)
 {
-   eventData_t evnt;
+   event_t evnt;
 
    if(state == FALSE)
    {
@@ -356,7 +341,7 @@ static void switchChanged(int sq, bool_t state)
       evnt.ev = EV_PIECE_LIFT;
    }
 
-   evnt.param = sq;
+   evnt.data = sq;
    putEvent(EVQ_EVENT_MANAGER, &evnt);
 
 }
@@ -367,7 +352,7 @@ static void switchChanged(int sq, bool_t state)
 static void buttonDebounce (uint8_t switchData)
 {
    // Used below when something changes.
-   eventData_t evnt;
+   event_t evnt;
 
    static buttonPos_t posLastState      = POS_CENTER;
    static buttonPos_t posDebouncedState = POS_CENTER;
@@ -392,7 +377,7 @@ static void buttonDebounce (uint8_t switchData)
 
          // Populate the event data
          evnt.ev    = EV_BUTTON_POS;
-         evnt.param = posDebouncedState;
+         evnt.data = posDebouncedState;
 
          // Show the new position
          // DPRINT("Nav switch %s\n", switchStateText[switchData & 0x0F]);
@@ -415,7 +400,7 @@ static void buttonDebounce (uint8_t switchData)
 
          // Populate the event data
          evnt.ev    = EV_BUTTON_STATE;
-         evnt.param = bDebouncedState;
+         evnt.data = bDebouncedState;
 
          // DPRINT("Nav switch %s\n", ( (bSampledState == B_RELEASED) ? "RELEASED" : "PRESSED") );
 

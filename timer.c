@@ -3,6 +3,8 @@
  */
 
 #include "timer.h"
+#include "hsm.h"
+#include "hsmDefs.h"
 #include "event.h"
 #include "diag.h"
 #include "switch.h"
@@ -83,10 +85,10 @@ static void timerTic( void )
       {
          if(--timerData[i].val == 0)
          {
-            eventData_t eventData;
+            event_t eventData;
 
-            eventData.ev     = EV_TIMER;
-            eventData.param  = i;
+            eventData.ev     = timerData[i].ev;
+            eventData.data   = 0;
 
             putEvent(EVQ_EVENT_MANAGER, &eventData);
 
@@ -123,7 +125,7 @@ static void timersignalhandler()
 }
 
 // Pass in time (in ms)
-timerErr_t timerStart( timerRef_t id, uint32_t val, uint32_t rel)
+timerErr_t timerStart( timerRef_t id, uint32_t val, uint32_t rel, uint16_t ev)
 {
 
    if(id > TMR_TOTAL_TIMERS)
@@ -137,6 +139,7 @@ timerErr_t timerStart( timerRef_t id, uint32_t val, uint32_t rel)
    // Ensure anything less than the tic interval gets at least 1 tic
    timerData[id].val = ((val / MS_PER_TIC) + 1);
    timerData[id].rel = ((rel / MS_PER_TIC));
+   timerData[id].ev  = ev;
 
    pthread_mutex_unlock(&timerDataMutex);
 

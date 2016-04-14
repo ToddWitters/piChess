@@ -1,19 +1,30 @@
 #ifndef HSM_DEFS_H
 #define HSM_DEFS_H
 
+extern stateDef_t myStateDef[];
+extern transDef_t myTransDef[];
+
+extern const uint16_t transDefCount;
+
 typedef enum stateId_e
 {
-   ST_TOP,                // This must be the top-most state
-     ST_SPLASH_SCREEN,
-     ST_MAIN_MENU,
-     ST_IN_GAME,
-       ST_PLAYER_MOVE,
-       ST_COMPUTER_MOVE,
-       ST_MAKE_COMP_MOVE,
-       ST_IN_GAME_MENU,
-     ST_GAME_CONCLUSION,
-     ST_INIT_POS_SETUP,
-     ST_CUST_POS_SETUP,
+   ST_TOP,                         // Top-most containing state
+     ST_SPLASH_SCREEN,             // Displaying splash screen
+     ST_MENUS,                     // In one of the top menus 
+       ST_MAINMENU,                // Top-most menu
+       ST_DIAGMENU,                // Diagnostic menu
+     ST_INIT_POS_SETUP,            // Set up initial position
+     ST_IN_GAME,                   // A game is in progress
+       ST_PLAYING_GAME,            // Actively making moves (or thinking)
+         ST_PLAYER_MOVE,           // Player is moving
+         ST_COMPUTER_MOVE,         // Computer is thinking
+         ST_MOVE_FOR_COMPUTER,     // Player is making computer's chosen move 
+/*
+       ST_GAMEMENU,                // Navigating in-game menu
+       ST_FIXING_BOARD,            // Player(s) are being guided to fix the board position
+       ST_EXITING_GAME             // Game has concluded, waiting for confirmation
+*/
+     ST_DIAG_SENSORS,
 
    ST_COUNT,
    ST_NONE = ST_COUNT
@@ -23,29 +34,25 @@ typedef enum stateId_e
 // Events
 typedef enum eventId_e
 {
-
-   // TIME BASED
-   EV_TIMEOUT = 1,         // NOTE:  Zero is reserved value passed to entry functions
-                           //        on initialization...
-   EV_MOVE_CLOCK_TICK,
-
-   // ENGINE
-   EV_ENGINE_PICK,
+   EV_RESERVED, // NOTE:  Zero is reserved value passed to entry functions on init
+   EV_NULL = EV_RESERVED,
 
    // BUTTONS
    EV_BUTTON_STATE,
    EV_BUTTON_POS,
 
-   // MENU ACTIONS
-   EV_START_GAME,
-
    // PIECE MOVEMENT
    EV_PIECE_DROP,
    EV_PIECE_LIFT,
-   EV_PLAYER_MOVED,
-   EV_PLAYER_COMP_MOVE_DONE,
 
-   EV_GAME_END,
+   // MENU SELECTIONS
+   EV_START_SENSOR_DIAG,
+   EV_START_INIT_POS_SETUP,
+   EV_GOTO_MAIN_MENU,
+   EV_GOTO_DIAG_MENU,
+   
+   // TIMER EVENTS
+   EV_MOVE_CLOCK_TIC,
 
 }eventId_t;
 

@@ -1,16 +1,14 @@
 #include "stdint.h"
+#include "types.h"
 
 #ifndef HSM_H
 #define HSM_H
-
-// Create a boolean type
-typedef enum bool_e {false, true} bool_t;
 
 // Event type
 typedef struct event_e
 {
    uint16_t     ev;
-   void        *data;
+   int          data;
 }event_t;
 
 // Typedefs for the various functions that are called
@@ -119,7 +117,7 @@ HSM_Error_t HSM_init( HSM_Handle_t *hsm );
 HSM_Error_t HSM_destroy( HSM_Handle_t *hsm);
 
 // Process a new event and return the resulting state
-HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t *ev);
+HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev);
 
 
 

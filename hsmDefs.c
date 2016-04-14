@@ -2,89 +2,56 @@
 #include "hsmDefs.h"
 #include "stdio.h"
 
+#include "st_diagMenu.h"
+#include "st_diagSwitch.h"
+#include "st_mainMenu.h"
+#include "st_menus.h"
+#include "st_top.h"
+#include "st_splashScreen.h"
+#include "st_menus.h"
+#include "st_initPosSetup.h"
+#include "st_inGame.h"
+#include "st_playingGame.h"
+#include "util.h"
+
+// Used for diagnostics only
 const char *eventName[] =
 {
    "",
-   "Timeout",
-   "MoveClockTick",
-   "EnginePick",
-   "ButtonStateChange",
-   "ButtonPositionChange",
-   "StartGame",
-   "PieceDrop",
-   "PieceLift",
-   "PlayerMoved",
-   "PlayerComputerMoveDone",
-   "GameEnd"
+   "buttonState",
+   "buttonPos",
+   "pieceDrop",
+   "pieceLift",
+   "startSwitchDiag",
+   "startInitSetup",
+   "gotoMainMenu",
+   "gotoDiagMenu"
+   "moveClockTick"
 };
 
-
-///////////////////
-// USER DEFINITION OF STATE MACHINE
-///////////////////
-
-// FUNCTION PROTOTYPES
-
-// entry Functions
-// <stateName>Entry
-extern void topEntry( event_t ev );
-extern void splashScreenEntry( event_t ev );
-extern void inGameEntry( event_t ev );
-extern void mainMenuEntry( event_t ev);
-extern void playerMoveEntry( event_t ev);
-extern void computerMoveEntry( event_t ev);
-
-// exit Functions
-// <stateName>Exit
-extern void splashScreenExit( event_t ev );
-extern void mainMenuExit( event_t ev);
-
-
-// pickerFunctions
-// <stateName>PickSubstate
-extern uint16_t topPickSubstate( event_t ev);
-extern uint16_t inGamePickSubstate( event_t ev);
-
-// action functions
-// <stateName><eventName>Action
-extern void clearScreen( event_t ev );
-extern void processDropInGame( event_t ev);
-extern void processMenuPress( event_t ev);
-extern void processLiftInGame( event_t ev);
-extern void pickUnderPromote( event_t ev);
-extern void startGame( event_t ev);
-extern void processEngineMove( event_t ev);
-
-// guard funtions
-// <stateName><eventName>Guard
-extern bool_t whiteIsHuman( event_t ev );
-extern bool_t isStatePress( event_t ev );
-extern bool_t canUnderPromote( event_t ev);
-extern bool_t nextMoveIsPlayer( event_t ev);
-
-
-// State definitions...
-
-// This array must be the same size as the enum above an must
+// This array must be the same size as the state enum in hsmDefs.h
 //   define the states in the same order
 stateDef_t myStateDef[] =
 {
 
-//   displayName       parent      substatePicker              entry               exit
-   { "top",            ST_NONE,    topPickSubstate,            topEntry,           NULL_EXIT_FUNC    }, // ST_TOP
-   { "splashScreen",   ST_TOP,     NULL_SUBSTATE_PICKER_FUNC,  splashScreenEntry,  splashScreenExit  }, // ST_SPLASH_SCREEN
-   { "mainMenu",       ST_TOP,     NULL_SUBSTATE_PICKER_FUNC,  mainMenuEntry,      mainMenuExit      }, // ST_MAIN_MENU
-   { "inGame",         ST_TOP,     inGamePickSubstate,         inGameEntry,        NULL_EXIT_FUNC    }, // ST_IN_GAME
-   { "playerMove",     ST_IN_GAME, NULL_SUBSTATE_PICKER_FUNC,  playerMoveEntry,    NULL_EXIT_FUNC    }, // ST_PLAYER_MOVE
-   { "computerMove",   ST_IN_GAME, NULL_SUBSTATE_PICKER_FUNC,  computerMoveEntry,  NULL_EXIT_FUNC    }, // ST_COMPUTER_MOVE
-   { "makeCompMove",   ST_IN_GAME, NULL_SUBSTATE_PICKER_FUNC,  NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    }, // ST_MAKE_COMP_MOVE
-   { "inGameMenu",     ST_IN_GAME, NULL_SUBSTATE_PICKER_FUNC,  NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    }, // ST_IN_GAME_MENU
-   { "gameConclusion", ST_TOP,     NULL_SUBSTATE_PICKER_FUNC,  NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    }, // ST_GAME_CONCLUSION
-   { "initPosSetup",   ST_TOP,     NULL_SUBSTATE_PICKER_FUNC,  NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    }, // ST_INIT_POS_SETUP
-   { "custPosSetup",   ST_TOP,     NULL_SUBSTATE_PICKER_FUNC,  NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    }, // ST_CUST_POS_SETUP
-
-//   { "stateName",      ST_<PARENT>,statename_SUBSTATE_PICKER,  statename_ENTRY,    statename_EXIT    },
-
+//   displayName        parent            substatePicker              entry               exit
+   { "top",             ST_NONE,          topPickSubstate,            topEntry,           NULL_EXIT_FUNC    },
+   { "splashScreen",    ST_TOP,           NULL_SUBSTATE_PICKER_FUNC,  splashScreenEntry,  splashScreenExit  },
+   { "menus",           ST_TOP,           NULL_SUBSTATE_PICKER_FUNC,  NULL_ENTRY_FUNC,    menusExit         },
+   { "mainMenu",        ST_MENUS,         NULL_SUBSTATE_PICKER_FUNC,  mainMenuEntry,      mainMenuExit      },
+   { "diagMenu",        ST_MENUS,         NULL_SUBSTATE_PICKER_FUNC,  diagMenuEntry,      diagMenuExit      },
+   { "initPosSetup",    ST_TOP,           NULL_SUBSTATE_PICKER_FUNC,  initPosSetupEntry,  initPosSetupExit  },
+   { "inGame",          ST_TOP,           inGamePickSubstate,         inGameEntry,        inGameExit        },
+   { "playingGame",     ST_IN_GAME,       playingGamePickSubstate,    playingGameEntry,   playingGameExit   },
+   { "playerMove",      ST_PLAYING_GAME,  NULL_SUBSTATE_PICKER_FUNC,   NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    },
+   { "computerMove",    ST_PLAYING_GAME,  NULL_SUBSTATE_PICKER_FUNC,   NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    },
+   { "moveForComputer", ST_PLAYING_GAME,  NULL_SUBSTATE_PICKER_FUNC ,  NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    },
+/*
+   { "gameMenu",        ST_IN_GAME,       NULL_SUBSTATE_PICKER_FUNC   NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    },
+   { "fixingBoard",     ST_IN_GAME,       NULL_SUBSTATE_PICKER_FUNC   NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    },
+   { "exitingGame",     ST_IN_GAME,       NULL_SUBSTATE_PICKER_FUNC   NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    },
+*/
+   { "diagSensors",     ST_TOP,           NULL_SUBSTATE_PICKER_FUNC,  diagSwitchEntry,    diagSwitchExit    },
 };
 
 // Transition definitions...
@@ -96,131 +63,30 @@ stateDef_t myStateDef[] =
 
 transDef_t myTransDef[] =
 {
-//   event            from               to                  guard              action             local?
-   { EV_TIMEOUT,      ST_SPLASH_SCREEN,  ST_MAIN_MENU,       NULL_GUARD_FUNC,   NULL_ACTION_FUNC,  false },
+// event                        from               to                  guard             action                     local?
+   { EV_BUTTON_STATE,           ST_SPLASH_SCREEN,  ST_MAINMENU,        isStatePress,     NULL_ACTION_FUNC,          FALSE },
+   { EV_BUTTON_STATE,           ST_DIAG_SENSORS,   ST_MAINMENU,        isStatePress,     NULL_ACTION_FUNC,          FALSE },
+   { EV_BUTTON_STATE,           ST_MENUS,          ST_NONE,            isStatePress,     menus_buttonState_pressed, FALSE },
+   { EV_BUTTON_STATE,           ST_INIT_POS_SETUP, ST_MAINMENU,        isStatePress,     NULL_ACTION_FUNC,          FALSE },
 
-   { EV_ENGINE_PICK,  ST_IN_GAME,        ST_NONE,            NULL_GUARD_FUNC,   processEngineMove, false },
+   { EV_BUTTON_POS,             ST_MENUS,          ST_NONE,            NULL_GUARD_FUNC,  menus_buttonPos,           FALSE },
 
-//   { EV_BUTTON_STATE, ST_MAIN_MENU,      ST_NONE,            isStatePress,      processMenuPress,  false },
-   { EV_BUTTON_STATE, ST_MAIN_MENU,      ST_IN_GAME,         isStatePress,      processMenuPress,  false },
-   { EV_BUTTON_STATE, ST_IN_GAME_MENU,   ST_NONE,            isStatePress,      processMenuPress,  false },
-   { EV_BUTTON_STATE, ST_SPLASH_SCREEN,  ST_MAIN_MENU,       isStatePress,      NULL_ACTION_FUNC,  false },
-   { EV_BUTTON_STATE, ST_PLAYER_MOVE,    ST_NONE,            canUnderPromote,   pickUnderPromote,  false },
-   { EV_BUTTON_STATE, ST_PLAYER_MOVE,    ST_IN_GAME_MENU,    isStatePress,      NULL_ACTION_FUNC,  false },
+   { EV_PIECE_DROP,             ST_DIAG_SENSORS,   ST_NONE,            NULL_GUARD_FUNC,  diagSwitch_boardChange,    FALSE },
+   { EV_PIECE_DROP,             ST_INIT_POS_SETUP, ST_NONE,            NULL_GUARD_FUNC,  initPosSetup_boardChange,  FALSE },
 
-   { EV_START_GAME,   ST_MAIN_MENU,      ST_IN_GAME,         whiteIsHuman,      startGame,         false },
-   { EV_START_GAME,   ST_MAIN_MENU,      ST_COMPUTER_MOVE,   NULL_GUARD_FUNC,   startGame,         false },
+   { EV_PIECE_LIFT,             ST_DIAG_SENSORS,   ST_NONE,            NULL_GUARD_FUNC,  diagSwitch_boardChange,    FALSE },
+   { EV_PIECE_LIFT,             ST_INIT_POS_SETUP, ST_NONE,            NULL_GUARD_FUNC,  initPosSetup_boardChange,  FALSE },
 
-   { EV_PIECE_DROP,   ST_IN_GAME,        ST_NONE,            NULL_GUARD_FUNC,   processDropInGame, false },
+   { EV_START_SENSOR_DIAG,      ST_DIAGMENU,       ST_DIAG_SENSORS,    NULL_GUARD_FUNC,  NULL_ACTION_FUNC,          FALSE },
 
-   { EV_PIECE_LIFT,   ST_IN_GAME,        ST_NONE,            NULL_GUARD_FUNC,   processLiftInGame, false },
+   { EV_START_INIT_POS_SETUP,   ST_MAINMENU,       ST_INIT_POS_SETUP,  NULL_GUARD_FUNC,  NULL_ACTION_FUNC,          FALSE },
 
-   { EV_PLAYER_MOVED, ST_PLAYER_MOVE,    ST_PLAYER_MOVE,     nextMoveIsPlayer,  NULL_ACTION_FUNC,  false },
-   { EV_PLAYER_MOVED, ST_PLAYER_MOVE,    ST_COMPUTER_MOVE,   NULL_GUARD_FUNC,   NULL_ACTION_FUNC,  false },
+   { EV_GOTO_MAIN_MENU,         ST_TOP,            ST_MAINMENU,        NULL_GUARD_FUNC,  NULL_ACTION_FUNC,          TRUE  },
 
-   { EV_GAME_END,     ST_PLAYER_MOVE,    ST_GAME_CONCLUSION, NULL_GUARD_FUNC,   NULL_ACTION_FUNC,  false },
-   { EV_GAME_END,     ST_MAKE_COMP_MOVE, ST_GAME_CONCLUSION, NULL_GUARD_FUNC,   NULL_ACTION_FUNC,  false },
-
-   // { EV_EVNT, ST_FROM, ST_TO, fromState_evnt_GUARD_xxx, fromState_evnt_ACTION_xxx, false},
-
+   { EV_GOTO_DIAG_MENU,         ST_MAINMENU,       ST_DIAGMENU,        NULL_GUARD_FUNC,  NULL_ACTION_FUNC,          FALSE }, 
+   
+   { EV_MOVE_CLOCK_TIC,         ST_IN_GAME,        ST_NONE,            NULL_GUARD_FUNC,  inGame_moveClockTick,      FALSE },
+   
 };
 
-#define ENTRY printf("    -> Entering user function %s\n", __FUNCTION__);
-#define EXIT  printf("    -> Leaving %s\n", __FUNCTION__);
-
-
-void topEntry( event_t ev )
-{
-   ENTRY;
-}
-
-void splashScreenEntry( event_t ev )
-{
-   ENTRY;
-}
-void inGameEntry( event_t ev )
-{
-   ENTRY;
-}
-void splashScreenExit( event_t ev )
-{
-   ENTRY;
-}
-uint16_t topPickSubstate( event_t ev)
-{
-   ENTRY;
-   return ST_SPLASH_SCREEN;
-}
-uint16_t inGamePickSubstate( event_t ev)
-{
-   ENTRY;
-   return ST_PLAYER_MOVE;
-}
-void clearScreen( event_t ev )
-{
-   ENTRY;
-}
-void processDropInGame( event_t ev)
-{
-   ENTRY;
-}
-void processMenuPress( event_t ev)
-{
-   ENTRY;
-}
-void processLiftInGame( event_t ev)
-{
-   ENTRY;
-}
-void pickUnderPromote( event_t ev)
-{
-   ENTRY;
-}
-void startGame( event_t ev)
-{
-   ENTRY;
-}
-void processEngineMove( event_t ev)
-{
-   ENTRY;
-}
-bool_t whiteIsHuman( event_t ev )
-{
-   ENTRY;
-   return false;
-}
-bool_t isStatePress( event_t ev )
-{
-   ENTRY;
-   return true;
-}
-bool_t canUnderPromote( event_t ev)
-{
-   ENTRY;
-   return true;
-}
-bool_t nextMoveIsPlayer( event_t ev)
-{
-   ENTRY;
-   return true;
-}
-
-void mainMenuEntry( event_t ev)
-{
-   ENTRY;
-}
-
-void mainMenuExit( event_t ev)
-{
-   ENTRY;
-}
-
-void playerMoveEntry( event_t ev)
-{
-   ENTRY;
-}
-
-void computerMoveEntry( event_t ev)
-{
-   ENTRY;
-}
+const uint16_t transDefCount = (sizeof(myTransDef)/sizeof(myTransDef[0]));

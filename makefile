@@ -11,8 +11,9 @@ sources = bcm2835.c      \
 			 diag.c         \
 			 display.c      \
           event.c        \
-			 eventManager.c \
 			 gpio.c         \
+			 hsm.c          \
+			 hsmDefs.c      \
 			 i2c.c          \
 			 led.c          \
 			 main.c         \
@@ -21,10 +22,19 @@ sources = bcm2835.c      \
 		    options.c      \
 			 sfInterface.c  \
 			 specChars.c    \
+			 st_diagMenu.c  \
+			 st_diagSwitch.c \
+			 st_mainMenu.c  \
+			 st_splashScreen.c \
+			 st_menus.c     \
+			 st_top.c       \
+			 st_initPosSetup.c \
+			 st_inGame.c  \
+			 st_playingGame.c \
 			 switch.c       \
 			 timer.c        \
 			 util.c         \
-			 zobrist.c 
+			 zobrist.c
 
 objects = $(sources:.c=.o)
 
@@ -44,5 +54,3 @@ include $(sources:.c=.d)
 
 clean:
 	rm piChess $(objects)
-
-
