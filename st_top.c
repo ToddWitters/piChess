@@ -12,6 +12,7 @@
 #include "led.h"
 #include "switch.h"
 #include "event.h"
+#include "st_inGame.h"
 
 
 void topEntry( event_t ev )
@@ -43,6 +44,9 @@ void topEntry( event_t ev )
 
       // Init the event handler
       initEvent();
+
+      // Default to starting position...
+      inGame_SetPosition( NULL );
 
       initDone = TRUE;
    }

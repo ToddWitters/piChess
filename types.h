@@ -85,10 +85,10 @@ typedef struct move_s
 	unsigned short promote          :3; // piece pawn promotes to (ignored unless PAWN moves into promoting row)
 }move_t;
 
-typedef enum gameDisposition_e 
+typedef enum gameDisposition_e
 {
    GAME_INVALID,       // Invalid position
-   GAME_IN_PROGRESS,   // Valid position with available moves
+   GAME_PLAYABLE,      // Valid position with available moves
    GAME_AT_CHECKMATE,  // Side to move in check with no legal moves
    GAME_AT_STALEMATE   // Size to move not in check with no legal moves
 }gameDisposition_t;
@@ -119,9 +119,9 @@ typedef struct game_s
 
     // TRUE for chess960 games
     bool_t chess960;
-    
-    gameDisposition_t disposition; 
-    
+
+    gameDisposition_t disposition;
+
 }game_t;
 
 typedef enum boardErr_e
@@ -164,7 +164,12 @@ typedef struct moveList_s
 
 }moveList_t;
 
-
+typedef enum endReason_s
+{
+   GAME_END_CHECKMATE,
+   GAME_END_STALEMATE,
+   GAME_END_ABORT
+}endReason_t;
 
 
 

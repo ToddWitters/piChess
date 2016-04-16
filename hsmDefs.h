@@ -23,8 +23,9 @@ typedef enum stateId_e
 /*
        ST_GAMEMENU,                // Navigating in-game menu
        ST_FIXING_BOARD,            // Player(s) are being guided to fix the board position
-       ST_EXITING_GAME             // Game has concluded, waiting for confirmation
 */
+       ST_EXITING_GAME,             // Game has concluded, waiting for confirmation
+
      ST_DIAG_SENSORS,
 
    ST_COUNT,
@@ -52,7 +53,12 @@ typedef enum eventId_e
    EV_GOTO_MAIN_MENU,
    EV_GOTO_DIAG_MENU,
    EV_GOTO_OPTION_MENU,
-
+   EV_GOTO_GAME,
+   EV_GOTO_PLAYING_GAME,
+   
+   // 
+   EV_GAME_DONE,
+   
    // TIMER EVENTS
    EV_MOVE_CLOCK_TIC,
 

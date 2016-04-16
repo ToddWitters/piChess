@@ -18,9 +18,9 @@ void SF_initEngine( void )
    // Look into:
    //    dup2 - map stdin/stdout between processes to allow printf/scanf
    //    poll - blocking call on data available at stdin
-   
+
    // Start Stockfish, pipe output to sfOutput.txt
-   sfPipe = popen("stockfish > sfOutput.txt", "w");
+   sfPipe = popen("./stockfish > sfOutput.txt", "w");
 
    // Verify pipe was successfull.
    if(sfPipe == NULL)

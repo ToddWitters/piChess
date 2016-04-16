@@ -29,7 +29,7 @@ static void setDefaultOptions( options_t *options )
    DPRINT("Setting all options to their default values\n");
 
    options->game.white        = PLAYER_HUMAN;
-   options->game.black        = PLAYER_COMPUTER;
+   options->game.black        = PLAYER_HUMAN;
    options->game.whiteTime    = 3000; // in 0.1 second steps...
    options->game.blackTime    = 3000; // in 0.1 second steps...
    options->game.whiteTimeInc = 20;

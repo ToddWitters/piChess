@@ -28,3 +28,5 @@ void addPiece(board_t *b, U8 sq, piece_t p, color_t c);
 #define POSITION_HISTORY_SIZE 200
 extern U64 positionHistory[POSITION_HISTORY_SIZE];
 extern int positionIndex;
+
+extern const char *startString;
