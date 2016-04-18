@@ -1632,11 +1632,7 @@ static void addMovePromote(int from, int to, move_t *moveList)
 
         moveList[moveIndex].from = from;
         moveList[moveIndex].to   = to;
-        moveList[moveIndex++].promote = KNIGHT;
-
-        moveList[moveIndex].from = from;
-        moveList[moveIndex].to   = to;
-        moveList[moveIndex++].promote = BISHOP;
+        moveList[moveIndex++].promote = QUEEN;
 
         moveList[moveIndex].from = from;
         moveList[moveIndex].to   = to;
@@ -1644,7 +1640,12 @@ static void addMovePromote(int from, int to, move_t *moveList)
 
         moveList[moveIndex].from = from;
         moveList[moveIndex].to   = to;
-        moveList[moveIndex++].promote = QUEEN;
+        moveList[moveIndex++].promote = BISHOP;
+
+        moveList[moveIndex].from = from;
+        moveList[moveIndex].to   = to;
+        moveList[moveIndex++].promote = KNIGHT;
+
     }
     else
     {

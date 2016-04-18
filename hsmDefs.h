@@ -20,8 +20,8 @@ typedef enum stateId_e
          ST_PLAYER_MOVE,           // Player is moving
          ST_COMPUTER_MOVE,         // Computer is thinking
          ST_MOVE_FOR_COMPUTER,     // Player is making computer's chosen move
-/*
        ST_GAMEMENU,                // Navigating in-game menu
+/*
        ST_FIXING_BOARD,            // Player(s) are being guided to fix the board position
 */
        ST_EXITING_GAME,             // Game has concluded, waiting for confirmation
@@ -55,10 +55,11 @@ typedef enum eventId_e
    EV_GOTO_OPTION_MENU,
    EV_GOTO_GAME,
    EV_GOTO_PLAYING_GAME,
-   
-   // 
+   EV_GOTO_GAMEMENU,
+
+   //
    EV_GAME_DONE,
-   
+
    // TIMER EVENTS
    EV_MOVE_CLOCK_TIC,
 

@@ -13,7 +13,7 @@
 #include "event.h"
 #include "led.h"
 #include "st_playingGame.h"
-
+#include "st_inGame.h"
 
 #include <stddef.h>
 
@@ -48,8 +48,6 @@ static uint64_t occupiedSquares, dirtySquares;
 void playerMoveEntry( event_t ev )
 {
 
-   event_t dummy;
-
    displayClear();
    if(game.brd.toMove == WHITE)
    {
@@ -57,8 +55,11 @@ void playerMoveEntry( event_t ev )
    }
    else
    {
-      displayWriteLine(0, "Black's Move", TRUE);            
+      displayWriteLine(0, "Black's Move", TRUE);
    }
+
+   inGame_udpateClocks();
+
 
    // Find all the legal moves from here
    totalLegalMoves = findMoves(&game.brd, legalMoves);
@@ -84,7 +85,10 @@ void playerMoves_boardChange( event_t ev)
    moveVal_t  moveProgress;
 
    occupiedSquares = GetSwitchStates();
-   dirtySquares    |= squareMask[ev.data];
+
+   dirtySquares |= squareMask[ev.data];
+
+   dirtySquares &= (game.brd.colors[WHITE] | game.brd.colors[BLACK] | occupiedSquares);
 
    if(occupiedSquares == (game.brd.colors[WHITE] | game.brd.colors[BLACK])) dirtySquares = 0;
 

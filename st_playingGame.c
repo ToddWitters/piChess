@@ -20,7 +20,6 @@ bool_t computerMovePending = FALSE;
 
 void playingGameEntry( event_t ev )
 {
-
 }
 
 void playingGameExit( event_t ev )

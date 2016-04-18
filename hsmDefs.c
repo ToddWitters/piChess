@@ -17,6 +17,7 @@
 #include "st_computerMove.h"
 #include "st_moveForComputer.h"
 #include "st_exitingGame.h"
+#include "st_inGameMenu.h"
 #include "util.h"
 
 // Used for diagnostics only
@@ -51,9 +52,9 @@ stateDef_t myStateDef[] =
    { "playingGame",     ST_IN_GAME,       playingGamePickSubstate,    playingGameEntry,   playingGameExit   },
    { "playerMove",      ST_PLAYING_GAME,  NULL_SUBSTATE_PICKER_FUNC,  playerMoveEntry,    playerMoveExit    },
    { "computerMove",    ST_PLAYING_GAME,  NULL_SUBSTATE_PICKER_FUNC,  computerMoveEntry,  computerMoveExit  },
-   { "moveForComputer", ST_PLAYING_GAME,  NULL_SUBSTATE_PICKER_FUNC , moveForComputerEntry, moveForComputerExit },
+   { "moveForComputer", ST_PLAYING_GAME,  NULL_SUBSTATE_PICKER_FUNC,  moveForComputerEntry, moveForComputerExit },
+   { "gameMenu",        ST_IN_GAME,       NULL_SUBSTATE_PICKER_FUNC,  inGameMenuEntry,    inGameMenuExit    },
 /*
-   { "gameMenu",        ST_IN_GAME,       NULL_SUBSTATE_PICKER_FUNC   NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    },
    { "fixingBoard",     ST_IN_GAME,       NULL_SUBSTATE_PICKER_FUNC   NULL_ENTRY_FUNC,    NULL_EXIT_FUNC    },
 */
    { "exitingGame",     ST_IN_GAME,       NULL_SUBSTATE_PICKER_FUNC,  exitingGameEntry,   exitingGameExit    },
@@ -73,10 +74,12 @@ transDef_t myTransDef[] =
    { EV_BUTTON_STATE,           ST_SPLASH_SCREEN,  ST_MAINMENU,        isStatePress,     NULL_ACTION_FUNC,          FALSE },
    { EV_BUTTON_STATE,           ST_DIAG_SENSORS,   ST_MAINMENU,        isStatePress,     NULL_ACTION_FUNC,          FALSE },
    { EV_BUTTON_STATE,           ST_MENUS,          ST_NONE,            isStatePress,     menus_buttonState_pressed, FALSE },
+   { EV_BUTTON_STATE,           ST_GAMEMENU,       ST_NONE,            isStatePress,     menus_buttonState_pressed, FALSE },
    { EV_BUTTON_STATE,           ST_INIT_POS_SETUP, ST_MAINMENU,        isStatePress,     NULL_ACTION_FUNC,          FALSE },
    { EV_BUTTON_STATE,           ST_EXITING_GAME,   ST_MAINMENU,        isStatePress,     NULL_ACTION_FUNC,          FALSE },
-
+   { EV_BUTTON_STATE,           ST_PLAYING_GAME,   ST_GAMEMENU,        isStatePress,     NULL_ACTION_FUNC,          FALSE },
    { EV_BUTTON_POS,             ST_MENUS,          ST_NONE,            NULL_GUARD_FUNC,  menus_buttonPos,           FALSE },
+   { EV_BUTTON_POS,             ST_GAMEMENU,       ST_NONE,            NULL_GUARD_FUNC,  menus_buttonPos,           FALSE },
 
    { EV_PIECE_DROP,             ST_DIAG_SENSORS,   ST_NONE,            NULL_GUARD_FUNC,  diagSwitch_boardChange,    FALSE },
    { EV_PIECE_DROP,             ST_INIT_POS_SETUP, ST_NONE,            NULL_GUARD_FUNC,  initPosSetup_boardChange,  FALSE },
@@ -99,6 +102,8 @@ transDef_t myTransDef[] =
    { EV_GOTO_GAME,              ST_TOP,            ST_IN_GAME,         NULL_GUARD_FUNC,  NULL_ACTION_FUNC,          FALSE },
 
    { EV_GOTO_PLAYING_GAME,      ST_IN_GAME,        ST_PLAYING_GAME,    NULL_GUARD_FUNC,  NULL_ACTION_FUNC,          FALSE },
+
+   { EV_GOTO_GAMEMENU,          ST_IN_GAME,        ST_GAMEMENU,        NULL_GUARD_FUNC,  NULL_ACTION_FUNC,          FALSE },
 
    { EV_GAME_DONE,              ST_IN_GAME,        ST_EXITING_GAME,    NULL_GUARD_FUNC,  NULL_ACTION_FUNC,          FALSE },
 

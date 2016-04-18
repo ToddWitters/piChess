@@ -6,3 +6,4 @@ extern game_t game;
 
 void inGame_moveClockTick( event_t ev);
 void inGame_SetPosition( const char *FEN);
+void inGame_udpateClocks( void );
