@@ -84,7 +84,7 @@ move_t convertCoordMove( char *coord )
        coord[2] < 'a' || coord[2] > 'h' ||
        coord[3] < '1' || coord[3] > '8' )
    {
-      DPRINT("Parse Error 1:  Selected computer move is has unexpected format\n");
+      DPRINT("Parse Error 1:  Selected computer move has unexpected format\n");
       return mv;
    }
 

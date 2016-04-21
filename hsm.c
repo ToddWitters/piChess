@@ -1,6 +1,8 @@
 #include "hsm.h"
 
+// FOR DEBUGGING ONLY
 #include "diag.h"
+#include "hsmDefs.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -282,6 +284,11 @@ HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
       return HSM_NOT_INITIALIZED;
    }
 
+   if(ev.ev != EV_MOVE_CLOCK_TIC)
+   {
+      DPRINT("Processing event %s\n", eventName[ev.ev]);
+   }
+
    // Find the first index where this event appears in the table
    transTableListOffset = findIndexForEvent(hsm->transitions, hsm->transCount, ev.ev);
 
@@ -391,7 +398,7 @@ HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
                   return HSM_INVALID_STATE;
                }
 
-               // If we are on the "transitionfrom state, don't execute 
+               // If we are on the "transitionfrom state, don't execute
                //   entry function if this is a local transition...
                if(hsm->currentState != hsm->transitions[scanOffset].from || localTrans == FALSE)
                {

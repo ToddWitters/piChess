@@ -20,6 +20,7 @@ bool_t computerMovePending = FALSE;
 
 void playingGameEntry( event_t ev )
 {
+   DPRINT("PlayingGameEntry\n");
 }
 
 void playingGameExit( event_t ev )
@@ -54,35 +55,47 @@ void playingGame_processSelectedMove( move_t mv)
    event_t ev;
    int16_t totalMovesFound;
 
+   DPRINT("ProcessSelectedMove()\n");
+
    // Make the move on the board...
    move(&game.brd, mv);
 
    // TODO test for 75-move rule
    // TODO test for insufficient material
 
-   totalMovesFound = findMoves(&game.brd , NULL);
-
-   // If there are no legal moves left...
-   if( totalMovesFound <= 0 )
+   // If a computer just finished...
+   if( (game.brd.toMove == WHITE && options.game.black == PLAYER_COMPUTER) ||
+       (game.brd.toMove == BLACK && options.game.white == PLAYER_COMPUTER))
    {
-      ev.ev = EV_GAME_DONE;
-
-      if(totalMovesFound == CHECKMATE)
-      {
-         DPRINT("Found a checkmate!");
-         game.disposition = GAME_AT_CHECKMATE;
-         ev.data = GAME_END_CHECKMATE;
-      }
-      else
-      {
-         DPRINT("Found a stalemate!");
-         game.disposition = GAME_AT_STALEMATE;
-         ev.data = GAME_END_STALEMATE;
-      }
+         computerMovePending = TRUE;
+         ev.ev = EV_GOTO_PLAYING_GAME;
    }
    else
    {
-      ev.ev = EV_GOTO_PLAYING_GAME;
+      totalMovesFound = findMoves(&game.brd , NULL);
+
+      // If there are no legal moves left...
+      if( totalMovesFound <= 0 )
+      {
+         ev.ev = EV_GAME_DONE;
+
+         if(totalMovesFound == CHECKMATE)
+         {
+            DPRINT("Found a checkmate!");
+            game.disposition = GAME_AT_CHECKMATE;
+            ev.data = GAME_END_CHECKMATE;
+         }
+         else
+         {
+            DPRINT("Found a stalemate!");
+            game.disposition = GAME_AT_STALEMATE;
+            ev.data = GAME_END_STALEMATE;
+         }
+      }
+      else
+      {
+         ev.ev = EV_GOTO_PLAYING_GAME;
+      }
    }
 
    putEvent(EVQ_EVENT_MANAGER, &ev);

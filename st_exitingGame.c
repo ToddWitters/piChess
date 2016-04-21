@@ -1,11 +1,13 @@
 #include "hsm.h"
 #include "hsmDefs.h"
 #include "st_exitingGame.h"
-
+#include "timer.h"
 #include "display.h"
 
 void exitingGameEntry( event_t ev )
 {
+   timerKill(TMR_GAME_CLOCK_TIC);
+
    displayClear();
    displayWriteLine(0, "Game Over", TRUE);
    switch(ev.data)

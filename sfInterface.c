@@ -7,20 +7,41 @@
 #include "sfInterface.h"
 #include "util.h"
 #include "options.h"
+#include "st_computerMove.h"
+
+#include <pthread.h>
+
+#include <stropts.h>
+#include <poll.h>
+#include <stdio.h>
+
+
+#define OUTPUT_FILE "/home/pi/chess/result.txt"
+#define SF_EXE      "/home/pi/chess/stockfish > sfOutput.txt"
 
 FILE *sfPipe = NULL;
+struct pollfd fds[1];
+
+static pthread_t enginePollThread;
+
+static move_t selectedMove = {0,0,PIECE_NONE};
+static move_t ponderMove   = {0,0,PIECE_NONE};
+
+static void *enginePollTask ( void *arg );
+
 
 void SF_initEngine( void )
 {
 
    char skillLevelText[3];
 
-   // Look into:
-   //    dup2 - map stdin/stdout between processes to allow printf/scanf
-   //    poll - blocking call on data available at stdin
+   remove(OUTPUT_FILE);
 
-   // Start Stockfish, pipe output to sfOutput.txt
-   sfPipe = popen("./stockfish > sfOutput.txt", "w");
+   // Spin up a task here...
+   pthread_create(&enginePollThread, NULL, enginePollTask , NULL);
+
+   // Start Stockfish
+   sfPipe = popen(SF_EXE, "w");
 
    // Verify pipe was successfull.
    if(sfPipe == NULL)
@@ -33,10 +54,20 @@ void SF_initEngine( void )
    setbuf(sfPipe, NULL);
 
    // Set up our default parameters to Stockfish
-   SF_setOption("Threads",     "4");
+   SF_setOption("Threads", "4");
 
    sprintf(skillLevelText, "%d\n", options.engine.strength);
    SF_setOption("Skill Level", skillLevelText);
+}
+
+void SF_closeEngine( void )
+{
+   if(sfPipe != NULL)
+   {
+      fprintf(sfPipe, "quit\n");
+      pclose(sfPipe);
+      sfPipe = NULL;
+   }
 }
 
 void SF_setOption( char *name, char *value)
@@ -92,50 +123,49 @@ void SF_findMoveFixedTime( uint32_t t )
 }
 
 // TODO return move if done.
-move_t SF_checkDone( move_t *ponder )
+
+// TODO... Make this into a task that waits for available data on
+//   a file descriptor
+
+
+static void *enginePollTask ( void *arg )
 {
+   #define MAX_LINE_LEN 100
+
+   int  ret;
+   char engineResultLine[MAX_LINE_LEN];
 
    FILE *tmpFile;
-   static move_t retValue;
-   char lastLine[MAX_LINE_LEN];
 
-   retValue.from    = 0;
-   retValue.to      = 0;
-   retValue.promote = (unsigned short)PIECE_NONE;
-
-   // Grab last line of output, save to temporary file
-   system("tail --lines=1 sfOutput.txt > examine.txt");
-
-   // Open it to see what we got..
-   tmpFile = fopen("examine.txt", "r");
-
-   if(tmpFile != NULL)
+   while(1)
    {
-      fgets(lastLine, MAX_LINE_LEN, tmpFile);
+      usleep(250000);
 
-      if(!strncmp(lastLine, "bestmove", 8))
+      tmpFile = fopen(OUTPUT_FILE, "r+");
+
+      if(tmpFile != NULL)
       {
-         retValue = convertCoordMove(&lastLine[9]);
+         fgets(engineResultLine, MAX_LINE_LEN, tmpFile);
 
-         if(ponder != NULL)
+         if(!strncmp(engineResultLine, "bestmove", 8))
          {
-            move_t p;
-            if(retValue.promote != PIECE_NONE)
+            selectedMove = convertCoordMove(&engineResultLine[9]);
+
+            if(selectedMove.promote != PIECE_NONE)
             {
-               p = convertCoordMove(&lastLine[22]);
+               ponderMove = convertCoordMove(&engineResultLine[22]);
             }
             else
             {
-               p = convertCoordMove(&lastLine[21]);
+               ponderMove = convertCoordMove(&engineResultLine[21]);
             }
-            memcpy(ponder,&p,sizeof(move_t));
+            computerMove_engineSelection(selectedMove, ponderMove);
 
          }
+         fclose(tmpFile);
+         remove(OUTPUT_FILE);
       }
-      fclose(tmpFile);
    }
 
-   return retValue;
-
-   // Loop until we see "bestmove" on last line
+   return NULL;
 }

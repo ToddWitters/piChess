@@ -45,7 +45,7 @@ fenErr_t setBoard(board_t *brd, const char *FEN)
 	 b.castleBits = 0;
 
     if (FEN == NULL) FEN = startString;
-    
+
 	 // parse piece placement field...
 	 while(index < 64)
 	 {
@@ -731,7 +731,8 @@ char *getFEN(const board_t *b)
         {
             if(totalEmptySquares)
             {
-                printf("%d", totalEmptySquares);
+                sprintf(tmpstr,"%d", totalEmptySquares);
+                strcat(fenString, tmpstr);
                 totalEmptySquares = 0;
             }
 

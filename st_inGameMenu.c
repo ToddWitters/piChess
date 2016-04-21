@@ -4,6 +4,7 @@
 
 #include <stddef.h>
 #include "menu.h"
+#include "display.h"
 
 menu_t *inGameMenu = NULL;
 
@@ -26,4 +27,5 @@ void inGameMenuExit( event_t ev )
 {
    destroyMenu(inGameMenu);
    inGameMenu = NULL;
+   displayClear();
 }

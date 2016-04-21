@@ -42,8 +42,10 @@ void inGameEntry( event_t ev )
 
    // If either or both player is the computer, set up pipe to stockfish Engine
    if( (options.game.white == PLAYER_COMPUTER) || (options.game.black == PLAYER_COMPUTER) )
+   {
+      DPRINT("Starting Chess Engine");
       SF_initEngine();
-
+   }
 }
 
 void inGameExit( event_t ev )
@@ -69,6 +71,8 @@ uint16_t inGamePickSubstate( event_t ev)
 
 void inGame_moveClockTick( event_t ev)
 {
+
+   if(game.disposition != GAME_PLAYABLE) return;
 
    if(game.graceTime != 0)
    {

@@ -21,6 +21,7 @@ typedef enum timerRef_e
    TMR_UI_TIMEOUT,
    TMR_GAME_CLOCK_TIC,
    TMR_DIAG_TIMEOUT,
+   TMR_COMPUTER_POLL,
 
    TMR_TOTAL_TIMERS
 }timerRef_t;

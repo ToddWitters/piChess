@@ -18,6 +18,7 @@
 #include "st_moveForComputer.h"
 #include "st_exitingGame.h"
 #include "st_inGameMenu.h"
+#include "st_moveForComputer.h"
 #include "util.h"
 
 // Used for diagnostics only
@@ -31,8 +32,15 @@ const char *eventName[] =
    "startSwitchDiag",
    "startInitSetup",
    "gotoMainMenu",
-   "gotoDiagMenu"
-   "moveClockTick"
+   "gotoDiagMenu",
+   "gotoOptionMen",
+   "gotoGame",
+   "gotoPlayingGame",
+   "gotoGameMenu",
+   "gameDone",
+   "moveClockTick",
+   "checkComputerDone",
+   "playerMovedForComputer"
 };
 
 // This array must be the same size as the state enum in hsmDefs.h
@@ -84,10 +92,12 @@ transDef_t myTransDef[] =
    { EV_PIECE_DROP,             ST_DIAG_SENSORS,   ST_NONE,            NULL_GUARD_FUNC,  diagSwitch_boardChange,    FALSE },
    { EV_PIECE_DROP,             ST_INIT_POS_SETUP, ST_NONE,            NULL_GUARD_FUNC,  initPosSetup_boardChange,  FALSE },
    { EV_PIECE_DROP,             ST_PLAYER_MOVE,    ST_NONE,            NULL_GUARD_FUNC,  playerMoves_boardChange,   FALSE },
+   { EV_PIECE_DROP,             ST_MOVE_FOR_COMPUTER,ST_NONE,          NULL_GUARD_FUNC,  moveForComputer_boardChange,   FALSE },
 
    { EV_PIECE_LIFT,             ST_DIAG_SENSORS,   ST_NONE,            NULL_GUARD_FUNC,  diagSwitch_boardChange,    FALSE },
    { EV_PIECE_LIFT,             ST_INIT_POS_SETUP, ST_NONE,            NULL_GUARD_FUNC,  initPosSetup_boardChange,  FALSE },
    { EV_PIECE_LIFT,             ST_PLAYER_MOVE,    ST_NONE,            NULL_GUARD_FUNC,  playerMoves_boardChange,   FALSE },
+   { EV_PIECE_LIFT,             ST_MOVE_FOR_COMPUTER,ST_NONE,          NULL_GUARD_FUNC,  moveForComputer_boardChange,   FALSE },
 
    { EV_START_SENSOR_DIAG,      ST_DIAGMENU,       ST_DIAG_SENSORS,    NULL_GUARD_FUNC,  NULL_ACTION_FUNC,          FALSE },
 
@@ -109,7 +119,9 @@ transDef_t myTransDef[] =
 
    { EV_MOVE_CLOCK_TIC,         ST_IN_GAME,        ST_NONE,            NULL_GUARD_FUNC,  inGame_moveClockTick,      FALSE },
 
+//   { EV_CHECK_COMPUTER_DONE,    ST_COMPUTER_MOVE,  ST_NONE,            NULL_GUARD_FUNC,  computerMove_checkDone,    FALSE },
 
+   { EV_PLAYER_MOVED_FOR_COMP,  ST_MOVE_FOR_COMPUTER, ST_PLAYING_GAME, NULL_GUARD_FUNC,  NULL_ACTION_FUNC,          FALSE },
 };
 
 const uint16_t transDefCount = (sizeof(myTransDef)/sizeof(myTransDef[0]));

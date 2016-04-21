@@ -10,6 +10,4 @@ void   SF_findMoveFixedDepth( int d );
 void   SF_findMoveFixedTime( uint32_t t );
 move_t SF_checkDone( move_t *ponder );
 
-#define MAX_LINE_LEN 300
-
 #endif

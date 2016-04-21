@@ -14,6 +14,7 @@
 #include "led.h"
 #include "st_playingGame.h"
 #include "st_inGame.h"
+#include "options.h"
 
 #include <stddef.h>
 
@@ -47,9 +48,16 @@ static uint64_t occupiedSquares, dirtySquares;
 
 void playerMoveEntry( event_t ev )
 {
+   DPRINT("PlayerMoveEntry\n");
 
    displayClear();
-   if(game.brd.toMove == WHITE)
+
+   if(options.game.white != options.game.black)
+   {
+      displayWriteLine(0, "Human's Move", TRUE);
+   }
+
+   else if(game.brd.toMove == WHITE)
    {
       displayWriteLine(0, "White's Move", TRUE);
    }
