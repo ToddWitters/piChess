@@ -57,11 +57,68 @@ void playingGame_processSelectedMove( move_t mv)
 
    DPRINT("ProcessSelectedMove()\n");
 
-   // Make the move on the board...
-   move(&game.brd, mv);
+   // Record the selected move
+   game.posHistory[game.playedMoves].move = mv;
 
+   // Make the move on the board and store reverse information
+   game.posHistory[game.playedMoves].revMove = move(&game.brd, mv);
+
+   // Update the pointer
+   if(++game.playedMoves >= MAX_MOVES_IN_GAME)
+   {
+      // Set back in range...
+      game.playedMoves = MAX_MOVES_IN_GAME - 1;
+
+      DPRINT("ERROR: Game exceeded %d moves... undo no longer possible", MAX_MOVES_IN_GAME);
+   }
+
+   game.posHistory[game.playedMoves].posHash = game.brd.hash;
+
+   // Store the current clock values in case we revert back later
+   game.posHistory[game.playedMoves].clocks[WHITE] = game.wtime;
+   game.posHistory[game.playedMoves].clocks[BLACK] = game.btime;
+
+   // If black just moved...
+   if(game.brd.toMove == WHITE)
+   {
+      // And black has non-zero time with an increment specified...
+      if(game.btime != 0 && options.game.blackTimeInc != 0)
+      {
+         // Update his time and display the clocks...
+         game.btime += options.game.blackTimeInc;
+         inGame_udpateClocks();
+      }
+   }
+   else
+   {
+      if(game.wtime != 0 && options.game.whiteTimeInc != 0)
+      {
+         game.wtime += options.game.whiteTimeInc;
+         inGame_udpateClocks();
+      }
+   }
+
+   // These first two are not optional and have no associated options with them.
    // TODO test for 75-move rule
+   // if(game.brd.halfMoves >= 150)
+
+   // TODO test for 5-fold repetition rule
+   // Current position repeats 4 other times: 4, 8, 12, and 16 half-moves back
+
+   // if(options.game.autoDrawOnInsufficient)
    // TODO test for insufficient material
+   //   K v K
+   //   K v K and bishop(s) all on same color
+   //   K v KN
+   //   KB v KB multiple bishops on either size, all on same color
+
+   // if(options.game.autoDrawOnThreefold)
+   // TODO test for three-fold rep
+   // Current position repeats two other places in game history
+
+   // if(options.game.autoDrawOnFiftyMove)
+   // TODO test for 50-move rule
+   // if(game.brd.halfMoves >= 100)
 
    // If a computer just finished...
    if( (game.brd.toMove == WHITE && options.game.black == PLAYER_COMPUTER) ||

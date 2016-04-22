@@ -18,6 +18,7 @@
 #include "specChars.h"
 #include "display.h"
 #include "led.h"
+#include "book.h"
 
 game_t game;
 
@@ -30,28 +31,38 @@ void inGameEntry( event_t ev )
    DPRINT("inGameEntry\n");
 
    game.chess960 = options.game.chess960;
-   game.wtime = options.game.whiteTime;
-   game.btime = options.game.blackTime;
-   game.graceTime = 0;
 
-   memset(&game.moves, 0x00, sizeof(game.moves));
-   memset(&game.posHash, 0x00, sizeof(game.posHash));
+   game.graceTime = 0;
+   game.playedMoves = 0;
+
+   memset(&game.posHistory, 0x00, sizeof(game.posHistory));
+
+   game.posHistory[0].clocks[WHITE] = game.wtime = options.game.whiteTime;
+   game.posHistory[0].clocks[BLACK] = game.btime = options.game.blackTime;
+   game.posHistory[0].posHash = game.brd.hash;
 
    if(game.wtime !=0 || game.btime != 0)
       timerStart(TMR_GAME_CLOCK_TIC, 100, 100, EV_MOVE_CLOCK_TIC);
 
-   // If either or both player is the computer, set up pipe to stockfish Engine
+   // If either or both player is the computer, set up stockfish Engine and opening book
    if( (options.game.white == PLAYER_COMPUTER) || (options.game.black == PLAYER_COMPUTER) )
    {
-      DPRINT("Starting Chess Engine");
+      DPRINT("Starting Chess Engine\n");
       SF_initEngine();
+      if(options.engine.openingBook == TRUE)
+      {
+         openBook("Stockfish_1.6_Book.bin");
+      }
    }
 }
 
 void inGameExit( event_t ev )
 {
+   SF_closeEngine();
+
    // Set to default for next time...
    inGame_SetPosition( NULL );
+
    LED_AllOff();
 }
 
@@ -72,13 +83,22 @@ uint16_t inGamePickSubstate( event_t ev)
 void inGame_moveClockTick( event_t ev)
 {
 
+   // TODO Don't move computer clock when other player is also
+   //   computer and human is slow making the move.
+
+   // bail if game is not playable
    if(game.disposition != GAME_PLAYABLE) return;
 
+   // bail if first move hasn't been made yet...
+   if(game.playedMoves == 0) return;
+
+   // If human is moving for computer, update grace time
    if(game.graceTime != 0)
    {
       game.graceTime--;
       inGame_udpateClocks();
    }
+
    else if(game.brd.toMove == WHITE)
    {
       if (game.wtime) --game.wtime;

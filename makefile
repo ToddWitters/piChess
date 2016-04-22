@@ -7,6 +7,7 @@ CFLAGS = $(DEFS) -Wall
 sources = bcm2835.c      \
 			 bitboard.c     \
 			 board.c        \
+			 book.c         \
 			 constants.c    \
 			 diag.c         \
 			 display.c      \

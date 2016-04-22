@@ -10,6 +10,7 @@
 #define S16  int16_t
 #define U8   uint8_t
 
+#define MAX_MOVES_IN_GAME  500
 
 typedef enum dir_e
 {
@@ -85,6 +86,21 @@ typedef struct move_s
 	unsigned short promote          :3; // piece pawn promotes to (ignored unless PAWN moves into promoting row)
 }move_t;
 
+// Move + information to reverse it....
+typedef struct revMov_s
+{
+	move_t move;
+
+	unsigned short priorCastleBits  :4; // status of castle bits prior to move being made
+	unsigned short priorEnPassant   :4; // previous status of enPassant
+	unsigned short captured         :3; // piece captured by this move (PIECE_NONE if no capture)
+
+	unsigned short priorHalfMoveCnt;    // previous value of half-move counter
+	unsigned short priorZobristEnPassantCol;
+
+}revMove_t;
+
+
 typedef enum gameDisposition_e
 {
    GAME_INVALID,       // Invalid position
@@ -92,6 +108,16 @@ typedef enum gameDisposition_e
    GAME_AT_CHECKMATE,  // Side to move in check with no legal moves
    GAME_AT_STALEMATE   // Size to move not in check with no legal moves
 }gameDisposition_t;
+
+
+typedef struct posHistory_s
+{
+   uint32_t clocks[2];  // Clock value when this position reached
+   U64      posHash;    // The hash value of this position
+   move_t   move;       // The move that was selected from this position
+   revMove_t   revMove;    // The undo information to go back to the previous position
+}posHistory_t;
+
 
 // Current state of the game...
 typedef struct game_s
@@ -112,10 +138,11 @@ typedef struct game_s
     // posHistory (position hash value of last 75 moves)
     //   Used to enforce the 3-fold and 5-fold repetition rules
     //  Holds the hash values of all positions since last capture, pawn push OR castling availability change
-    U64 posHash[150];
 
-    // playedMoves
-    move_t moves[500];
+    posHistory_t posHistory[MAX_MOVES_IN_GAME];
+
+    int playedMoves;  // total number of moves already made in game
+
 
     // TRUE for chess960 games
     bool_t chess960;
@@ -137,23 +164,6 @@ typedef enum boardErr_e
     ERR_TOO_MANY_BLACK_PIECES,
 
 }boardErr_t;
-
-// Move + information to reverse it....
-typedef struct revMov_s
-{
-	move_t move;
-
-	unsigned short priorCastleBits  :4; // status of castle bits prior to move being made
-	unsigned short priorEnPassant   :4; // previous status of enPassant
-	unsigned short captured         :3; // piece captured by this move (PIECE_NONE if no capture)
-
-	unsigned short priorHalfMoveCnt;    // previous value of half-move counter
-	unsigned short priorZobristEnPassantCol;
-
-	uint32_t priorwtime;
-	uint32_t priorbtime;
-
-}revMove_t;
 
 // Each position in the move tree has the following:
 typedef struct moveList_s

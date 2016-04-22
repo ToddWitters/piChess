@@ -37,7 +37,7 @@ void moveForComputer_boardChange( event_t ev)
 
    LED_SetGridState( (GetSwitchStates() ^ (game.brd.colors[WHITE] | game.brd.colors[BLACK])) | mustMove);
 
-   if( GetSwitchStates() == (game.brd.colors[WHITE] | game.brd.colors[BLACK]))
+   if( mustMove == 0 && (GetSwitchStates() == (game.brd.colors[WHITE] | game.brd.colors[BLACK])))
    {
       event_t event;
 

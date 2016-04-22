@@ -14,6 +14,7 @@
 #include <stropts.h>
 #include <poll.h>
 #include <stdio.h>
+#include <unistd.h>
 
 
 #define OUTPUT_FILE "/home/pi/chess/result.txt"
@@ -75,9 +76,7 @@ void SF_setOption( char *name, char *value)
    fprintf(sfPipe,"setoption name %s value %s", name, value);
 }
 
-// TODO Add moves to make from position
-//
-void SF_setPosition( char *fen)
+void SF_setPosition( char *fen, char *moveList)
 {
    // Verify pipe first
    if(sfPipe == NULL)
@@ -85,24 +84,58 @@ void SF_setPosition( char *fen)
       DPRINT("setPosition called with uninitialized stockfish pipe\n");
    }
 
+   // Is this the start position?
    else if(fen == NULL)
    {
       DPRINT("Setting board to initial position\n");
-      fprintf(sfPipe,"position startpos\n");
+
+      // Should the engine apply a move list?
+      if(moveList == NULL)
+      {
+         fprintf(sfPipe,"position startpos\n");
+      }
+      else
+      {
+         fprintf(sfPipe,"position startpos moves %s\n", moveList);
+      }
    }
+   // Not starting position...
    else
    {
       DPRINT("Setting board to %s\n", fen);
-      fprintf(sfPipe,"position fen %s\n", fen);
+
+      // Should the engine apply a move list?
+      if(moveList == NULL)
+      {
+         fprintf(sfPipe,"position fen %s\n", fen);
+      }
+      else
+      {
+         fprintf(sfPipe,"position fen %s moves %s\n", fen, moveList);
+      }
       // TODO grab results.
    }
+}
+
+void SF_findMove( uint32_t wt, uint32_t bt, uint32_t wi, uint32_t bi)
+{
+
+   if(sfPipe == NULL)
+   {
+      DPRINT("SF_findMove called with uninitialized stockfish pipe\n");
+      return;
+   }
+
+   DPRINT("Computer beginning time-budgeted search\n");
+
+   fprintf(sfPipe, "go wtime %d btime %d winc %d binc%d\n", wt, bt, wi, bi );
 }
 
 void SF_findMoveFixedDepth( int d )
 {
    if(sfPipe == NULL)
    {
-      DPRINT("findMoveFixedDepth called with uninitialized stockfish pipe\n");
+      DPRINT("SF_findMoveFixedDepth called with uninitialized stockfish pipe\n");
       return;
    }
 
@@ -114,7 +147,7 @@ void SF_findMoveFixedTime( uint32_t t )
 {
    if(sfPipe == NULL)
    {
-      DPRINT("findMoveFixedTime called with uninitialized stockfish pipe\n");
+      DPRINT("SF_findMoveFixedTime called with uninitialized stockfish pipe\n");
       return;
    }
 
@@ -122,17 +155,20 @@ void SF_findMoveFixedTime( uint32_t t )
    fprintf(sfPipe,"go movetime %d\n", t);
 }
 
-// TODO return move if done.
-
-// TODO... Make this into a task that waits for available data on
-//   a file descriptor
-
+void SF_stop( void )
+{
+   if(sfPipe == NULL)
+   {
+      DPRINT("SF_stop called with uninitialized stockfish pipe\n");
+      return;
+   }
+   fprintf(sfPipe,"stop\n");
+}
 
 static void *enginePollTask ( void *arg )
 {
    #define MAX_LINE_LEN 100
 
-   int  ret;
    char engineResultLine[MAX_LINE_LEN];
 
    FILE *tmpFile;

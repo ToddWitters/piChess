@@ -86,6 +86,7 @@ transDef_t myTransDef[] =
    { EV_BUTTON_STATE,           ST_INIT_POS_SETUP, ST_MAINMENU,        isStatePress,     NULL_ACTION_FUNC,          FALSE },
    { EV_BUTTON_STATE,           ST_EXITING_GAME,   ST_MAINMENU,        isStatePress,     NULL_ACTION_FUNC,          FALSE },
    { EV_BUTTON_STATE,           ST_PLAYING_GAME,   ST_GAMEMENU,        isStatePress,     NULL_ACTION_FUNC,          FALSE },
+
    { EV_BUTTON_POS,             ST_MENUS,          ST_NONE,            NULL_GUARD_FUNC,  menus_buttonPos,           FALSE },
    { EV_BUTTON_POS,             ST_GAMEMENU,       ST_NONE,            NULL_GUARD_FUNC,  menus_buttonPos,           FALSE },
 

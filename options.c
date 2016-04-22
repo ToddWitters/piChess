@@ -29,11 +29,11 @@ static void setDefaultOptions( options_t *options )
    DPRINT("Setting all options to their default values\n");
 
    options->game.white        = PLAYER_HUMAN;
-   options->game.black        = PLAYER_HUMAN;
+   options->game.black        = PLAYER_COMPUTER;
    options->game.whiteTime    = 3000; // in 0.1 second steps...
    options->game.blackTime    = 3000; // in 0.1 second steps...
-   options->game.whiteTimeInc = 20;
-   options->game.blackTimeInc = 20;
+   options->game.whiteTimeInc = 50;
+   options->game.blackTimeInc = 50;
    options->game.chess960     = FALSE;
    options->game.graceTimeForComputerMove = 30; // allow 3 seconds to make move for computer
 
@@ -44,7 +44,7 @@ static void setDefaultOptions( options_t *options )
    options->engine.strength         = 20;
    options->engine.ponder           = FALSE;
    options->engine.egtb             = FALSE;
-   options->engine.openingBook      = FALSE;
+   options->engine.openingBook      = TRUE;
 }
 
 static void validateOptions( options_t *options )
