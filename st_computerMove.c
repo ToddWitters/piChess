@@ -1,6 +1,7 @@
 #include "hsm.h"
 #include "hsmDefs.h"
 #include "st_computerMove.h"
+#include <string.h>
 
 #include "st_inGame.h"
 #include "display.h"
@@ -16,6 +17,9 @@
 #include "book.h"
 
 extern bool_t computerMovePending;
+
+static void computerMove_engineSelection( move_t mv, move_t ponder );
+
 
 void computerMoveEntry( event_t ev )
 {
@@ -65,19 +69,81 @@ void computerMoveExit( event_t ev )
    game.graceTime = 0;
 }
 
-extern uint64_t mustMove;
-void computerMove_engineSelection( move_t mv, move_t ponder )
-{
-   computerMovePending = TRUE;
 
-   if(mv.to & (game.brd.colors[WHITE] | game.brd.colors[BLACK]))
+void computerMove_computerPicked( event_t ev)
+{
+#define MAX_LINE_LEN 30
+
+   FILE *tmpFile;
+   char engineResultLine[MAX_LINE_LEN];
+   move_t selectedMove, ponderMove;
+
+   tmpFile = fopen(OUTPUT_FILE, "r");
+
+   if(tmpFile != NULL)
    {
-      mustMove = squareMask[mv.to];
+      fgets(engineResultLine, MAX_LINE_LEN, tmpFile);
+
+      DPRINT("Found text in engine result file: [%s]\n", engineResultLine);
+
+      if(!strncmp(engineResultLine, "bestmove", 8))
+      {
+
+         selectedMove = convertCoordMove(&engineResultLine[9]);
+
+         if(strlen(engineResultLine) >= 22)
+         {
+
+            if(selectedMove.promote != PIECE_NONE)
+            {
+               ponderMove = convertCoordMove(&engineResultLine[22]);
+            }
+            else
+            {
+               ponderMove = convertCoordMove(&engineResultLine[21]);
+            }
+
+         }
+         
+         if( selectedMove.to != selectedMove.from )
+         {
+            computerMove_engineSelection(selectedMove, ponderMove);
+         }
+         else
+         {
+            DPRINT("Error unexpected contents in %s", OUTPUT_FILE);
+         }
+      }
+      else
+      {
+         DPRINT("Error unexpected contents in %s", OUTPUT_FILE);
+      }
+      fclose(tmpFile);
+      remove(OUTPUT_FILE);
    }
    else
    {
-      mustMove = 0;
+      DPRINT("Error opening %s", OUTPUT_FILE);
    }
+}
 
-   playingGame_processSelectedMove(mv);
+
+extern uint64_t mustMove;
+static void computerMove_engineSelection( move_t mv, move_t ponder )
+{
+   if(computerMovePending == FALSE)
+   {
+      computerMovePending = TRUE;
+
+      if(squareMask[mv.to] & (game.brd.colors[WHITE] | game.brd.colors[BLACK]))
+      {
+         mustMove = squareMask[mv.to];
+      }
+      else
+      {
+         mustMove = 0;
+      }
+
+      playingGame_processSelectedMove(mv);
+   }
 }

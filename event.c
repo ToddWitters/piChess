@@ -7,6 +7,9 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+
+extern char *eventName[];
+
 typedef struct eventQueue_s
 {
     int             evPushIndex;
@@ -53,7 +56,7 @@ void putEvent(evQueueIndex_t indx, event_t *evData)
    if( ( (eventQueue[indx].evPushIndex + 1) == eventQueue[indx].evPopIndex ) ||
        (eventQueue[indx].evPushIndex == EVENT_QUEUE_SIZE -1  && eventQueue[indx].evPopIndex == 0) )
    {
-      DPRINT("Event Queue Overflow.  Discarding Event\n");
+      DPRINT("Event Queue Overflow.  Discarding Event %s\n", eventName[evData->ev]);
       pthread_mutex_unlock(&eventQueue[indx].mutex);
       return;
    }

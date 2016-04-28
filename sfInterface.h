@@ -3,6 +3,8 @@
 
 #include "types.h"
 
+#define OUTPUT_FILE "/home/pi/chess/result.txt"
+
 void   SF_initEngine( void );
 void   SF_setPosition( char *fen, char *moveList);
 void   SF_setOption( char *name, char *value);

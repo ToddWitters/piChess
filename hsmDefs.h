@@ -64,6 +64,8 @@ typedef enum eventId_e
    EV_MOVE_CLOCK_TIC,
    // EV_CHECK_COMPUTER_DONE,
 
+   EV_PROCESS_COMPUTER_MOVE,
+
    EV_PLAYER_MOVED_FOR_COMP,
 
 }eventId_t;

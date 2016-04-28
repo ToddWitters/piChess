@@ -14,7 +14,7 @@ typedef struct event_e
 // Typedefs for the various functions that are called
 
 // Called upon entry to a state.  Triggering event is passed in.  If this
-//   is a entry due to a default state of a container state, pass EV_NONE
+//   is a entry due to a default state of a container state, pass 0
 typedef void   (*entryFunc_t)( event_t ev );
 
 // Called upon exit from a state.  Triggering event is passed in.
@@ -42,7 +42,7 @@ typedef uint16_t (*substatePickerFunc_t)(event_t ev);
 typedef struct stateDef_s
 {
    char                *displayName;   // Optional name for debugging
-   uint16_t             parent;        // The parent state.  Use NULL_STATE_ID for a topmost state only
+   uint16_t             parent;        // The parent state.  Use TOTAL_STATES for topmost state only
    substatePickerFunc_t pickerFunc;    // Called to choose a substate when transition target is a container state
    entryFunc_t          entryFunc;     // run on entry
    exitFunc_t           exitFunc;      // run on exit

@@ -8,6 +8,8 @@
 #include "util.h"
 #include "options.h"
 #include "st_computerMove.h"
+#include "hsmDefs.h"
+#include "event.h"
 
 #include <pthread.h>
 
@@ -17,7 +19,6 @@
 #include <unistd.h>
 
 
-#define OUTPUT_FILE "/home/pi/chess/result.txt"
 #define SF_EXE      "/home/pi/chess/stockfish > sfOutput.txt"
 
 FILE *sfPipe = NULL;
@@ -25,11 +26,7 @@ struct pollfd fds[1];
 
 static pthread_t enginePollThread;
 
-static move_t selectedMove = {0,0,PIECE_NONE};
-static move_t ponderMove   = {0,0,PIECE_NONE};
-
 static void *enginePollTask ( void *arg );
-
 
 void SF_initEngine( void )
 {
@@ -167,10 +164,6 @@ void SF_stop( void )
 
 static void *enginePollTask ( void *arg )
 {
-   #define MAX_LINE_LEN 100
-
-   char engineResultLine[MAX_LINE_LEN];
-
    FILE *tmpFile;
 
    while(1)
@@ -181,25 +174,9 @@ static void *enginePollTask ( void *arg )
 
       if(tmpFile != NULL)
       {
-         fgets(engineResultLine, MAX_LINE_LEN, tmpFile);
-
-         if(!strncmp(engineResultLine, "bestmove", 8))
-         {
-            selectedMove = convertCoordMove(&engineResultLine[9]);
-
-            if(selectedMove.promote != PIECE_NONE)
-            {
-               ponderMove = convertCoordMove(&engineResultLine[22]);
-            }
-            else
-            {
-               ponderMove = convertCoordMove(&engineResultLine[21]);
-            }
-            computerMove_engineSelection(selectedMove, ponderMove);
-
-         }
+         event_t ev = {EV_PROCESS_COMPUTER_MOVE, 0};
          fclose(tmpFile);
-         remove(OUTPUT_FILE);
+         putEvent(EVQ_EVENT_MANAGER, &ev);
       }
    }
 

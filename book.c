@@ -9,6 +9,7 @@
 
 #include <time.h>
 #include <stdlib.h>
+#include "bcm2835.h"
 
 static FILE *bk = NULL;
 U32 numEntries = 0;
@@ -31,7 +32,7 @@ bookErr_t openBook( char *file )
    bookErr_t retVal = BOOK_NO_ERROR;
 
    // Seed random number once only when book is opened.
-   srand(time(NULL));
+   srand(bcm2835_st_read());
 
    char filename[100];
 

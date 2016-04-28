@@ -17,7 +17,7 @@ static uint16_t findLineFromAToB(const HSM_Handle_t *hsm, uint16_t stateA, uint1
 static HSM_Error_t traverseCompositeState(HSM_Handle_t *hsm );
 
 
-#define HSM_DPRINT(...)    printf(__VA_ARGS__)
+#define HSM_DPRINT(...)    DPRINT(__VA_ARGS__)
 
 extern const char *eventName[];
 
@@ -275,18 +275,11 @@ HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
    bool_t found, localTrans;
    HSM_Error_t err;
 
-   // HSM_DPRINT("Running %s. [event %s, state %s]\n", __FUNCTION__, eventName[ev.ev], hsm->states[hsm->currentState].displayName  );
-
    // Bail if this hsm is not initialized
    if(hsm->hsmDisposition != HSM_INITIALIZED)
    {
       HSM_DPRINT("ERROR: Call to processEvent with uninitialized state machine\n");
       return HSM_NOT_INITIALIZED;
-   }
-
-   if(ev.ev != EV_MOVE_CLOCK_TIC)
-   {
-      DPRINT("Processing event %s\n", eventName[ev.ev]);
    }
 
    // Find the first index where this event appears in the table
@@ -370,7 +363,7 @@ HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
             // Make sure we didn't hit an invalid state...
             if(hsm->currentState > hsm->stateCount)
             {
-               HSM_DPRINT("ERROR: Found invalid parent state reference during tree traversal\n");
+               DPRINT("ERROR: Found invalid parent state reference during tree traversal\n");
                return HSM_INVALID_STATE;
             }
 
@@ -394,7 +387,7 @@ HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
                // Validity check..
                if(hsm->currentState >= hsm->stateCount)
                {
-                  HSM_DPRINT("ERROR: Invalid state returned from findLineFromAToB()\n");
+                  HSM_DPRINT("ERROR: Invalid state returned from %s\n", __FUNCTION__);
                   return HSM_INVALID_STATE;
                }
 

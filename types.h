@@ -141,6 +141,9 @@ typedef struct game_s
 
     posHistory_t posHistory[MAX_MOVES_IN_GAME];
 
+    // Holds the text string of the moves made in this game in coordinate notation.
+    char moveRecord[MAX_MOVES_IN_GAME * 5 + 16];
+
     int playedMoves;  // total number of moves already made in game
 
 

@@ -34,6 +34,7 @@ void inGameEntry( event_t ev )
 
    game.graceTime = 0;
    game.playedMoves = 0;
+   game.moveRecord[0] = '\0';
 
    memset(&game.posHistory, 0x00, sizeof(game.posHistory));
 
@@ -59,7 +60,7 @@ void inGameEntry( event_t ev )
 void inGameExit( event_t ev )
 {
    SF_closeEngine();
-
+   
    // Set to default for next time...
    inGame_SetPosition( NULL );
 
@@ -101,26 +102,35 @@ void inGame_moveClockTick( event_t ev)
 
    else if(game.brd.toMove == WHITE)
    {
-      if (game.wtime) --game.wtime;
-
-      if(game.wtime < 600 || (game.wtime % 10) == 9)
+      if (game.wtime)
       {
-         inGame_udpateClocks();
+
+         --game.wtime;
+
+         if(game.wtime < 600 || (game.wtime % 10) == 9)
+         {
+            inGame_udpateClocks();
+         }
       }
 
    }
    else
    {
-      if (game.btime) --game.btime;
-      if(game.btime < 600 || (game.btime % 10) == 9)
+      if (game.btime)
       {
-         inGame_udpateClocks();
+
+         --game.btime;
+         if(game.btime < 600 || (game.btime % 10) == 9)
+         {
+            inGame_udpateClocks();
+         }
       }
    }
 }
 
 void inGame_SetPosition( const char *FEN)
 {
+
    if(game.startPos != NULL)
    {
       free(game.startPos);
@@ -224,8 +234,7 @@ static char *convertTimeToString (uint32_t tenths )
 
    if( tenths < 600 )
    {
-      sprintf(str,"0:%04.1f",
-            (tenths / 10.0) );
+      sprintf(str,"0:%02d.%1d", tenths / 10, tenths % 10 );
    }
    else if (tenths < 36000)
    {

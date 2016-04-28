@@ -1,20 +1,24 @@
 #include "hsm.h"
 #include "hsmDefs.h"
 #include "event.h"
+#include "diag.h"
+
 #include <string.h>
 
 #include <semaphore.h>
 #include <stddef.h>
 
-
+extern char *eventName[];
 
 int main ( void )
 {
 
    HSM_Handle_t *sm = NULL;
 
+   //DPRINT("Creating state machine...\n");
    HSM_createHSM(myStateDef, myTransDef, ST_COUNT, transDefCount, &sm );
-   
+
+   //DPRINT("Initializing state machine...\n");
    HSM_init(sm);
 
    while(1)

@@ -10,6 +10,7 @@
 #include "board.h"
 #include "event.h"
 #include "diag.h"
+#include "util.h"
 
 #include "sfInterface.h"
 
@@ -78,6 +79,19 @@ void playingGame_processSelectedMove( move_t mv)
    game.posHistory[game.playedMoves].clocks[WHITE] = game.wtime;
    game.posHistory[game.playedMoves].clocks[BLACK] = game.btime;
 
+   // pump out to move record...
+   strcat(game.moveRecord, convertSqNumToCoord(mv.from));
+   strcat(game.moveRecord, convertSqNumToCoord(mv.to));
+   switch(mv.promote)
+   {
+      case QUEEN:  strcat(game.moveRecord, "q"); break;
+      case ROOK:   strcat(game.moveRecord, "r"); break;
+      case BISHOP: strcat(game.moveRecord, "b"); break;
+      case KNIGHT: strcat(game.moveRecord, "n"); break;
+   }
+   strcat(game.moveRecord," ");
+
+
    // If black just moved...
    if(game.brd.toMove == WHITE)
    {
@@ -120,11 +134,11 @@ void playingGame_processSelectedMove( move_t mv)
    // TODO test for 50-move rule
    // if(game.brd.halfMoves >= 100)
 
-   // If a computer just finished...
+   // If a computer just finished,
    if( (game.brd.toMove == WHITE && options.game.black == PLAYER_COMPUTER) ||
        (game.brd.toMove == BLACK && options.game.white == PLAYER_COMPUTER))
    {
-         computerMovePending = TRUE;
+         // This will ultimately move us to the ST_MOVE_FOR_COMPUTER state
          ev.ev = EV_GOTO_PLAYING_GAME;
    }
    else

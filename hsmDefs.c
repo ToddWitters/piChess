@@ -73,7 +73,7 @@ stateDef_t myStateDef[] =
 
 // This list is sorted by event for quicker lookup (may be more than one entry per event)
 //   Special case:  Internal events are designated by making the "to" target
-//   equal to NULL_STATE_ID.  This causes no transitions and no entry/exit
+//   equal to ST_NONE.  This causes no transitions and no entry/exit
 //   functions to run.
 
 transDef_t myTransDef[] =
@@ -120,7 +120,7 @@ transDef_t myTransDef[] =
 
    { EV_MOVE_CLOCK_TIC,         ST_IN_GAME,        ST_NONE,            NULL_GUARD_FUNC,  inGame_moveClockTick,      FALSE },
 
-//   { EV_CHECK_COMPUTER_DONE,    ST_COMPUTER_MOVE,  ST_NONE,            NULL_GUARD_FUNC,  computerMove_checkDone,    FALSE },
+   { EV_PROCESS_COMPUTER_MOVE,  ST_IN_GAME,        ST_NONE,            NULL_GUARD_FUNC,  computerMove_computerPicked,     FALSE },
 
    { EV_PLAYER_MOVED_FOR_COMP,  ST_MOVE_FOR_COMPUTER, ST_PLAYING_GAME, NULL_GUARD_FUNC,  NULL_ACTION_FUNC,          FALSE },
 };
