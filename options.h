@@ -10,18 +10,12 @@ typedef enum player_e
 
 typedef struct gameOptions_s
 {
-   player_t white;
-   player_t black;
-
-   uint32_t whiteTime;
-   uint16_t whiteTimeInc;
-
-   uint32_t blackTime;
-   uint16_t blackTimeInc;
-
-   bool_t   chess960;
-
-   uint16_t graceTimeForComputerMove;
+   player_t      white;
+   player_t      black;
+   timeControl_t timeControl;
+   bool_t        chess960;
+   bool_t        useOpeningBook;            // ignored if chess960 == true
+   uint16_t      graceTimeForComputerMove;  // ignored if no computer player
 }gameOptions_t;
 
 typedef struct engineOptions_s
@@ -29,7 +23,6 @@ typedef struct engineOptions_s
    uint8_t strength;
    bool_t  ponder;
    bool_t  egtb;
-   bool_t  openingBook;
 }engineOptions_t;
 
 typedef struct boardOptions_s

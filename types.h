@@ -132,20 +132,23 @@ typedef struct game_s
     uint32_t wtime;
     uint32_t btime;
 
-    // Time allowed for player to make move for computer
+    uint32_t wIncrement;
+    uint32_t bIncrement;
+
+    // Time remaining for player to make move for computer before time is
+    ///   counted against them...
     uint16_t graceTime;
 
     // posHistory (position hash value of last 75 moves)
     //   Used to enforce the 3-fold and 5-fold repetition rules
     //  Holds the hash values of all positions since last capture, pawn push OR castling availability change
-
     posHistory_t posHistory[MAX_MOVES_IN_GAME];
 
-    // Holds the text string of the moves made in this game in coordinate notation.
-    char moveRecord[MAX_MOVES_IN_GAME * 5 + 16];
+    // Holds the coord notation text string of the moves made in this game
+    //  Sized to hold 4-character + 1 space per move + 16 promotion indicators + null string terminator.
+    char moveRecord[MAX_MOVES_IN_GAME * 5 + 16 + 1];
 
-    int playedMoves;  // total number of moves already made in game
-
+    int playedMoves;  // total number of half-moves already made in game
 
     // TRUE for chess960 games
     bool_t chess960;
@@ -185,5 +188,56 @@ typedef enum endReason_s
 }endReason_t;
 
 
+#define SECONDS_IN_MINUTE 60
+
+typedef enum timingType_e
+{
+   TIME_NONE,
+   TIME_EQUAL,
+   TIME_ODDS,
+}timingType_t;
+
+typedef enum computerStrategy_e
+{
+   STRAT_FIXED_DEPTH,
+   STRAT_FIXED_TIME,
+   STRAT_TILL_BUTTON
+}computerStrategy_t;
+
+typedef struct compStrategySetting_s
+{
+   computerStrategy_t type;
+   union
+   {
+      uint8_t  depth;
+      uint32_t timeInMs;
+   };
+}compStrategySetting_t;
+
+typedef struct periodTimingSettings_s
+{
+   uint16_t totalTime; // in seconds
+   uint8_t  increment; // in seconds
+   uint8_t  moves;     // moves in this period.  0 = sudden death.
+}periodTimingSettings_t;
+
+typedef struct timeControl_s
+{
+
+   timingType_t           type;
+   compStrategySetting_t     compStrategySetting; // only used if type == TIME_NONE
+
+   // If type == NONE, this field is unused.
+   // If type == EQUAL
+   //   timeSettings[0] = Period one settings
+   //   timeSettings[1] = Period two settings   (invalid if timeSettings[0].moves == 0)
+   //   timeSettings[2] = Period three settings (invalid if timeSettings[0].moves == 0 || timeSettings[1].moves)
+   //     note: timeSettings[2].moves is ignored
+   // If type == ODDS ([x].moves ignored)
+   //   timeSettings[WHITE] = white player settings
+   //   timeSettings[BLACK] = black player settings
+   periodTimingSettings_t timeSettings[3];
+
+}timeControl_t;
 
 #endif

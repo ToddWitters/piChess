@@ -38,8 +38,30 @@ void inGameEntry( event_t ev )
 
    memset(&game.posHistory, 0x00, sizeof(game.posHistory));
 
-   game.posHistory[0].clocks[WHITE] = game.wtime = options.game.whiteTime;
-   game.posHistory[0].clocks[BLACK] = game.btime = options.game.blackTime;
+   switch(options.game.timeControl.type)
+   {
+      case TIME_EQUAL:
+         game.wtime      = options.game.timeControl.timeSettings[0].totalTime * 10;
+         game.wIncrement = options.game.timeControl.timeSettings[0].increment * 10;
+         game.btime = game.wtime;
+         game.bIncrement = game.wIncrement;
+         break;
+      case TIME_ODDS:
+         game.wtime =      options.game.timeControl.timeSettings[WHITE].totalTime * 10;
+         game.wIncrement = options.game.timeControl.timeSettings[WHITE].increment * 10;
+         game.btime =      options.game.timeControl.timeSettings[BLACK].totalTime * 10;
+         game.bIncrement = options.game.timeControl.timeSettings[BLACK].increment * 10;
+
+         break;
+      case TIME_NONE:
+         game.wtime = game.btime = 0;
+         game.wIncrement = game.bIncrement = 0;
+         break;
+   }
+
+   game.posHistory[0].clocks[WHITE] = game.wtime;
+   game.posHistory[0].clocks[BLACK] = game.btime;
+
    game.posHistory[0].posHash = game.brd.hash;
 
    if(game.wtime !=0 || game.btime != 0)
@@ -50,7 +72,7 @@ void inGameEntry( event_t ev )
    {
       DPRINT("Starting Chess Engine\n");
       SF_initEngine();
-      if(options.engine.openingBook == TRUE)
+      if(options.game.useOpeningBook == TRUE)
       {
          openBook("Stockfish_1.6_Book.bin");
       }
@@ -60,9 +82,6 @@ void inGameEntry( event_t ev )
 void inGameExit( event_t ev )
 {
    SF_closeEngine();
-   
-   // Set to default for next time...
-   inGame_SetPosition( NULL );
 
    LED_AllOff();
 }
@@ -83,6 +102,8 @@ uint16_t inGamePickSubstate( event_t ev)
 
 void inGame_moveClockTick( event_t ev)
 {
+
+   if(options.game.timeControl.type == TIME_NONE ) return;
 
    // TODO Don't move computer clock when other player is also
    //   computer and human is slow making the move.
@@ -187,6 +208,8 @@ void inGame_udpateClocks( void )
 
    const char *timeString;
    char fullString[10];
+
+   if(options.game.timeControl.type == TIME_NONE ) return;
 
    if(inGameMenu != NULL) return;
 

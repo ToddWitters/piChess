@@ -168,7 +168,7 @@ static void *enginePollTask ( void *arg )
 
    while(1)
    {
-      usleep(250000);
+      usleep(50000);
 
       tmpFile = fopen(OUTPUT_FILE, "r+");
 

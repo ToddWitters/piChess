@@ -75,6 +75,60 @@ void playingGame_processSelectedMove( move_t mv)
 
    game.posHistory[game.playedMoves].posHash = game.brd.hash;
 
+
+   // If this is an equal time setting, it may be time to move to a new period
+   if(options.game.timeControl.type == TIME_EQUAL)
+   {
+      uint8_t periodOneMoves;
+
+      // If the first period has a non-zero moves indicator
+      if( (periodOneMoves = options.game.timeControl.timeSettings[0].moves) != 0 )
+      {
+         uint8_t periodTwoMoves;
+
+         // Are we just now entering period 2?
+         if(game.playedMoves == (periodOneMoves * 2))
+         {
+            game.bIncrement = game.wIncrement = options.game.timeControl.timeSettings[1].increment * 10;
+            game.wtime += options.game.timeControl.timeSettings[1].totalTime * 10;
+            game.btime += options.game.timeControl.timeSettings[1].totalTime * 10;
+         }
+         else if( (periodTwoMoves = options.game.timeControl.timeSettings[1].moves) != 0 )
+         {
+            // Are we just now entering period 3?
+            if(game.playedMoves == ((periodOneMoves + periodTwoMoves) *2))
+            {
+               DPRINT("Entering Period 2\n");
+               game.bIncrement = game.wIncrement = options.game.timeControl.timeSettings[2].increment * 10;
+               game.wtime += options.game.timeControl.timeSettings[2].totalTime * 10;
+               game.btime += options.game.timeControl.timeSettings[2].totalTime * 10;
+            }
+         }
+      }
+   }
+
+
+
+   // If white is up to move...
+   if(game.brd.toMove == WHITE)
+   {
+      // If has non-zero time with an increment specified....
+      if(game.wtime != 0 && game.wIncrement != 0)
+      {
+         // Update time and display the clocks...
+         game.wtime += game.wIncrement;
+         inGame_udpateClocks();
+      }
+   }
+   else
+   {
+      if(game.btime != 0 && game.bIncrement != 0)
+      {
+         game.btime += game.bIncrement;
+         inGame_udpateClocks();
+      }
+   }
+
    // Store the current clock values in case we revert back later
    game.posHistory[game.playedMoves].clocks[WHITE] = game.wtime;
    game.posHistory[game.playedMoves].clocks[BLACK] = game.btime;
@@ -91,26 +145,6 @@ void playingGame_processSelectedMove( move_t mv)
    }
    strcat(game.moveRecord," ");
 
-
-   // If black just moved...
-   if(game.brd.toMove == WHITE)
-   {
-      // And black has non-zero time with an increment specified...
-      if(game.btime != 0 && options.game.blackTimeInc != 0)
-      {
-         // Update his time and display the clocks...
-         game.btime += options.game.blackTimeInc;
-         inGame_udpateClocks();
-      }
-   }
-   else
-   {
-      if(game.wtime != 0 && options.game.whiteTimeInc != 0)
-      {
-         game.wtime += options.game.whiteTimeInc;
-         inGame_udpateClocks();
-      }
-   }
 
    // These first two are not optional and have no associated options with them.
    // TODO test for 75-move rule

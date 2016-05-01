@@ -30,21 +30,23 @@ static void setDefaultOptions( options_t *options )
 
    options->game.white        = PLAYER_HUMAN;
    options->game.black        = PLAYER_COMPUTER;
-   options->game.whiteTime    = 3000; // in 0.1 second steps...
-   options->game.blackTime    = 3000; // in 0.1 second steps...
-   options->game.whiteTimeInc = 50;
-   options->game.blackTimeInc = 50;
+
+   options->game.timeControl.type = TIME_NONE;
+   options->game.timeControl.compStrategySetting.type =     STRAT_FIXED_TIME;
+   options->game.timeControl.compStrategySetting.timeInMs = 10000;
+
+
    options->game.chess960     = FALSE;
-   options->game.graceTimeForComputerMove = 30; // allow 3 seconds to make move for computer
+   options->game.graceTimeForComputerMove = 40; // allow 4 seconds to make move for computer
+   options->game.useOpeningBook      = TRUE;
 
    options->board.pieceDropDebounce = (600 / MS_PER_TIC);
-   options->board.pieceLiftDebounce = (150 / MS_PER_TIC);
+   options->board.pieceLiftDebounce = (100 / MS_PER_TIC);
    options->board.LED_Brightness    = 15;
 
    options->engine.strength         = 20;
    options->engine.ponder           = FALSE;
    options->engine.egtb             = FALSE;
-   options->engine.openingBook      = TRUE;
 }
 
 static void validateOptions( options_t *options )
@@ -99,8 +101,8 @@ static void validateOptions( options_t *options )
       options->engine.egtb = FALSE;
    }
 
-   if( (options->engine.openingBook != TRUE) && (options->engine.openingBook != FALSE) )
+   if( (options->game.useOpeningBook != TRUE) && (options->game.useOpeningBook != FALSE) )
    {
-      options->engine.openingBook = FALSE;
+      options->game.useOpeningBook = FALSE;
    }
 }

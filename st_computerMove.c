@@ -29,7 +29,7 @@ void computerMoveEntry( event_t ev )
    move_t m;
    move_t nullMv = {0,0,PIECE_NONE};
 
-   if( (options.engine.openingBook == TRUE) &&
+   if( (options.game.useOpeningBook == TRUE) &&
        (getRandMove( &game.brd, &m ) == BOOK_NO_ERROR) )
    {
       DPRINT("Move selected from Book\n");
@@ -41,8 +41,28 @@ void computerMoveEntry( event_t ev )
       // TODO... 2nd arg should be a move list
       SF_setPosition(getFEN(&game.brd), NULL);
 
-      // TODO... untimed games will have a different format
-      SF_findMove( game.wtime * 100, game.btime * 100, options.game.whiteTimeInc * 100, options.game.blackTimeInc * 100 );
+      switch(options.game.timeControl.type)
+      {
+         case TIME_NONE:
+            switch(options.game.timeControl.compStrategySetting.type)
+            {
+               case STRAT_FIXED_TIME:
+                  SF_findMoveFixedTime(options.game.timeControl.compStrategySetting.timeInMs);
+                  break;
+               case STRAT_FIXED_DEPTH:
+                  SF_findMoveFixedDepth(options.game.timeControl.compStrategySetting.depth);
+                  break;
+               case STRAT_TILL_BUTTON:
+                  // TODO!!!
+                  break;
+            }
+            break;
+         case TIME_EQUAL:
+         case TIME_ODDS:
+
+            SF_findMove( game.wtime * 100, game.btime * 100, game.wIncrement * 100, game.bIncrement * 100 );
+            break;
+      }
 
       // timerStart(TMR_COMPUTER_POLL, 100, 100, EV_CHECK_COMPUTER_DONE);
 
@@ -104,7 +124,7 @@ void computerMove_computerPicked( event_t ev)
             }
 
          }
-         
+
          if( selectedMove.to != selectedMove.from )
          {
             computerMove_engineSelection(selectedMove, ponderMove);

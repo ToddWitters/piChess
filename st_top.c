@@ -45,9 +45,6 @@ void topEntry( event_t ev )
       // Init the event handler
       initEvent();
 
-      // Default to starting position...
-      inGame_SetPosition( NULL );
-
       initDone = TRUE;
    }
 

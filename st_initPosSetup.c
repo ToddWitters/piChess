@@ -1,7 +1,9 @@
 #include "hsm.h"
 #include "hsmDefs.h"
 #include "st_initPosSetup.h"
+#include "st_inGame.h"
 
+#include <stddef.h>
 #include "display.h"
 #include "led.h"
 #include "event.h"
@@ -14,6 +16,8 @@ static void showDiffs( void );
 
 void initPosSetupEntry( event_t ev)
 {
+
+   inGame_SetPosition( NULL );
 
    if(GetSwitchStates() == TARGET_POSITION)
    {
