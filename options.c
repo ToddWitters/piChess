@@ -32,13 +32,24 @@ static void setDefaultOptions( options_t *options )
    options->game.black        = PLAYER_COMPUTER;
 
    options->game.timeControl.type = TIME_NONE;
-   options->game.timeControl.compStrategySetting.type =     STRAT_FIXED_TIME;
-   options->game.timeControl.compStrategySetting.timeInMs = 10000;
+   options->game.timeControl.compStrategySetting.type = STRAT_FIXED_DEPTH;
+   options->game.timeControl.compStrategySetting.depth = 12;
 
+   options->game.timeControl.timeSettings[0].totalTime = 3*60;
+   options->game.timeControl.timeSettings[0].increment = 0;
+   options->game.timeControl.timeSettings[0].moves = 0;
+
+   options->game.timeControl.timeSettings[1].totalTime = 3*60;
+   options->game.timeControl.timeSettings[1].increment = 0;
+   options->game.timeControl.timeSettings[1].moves = 0;
+
+   options->game.timeControl.timeSettings[2].totalTime = 3*60;
+   options->game.timeControl.timeSettings[2].increment = 0;
+   options->game.timeControl.timeSettings[2].moves = 0;
 
    options->game.chess960     = FALSE;
    options->game.graceTimeForComputerMove = 40; // allow 4 seconds to make move for computer
-   options->game.useOpeningBook      = TRUE;
+   options->game.useOpeningBook      = FALSE;
 
    options->board.pieceDropDebounce = (600 / MS_PER_TIC);
    options->board.pieceLiftDebounce = (100 / MS_PER_TIC);

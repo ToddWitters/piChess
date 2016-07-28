@@ -61,6 +61,7 @@ void moveForComputer_boardChange( event_t ev)
       }
       else
       {
+         game.graceTime = 0;
          event.ev = EV_PLAYER_MOVED_FOR_COMP;
       }
 

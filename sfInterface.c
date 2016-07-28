@@ -19,7 +19,8 @@
 #include <unistd.h>
 
 
-#define SF_EXE      "/home/pi/chess/stockfish > sfOutput.txt"
+// #define SF_EXE      "/home/pi/chess/stockfish > sfOutput.txt"
+#define SF_EXE      "/home/pi/chess/stockfish > /dev/null"
 
 FILE *sfPipe = NULL;
 struct pollfd fds[1];
@@ -54,7 +55,7 @@ void SF_initEngine( void )
    // Set up our default parameters to Stockfish
    SF_setOption("Threads", "4");
 
-   sprintf(skillLevelText, "%d\n", options.engine.strength);
+   sprintf(skillLevelText, "%d", options.engine.strength);
    SF_setOption("Skill Level", skillLevelText);
 }
 
@@ -70,7 +71,7 @@ void SF_closeEngine( void )
 
 void SF_setOption( char *name, char *value)
 {
-   fprintf(sfPipe,"setoption name %s value %s", name, value);
+   fprintf(sfPipe,"setoption name %s value %s\n", name, value);
 }
 
 void SF_setPosition( char *fen, char *moveList)
@@ -93,6 +94,7 @@ void SF_setPosition( char *fen, char *moveList)
       }
       else
       {
+         DPRINT("Setting move list to %s\n", moveList);
          fprintf(sfPipe,"position startpos moves %s\n", moveList);
       }
    }
@@ -108,6 +110,7 @@ void SF_setPosition( char *fen, char *moveList)
       }
       else
       {
+         DPRINT("Setting move list to %s\n", moveList);
          fprintf(sfPipe,"position fen %s moves %s\n", fen, moveList);
       }
       // TODO grab results.
@@ -161,6 +164,20 @@ void SF_stop( void )
    }
    fprintf(sfPipe,"stop\n");
 }
+
+void SF_go( void )
+{
+   if(sfPipe == NULL)
+   {
+      DPRINT("SF_go called with uninitialized stockfish pipe\n");
+      return;
+   }
+   fprintf(sfPipe,"go\n");
+}
+
+
+// Another possibility...
+// http://www.tldp.org/LDP/lpg/node15.html#SECTION00730000000000000000
 
 static void *enginePollTask ( void *arg )
 {

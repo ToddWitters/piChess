@@ -17,6 +17,7 @@
 #include "book.h"
 
 extern bool_t computerMovePending;
+bool_t waitingForButton = FALSE;
 
 static void computerMove_engineSelection( move_t mv, move_t ponder );
 
@@ -32,14 +33,22 @@ void computerMoveEntry( event_t ev )
    if( (options.game.useOpeningBook == TRUE) &&
        (getRandMove( &game.brd, &m ) == BOOK_NO_ERROR) )
    {
+      listBookMoves(&game.brd);
       DPRINT("Move selected from Book\n");
       computerMove_engineSelection( m, nullMv );
    }
    else
    {
 
-      // TODO... 2nd arg should be a move list
+
+#if 0
+      // History-less
       SF_setPosition(getFEN(&game.brd), NULL);
+#else
+      // Send start position and move record...
+      SF_setPosition(game.startPos, game.moveRecord);
+#endif
+
 
       switch(options.game.timeControl.type)
       {
@@ -53,7 +62,8 @@ void computerMoveEntry( event_t ev )
                   SF_findMoveFixedDepth(options.game.timeControl.compStrategySetting.depth);
                   break;
                case STRAT_TILL_BUTTON:
-                  // TODO!!!
+                  waitingForButton = TRUE:
+                  SF_go();
                   break;
             }
             break;
@@ -81,6 +91,19 @@ void computerMoveEntry( event_t ev )
       }
    }
 
+}
+
+bool_t computerMoveWaitingButton( event_t ev )
+{
+
+   return ( (ev.data == B_PRESSED) && waitingForButton);
+}
+
+void computerMoveButtonStop( event_t ev )
+{
+   SF_stop();
+
+   // This will request the engine to stop, and ultimately trigger a decision...
 }
 
 void computerMoveExit( event_t ev )

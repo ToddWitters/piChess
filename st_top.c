@@ -45,7 +45,13 @@ void topEntry( event_t ev )
       // Init the event handler
       initEvent();
 
+      // DEBUG ONLY
+      setButtonRepeat(10, 2);
+
+
       initDone = TRUE;
+
+      DPRINT("Exiting top state init\n");
    }
 
 }

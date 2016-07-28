@@ -56,7 +56,7 @@ void putEvent(evQueueIndex_t indx, event_t *evData)
    if( ( (eventQueue[indx].evPushIndex + 1) == eventQueue[indx].evPopIndex ) ||
        (eventQueue[indx].evPushIndex == EVENT_QUEUE_SIZE -1  && eventQueue[indx].evPopIndex == 0) )
    {
-      DPRINT("Event Queue Overflow.  Discarding Event %s\n", eventName[evData->ev]);
+      DPRINT("Event Queue Overflow.  Discarding Event %d %d [%s]\n", evData->ev, evData->data, eventName[evData->ev]);
       pthread_mutex_unlock(&eventQueue[indx].mutex);
       return;
    }

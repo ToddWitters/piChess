@@ -207,11 +207,8 @@ typedef enum computerStrategy_e
 typedef struct compStrategySetting_s
 {
    computerStrategy_t type;
-   union
-   {
-      uint8_t  depth;
-      uint32_t timeInMs;
-   };
+   uint8_t  depth;
+   uint32_t timeInMs;
 }compStrategySetting_t;
 
 typedef struct periodTimingSettings_s

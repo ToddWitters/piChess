@@ -6,3 +6,4 @@ Stockfish-master*
 *.o
 *.exe
 .tags1
+*.swp

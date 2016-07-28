@@ -16,25 +16,49 @@ static uint16_t findLca(const HSM_Handle_t *hsm, uint16_t stateA, uint16_t state
 static uint16_t findLineFromAToB(const HSM_Handle_t *hsm, uint16_t stateA, uint16_t stateB );
 static HSM_Error_t traverseCompositeState(HSM_Handle_t *hsm );
 
-
-#define HSM_DPRINT(...)    DPRINT(__VA_ARGS__)
+#define HSM_DPRINT(...) DPRINT(__VA_ARGS__)
 
 extern const char *eventName[];
 
-
 // Create a state machine, verify passed structures
+//
+//   Any of the following will cause a failure of the init function:
+//     NULL pointers passed for states or transitions
+//     top node has a non-null parent
+//     any other node has a null paren
+//     any parent state is invalid (>= stateCount)
+//     circular reference in tree
+//     State without a picker function where one of the following are true
+//       state is top-most state
+//       state has multiple children AND is the target of at least one transition
+//
+//     memory allocation failure
+//
+//   return values:
+//
+//   HSM_NO_ERROR                       success
+//   HSM_NULL_POINTER                   a passed pointer was null
+//   HSM_TOP_PARENT_NOT_NULL            top state has a parent
+//   HSM_MISSING_PARENT_ON_SUBNODE      one or more states missing a parent
+//   HSM_MISSING_PICKER_FUNC            state with children is missing a picker func
+//   HSM_UNEXPECTED_PICKER_FUNC         state without children has a picker func
+//   HSM_INVALID_STATE                  reference to invalid state (>= stateCount)
+//   HSM_EVENT_LIST_NOT_SORTED          items in transisions array not sorted by event
+//   HSM_CIRCULAR_HIERARCY              hierarcy contains a loop
+//   HSM_OUT_OF_MEMORY                  memory allocation error
+//
 HSM_Error_t HSM_createHSM( const stateDef_t *states,
-                       const transDef_t *transitions,
-                       uint16_t stateCount,
-                       uint16_t transCount,
-                       HSM_Handle_t **hsm)
+                           const transDef_t *transitions,
+                           uint16_t stateCount,
+                           uint16_t transCount,
+                           HSM_Handle_t **hsm)
 {
 
    uint16_t last;
    uint16_t *childCountArray;
    uint16_t *boolArray;
 
-   int i,j;
+   int i;
 
    // Verify passed parameters....
    if( (NULL == states) || (NULL == transitions) )
@@ -57,9 +81,7 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
             HSM_DPRINT("ERROR: Topmost state ""%s"" has a non-NULL parent\n", states[i].displayName);
             return HSM_TOP_PARENT_NOT_NULL;
          }
-      }
-      else
-      {
+      } else {
          if((states[i].parent == stateCount))
          {
             HSM_DPRINT("ERROR: State ""%s"" has no parent defined\n", states[i].displayName);
@@ -67,13 +89,13 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
          }
       }
 
-      if( states[i].parent     > stateCount )
+      if( states[i].parent > stateCount )
       {
          HSM_DPRINT("ERROR: State ""%s"" has an invalid parent state definition\n", states[i].displayName);
          return HSM_INVALID_STATE;
       }
-
    }
+   
    // For each node, work towards top, ensuring we don't revisit any
    //   nodes (circular reference) and we eventually reach the top;
 
@@ -110,6 +132,9 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
 
       }
 
+      // Determine how we exited the while loop....
+
+      // We encountered an invalid state...
       if(walkingState >= stateCount)
       {
          free(boolArray);
@@ -117,13 +142,18 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
          return HSM_INVALID_STATE;
       }
 
+      // We revisted a node somewhere...
       if(walkingState != 0)
       {
          free(boolArray);
          HSM_DPRINT("ERROR: Traversing upward from state ""%s"" found a circular reference loop\n", states[i].displayName);
          return HSM_CIRCULAR_HIERARCY;
       }
+
+      // Otherwise, we found the top node from this state... check the next one
    }
+
+   free(boolArray);
 
    // Make sure transition list is sorted.
    // as a secondary action, count entries as we progress
@@ -142,6 +172,7 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
          return HSM_INVALID_STATE;
       }
 
+      // NOTE:  Value of stateCount is allowed here... it denotes an internal transition
       if(transitions[i].from >= stateCount)
       {
          HSM_DPRINT("ERROR: Found invalid ""from"" state %d at position %d\n",transitions[i].from, i);
@@ -151,78 +182,67 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
       last = transitions[i].ev;
    }
 
-   // Ensure composite states have picker functions defined
+   // Ensure states with children have picker functions defined, and conversely, that those without children
+   // do NOT have a picker function defined.
 
+   // Create some temporary memory to hold counters for each state
    childCountArray = malloc(sizeof(uint16_t) * stateCount);
 
+   // Bail on malloc failure
    if(childCountArray == NULL)
    {
       HSM_DPRINT("ERROR: Out of memory\n");
       return HSM_OUT_OF_MEMORY;
    }
 
-   // store count of child nodes for each parent
+   // Set all counts to zero
    memset(childCountArray, 0, sizeof(uint16_t) * stateCount);
 
    // Pass 1.. count # of children for each node
+
+   // Since topmost has no parent, start at index 1
    for(i=1; i < stateCount; i++) childCountArray[states[i].parent]++;
 
-   // Pass 2.. verify the substate picker functions are defined for states that:
-   //    (a) has children and
-   //    (b) is a target of a transition
+
+   // Pass 2.. verify the substate picker functions are defined (or not) for states that have children (or not)
    for(i=0; i < stateCount; i++)
    {
       // Does this node have children?
       if(childCountArray[i] != 0)
       {
-         // Yes... look for any transitions that terminate here...
-         for(j = 0; j < transCount; j++)
+         if(states[i].pickerFunc == NULL_SUBSTATE_PICKER_FUNC)
          {
-            // Does the "to" state match the state we are looking at?
-            if(transitions[j].to == i)
-            {
-               // Yes... make sure we have a picker function
-               if(states[i].pickerFunc == NULL_SUBSTATE_PICKER_FUNC)
-               {
-                  free(childCountArray);
-                  HSM_DPRINT("ERROR: Missing substate picker function for composite state ""%s"" which is a target of one or more transitions\n", states[i].displayName);
-                  return HSM_MISSING_PICKER_FUNC;
-               }
-
-               // No need to look further for this state
-               break;
-            }
-         }
-         if( i != 0 && j == transCount && states[i].pickerFunc != NULL_SUBSTATE_PICKER_FUNC)
-         {
-            HSM_DPRINT("WARNING: Substate picker function defined for composite state ""%s"", but no transitions terminate here\n", states[i].displayName);
-         }
-      }
-      else
-      {
-         if(states[i].pickerFunc != NULL_SUBSTATE_PICKER_FUNC)
-         {
-            HSM_DPRINT("ERROR: Unexpected substate picker function on state %s\n", states[i].displayName);
+            free(childCountArray);
+            HSM_DPRINT("ERROR: Missing substate picker function for composite state ""%s""\n", states[i].displayName);
             return HSM_MISSING_PICKER_FUNC;
          }
       }
+      else // no children should mean no picker func.
+      {
+         if(states[i].pickerFunc != NULL_SUBSTATE_PICKER_FUNC)
+         {
+            free(childCountArray);
+            HSM_DPRINT("ERROR: Unexpected substate picker function on state %s\n", states[i].displayName);
+            return HSM_UNEXPECTED_PICKER_FUNC;
+         }
+      }
    }
-
    free(childCountArray);
 
    // Now that we have verified the integrity of table, create a handle
    *hsm = malloc( sizeof(HSM_Handle_t));
 
+   // Bail on malloc failure
    if(hsm == NULL )
    {
       HSM_DPRINT("ERROR: Out of memory\n");
       return HSM_OUT_OF_MEMORY;
    }
 
+   // Initialize the handle
    (*hsm)->states         = states;
    (*hsm)->transitions    = transitions;
-   (*hsm)->currentState   = stateCount;
-   (*hsm)->hsmDisposition = HSM_CREATED;
+   (*hsm)->currentState   = stateCount;   // this will change once we call the init function
    (*hsm)->transCount     = transCount;
    (*hsm)->stateCount     = stateCount;
 
@@ -230,29 +250,34 @@ HSM_Error_t HSM_createHSM( const stateDef_t *states,
 }
 
 // initialize hsm (enter top state)
+//
+//
+//   HSM_NO_ERROR                        success
+//   HSM_NOT_INITIALIZED                 invalid handle
+//   HSM_PICKER_RETURNED_INVALID_STATE   a picker function returned an invalid state
+//   HSM_PICKER_RETURNED_NON_CHILD       a picker function returned a non-child state
+//
 HSM_Error_t HSM_init( HSM_Handle_t *hsm )
 {
    HSM_Error_t err;
 
-   // Traverse downward from top to leaf node following initState pointers,
+   // Traverse downward from top to leaf node
    //   running all entry functions on the way down
-   event_t junk = {0, 0};
+   event_t nullEvent = {0, 0};
 
-   if(hsm->hsmDisposition != HSM_CREATED) return HSM_NOT_INITIALIZED;
+   // Only init if current state is still set to stateCount
+   if(hsm->currentState != hsm->stateCount) return HSM_NOT_INITIALIZED;
 
    // Start at the top...
    hsm->currentState = 0;
 
    // Run the entry function if it exists
    if(hsm->states[hsm->currentState].entryFunc != NULL)
-      hsm->states[hsm->currentState].entryFunc(junk);
+      hsm->states[hsm->currentState].entryFunc(nullEvent);
 
    err = traverseCompositeState(hsm);
 
-   if(err == HSM_NO_ERROR)
-   {
-      hsm->hsmDisposition = HSM_INITIALIZED;
-   }
+   if(err != HSM_NO_ERROR) hsm->currentState = hsm->stateCount;
 
    return err;
 }
@@ -266,7 +291,29 @@ HSM_Error_t HSM_destroy( HSM_Handle_t *hsm)
    return HSM_NO_ERROR;
 }
 
-// Process a new event,
+// Process a new event
+//
+//   Beginning with the current state, determine if a transition exists where...
+//      .from    = current state
+//      .guard() is NULL or returns true
+//   If such a transition if found...
+//      find the closest ancestor (lca) to both the from and to states
+//      transition upward to the lca, calling all the exit functions for each state
+//      call the action function for the transition
+//      transition downward to the target state, calling all the entry functions for each state
+//   else
+//      keep trying with next ancestor until top of tree reached.
+//
+//   return values:
+//
+//   HSM_NO_ERROR                         success
+//   HSM_EV_NOT_IN_TABLE                  event not in table
+//   HSM_INVALID_STATE                    invalid state in trans table
+//   HSM_NO_EV_HANDLER_FOUND              event in table, but not handled in current state (or ancestors)
+//   HSM_NOT_INITIALIZED                  uninitialzed handle
+//   HSM_PICKER_RETURNED_INVALID_STATE    picker returned an out-of-range state
+//   HSM_PICKER_RETURNED_NON_CHILD        picker returned a state that is not a child
+
 HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
 {
    uint16_t tempState;
@@ -276,7 +323,7 @@ HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
    HSM_Error_t err;
 
    // Bail if this hsm is not initialized
-   if(hsm->hsmDisposition != HSM_INITIALIZED)
+   if(hsm->currentState >= hsm->stateCount)
    {
       HSM_DPRINT("ERROR: Call to processEvent with uninitialized state machine\n");
       return HSM_NOT_INITIALIZED;
@@ -396,7 +443,7 @@ HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
                if(hsm->currentState != hsm->transitions[scanOffset].from || localTrans == FALSE)
                {
                   // Run the entry function...
-                  if(hsm->states[hsm->currentState].entryFunc != NULL_EXIT_FUNC)
+                  if(hsm->states[hsm->currentState].entryFunc != NULL_ENTRY_FUNC)
                      hsm->states[hsm->currentState].entryFunc(ev);
                }
 
@@ -418,10 +465,28 @@ HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev)
       tempState = hsm->states[tempState].parent;
    }
 
-   if(found == FALSE)
+   if(found == FALSE) return HSM_NO_EV_HANDLER_FOUND;
+
+   return HSM_NO_ERROR;
+}
+
+HSM_Error_t HSM_exit( void )
+{
+   event_t junk = {0, 0};
+
+   // Bail if this hsm is not initialized
+   if(hsm->currentState >= hsm->stateCount)
    {
-//      HSM_DPRINT("WARNING: Handler not found\n");
-      return HSM_NO_EV_HANDLER_FOUND;
+      HSM_DPRINT("ERROR: Call to HSM_exit with uninitialized state machine\n");
+      return HSM_NOT_INITIALIZED;
+   }
+
+   while(hsm->currentState != hsm->stateCount)
+   {
+      if(hsm->states[hsm->currentState].exitFunc != NULL_EXIT_FUNC)
+         hsm->states[hsm->currentState].exitFunc(junk);
+
+      hsm->currentState = hsm->states[hsm->currentState].parent;
    }
 
    return HSM_NO_ERROR;
@@ -447,10 +512,8 @@ static uint16_t findKey(const transDef_t *table, uint16_t key, uint16_t min, uin
    if(thisKey == key)
    {
       // back up to first entry in this group...
-      while(mid--)
-      {
-         if(table[mid].ev != key) return mid + 1;
-      }
+      while(mid--) if(table[mid].ev != key) return mid + 1;
+
       return 0;
    }
    else if (thisKey > key)
@@ -509,9 +572,6 @@ static uint16_t findLineFromAToB(const HSM_Handle_t *hsm, uint16_t stateA, uint1
    uint16_t walkingState = stateB;
 
    while(hsm->states[walkingState].parent != stateA && hsm->states[walkingState].parent <= hsm->stateCount)
-   {
-      walkingState = hsm->states[walkingState].parent;
-   }
 
    return walkingState;
 }
@@ -549,6 +609,8 @@ static HSM_Error_t traverseCompositeState(HSM_Handle_t *hsm )
          hsm->states[hsm->currentState].entryFunc(junk);
 
    }
-   return HSM_NO_ERROR;
 
+   return HSM_NO_ERROR;
 }
+
+

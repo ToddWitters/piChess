@@ -61,6 +61,17 @@ static const buttonPos_t switchStateTable[16] =
 // The state of the most recent reed switch readings
 static uint64_t sampleState = 0;
 
+// Amount of time to delay before starting to repeat the button position
+//   0 = don't repeat
+static uint8_t repeatDelay = 0;
+
+// Interval at which to repeat a button position
+static uint8_t repeatInterval = 0;
+
+// Down-Counter to track repeating button positions:
+static uint8_t repeatCounter = 0;
+
+
 // The debounced state of each sample
 static uint64_t debouncedState = 0xFFFFFFFFFFFFFFFF;
 
@@ -90,6 +101,8 @@ static uint8_t checkRow(uint8_t row, uint8_t intPin, uint8_t portAddress, uint8_
 
 // debounce the state of the 5-way button
 static void buttonDebounce (uint8_t switchData);
+
+
 
 // reed switch states.  Used to avoid i2c read of data when interrupt line not asserted.
 static uint64_t lastBitBoard = 0;
@@ -374,7 +387,16 @@ static void buttonDebounce (uint8_t switchData)
       {
          // Update the debounced state
          posDebouncedState = posSampledState;
-
+         
+         if(posDebouncedState == POS_CENTER)
+         {
+            repeatCounter = 0;
+         }
+         else
+         {
+            // New button state...
+            repeatCounter = repeatDelay;
+         }
          // Populate the event data
          evnt.ev    = EV_BUTTON_POS;
          evnt.data = posDebouncedState;
@@ -383,6 +405,23 @@ static void buttonDebounce (uint8_t switchData)
          // DPRINT("Nav switch %s\n", switchStateText[switchData & 0x0F]);
 
          putEvent(EVQ_EVENT_MANAGER,   &evnt);
+      }
+   }
+   else
+   {
+      if(repeatCounter)
+      {
+         if(--repeatCounter == 0)
+         {
+            repeatCounter = repeatInterval;
+
+            // Populate the event data
+            evnt.ev    = EV_BUTTON_POS;
+            evnt.data = posDebouncedState;
+
+            putEvent(EVQ_EVENT_MANAGER,   &evnt);
+            
+         }
       }
    }
 
@@ -410,4 +449,10 @@ static void buttonDebounce (uint8_t switchData)
    }
    bLastState = bSampledState;
 
+}
+
+void setButtonRepeat(uint8_t delay, uint8_t interval)
+{
+   repeatDelay    = delay;   
+   repeatInterval = interval;
 }

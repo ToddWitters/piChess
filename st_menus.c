@@ -8,6 +8,11 @@
 
 static menu_t *currentMenu = NULL;
 
+uint16_t menuPickSubstate(event_t ev)
+{
+   return ST_MAINMENU;
+}
+
 
 void menusExit( event_t ev)
 {

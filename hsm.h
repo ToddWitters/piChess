@@ -60,14 +60,6 @@ typedef struct transDef_s
    bool_t         local;    // When to/from are direct ancestors/decendents, choose type of transition
 }transDef_t;
 
-// Overall disposition of an HSM
-typedef enum HSM_disposition_e
-{
-   HSM_CREATED,      // Created but not yet initialized
-   HSM_INITIALIZED,  // Created and initialized (or re-initialized after exit)
-   HSM_EXITED        // Exit state was reached.
-}HSM_disposition_t;
-
 typedef struct HSM_Handle_s
 {
    const stateDef_t   *states;
@@ -75,7 +67,6 @@ typedef struct HSM_Handle_s
    uint16_t            currentState;
    uint16_t            transCount;
    uint16_t            stateCount;
-   HSM_disposition_t   hsmDisposition;
 
 }HSM_Handle_t;
 
@@ -83,42 +74,40 @@ typedef enum HSM_Error_e
 {
    HSM_NO_ERROR,
    HSM_NULL_POINTER,
-   HSM_NULL_EVENT,
    HSM_EV_NOT_IN_TABLE,
    HSM_TOP_PARENT_NOT_NULL,
    HSM_MISSING_PARENT_ON_SUBNODE,
    HSM_MISSING_PICKER_FUNC,
+   HSM_UNEXPECTED_PICKER_FUNC,
    HSM_INVALID_STATE,
    HSM_EVENT_LIST_NOT_SORTED,
    HSM_NO_EV_HANDLER_FOUND,
-   HSM_NOT_HANDLED,
    HSM_NOT_INITIALIZED,
-   HSM_ALREADY_INITIALIZED,
    HSM_CIRCULAR_HIERARCY,
    HSM_PICKER_RETURNED_INVALID_STATE,
    HSM_PICKER_RETURNED_NON_CHILD,
-   HSM_NO_COMMON_ANCESTOR_FOUND,
    HSM_OUT_OF_MEMORY,
 }HSM_Error_t;
 
 // public interface
 
 // Create a state machine, verify passed structure
-HSM_Error_t HSM_createHSM( const stateDef_t *states,
-                       const transDef_t *transitions,
-                       uint16_t stateCount,
-                       uint16_t transCount,
-                       HSM_Handle_t **hsm);
+HSM_Error_t HSM_createHSM( const stateDef_t *states,        // Table of state information
+                           const transDef_t *transitions,   // Table of transitions
+                           uint16_t stateCount,             // size of states array
+                           uint16_t transCount,             // size of transition array
+                           HSM_Handle_t **hsm);             // pointer to handle (itself a pointer)
 
-// initialize hsm (enter top state and )
+// Initialize hsm (enter top state and traverse to first leaf node )
 HSM_Error_t HSM_init( HSM_Handle_t *hsm );
+
+// Process a new event
+HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev);
+
+HSM_Error_t HSM_exit( void );
 
 // Destroy a state machine
 HSM_Error_t HSM_destroy( HSM_Handle_t *hsm);
-
-// Process a new event and return the resulting state
-HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev);
-
 
 
 #endif

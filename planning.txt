@@ -1,8 +1,28 @@
 +------------------------------------------------------------------------------+
+Release      1.1
+Date         xx/xx/xx
+
+--------------------------
+-- New/Updated Features --
+--------------------------
+   Send start position and move history to engine to enable 3-fold rep tests
+   Engine settings menu:
+      Opening Book enable/disable
+      Engine Strength
+   Moved previous settings into three sub menus:  Game/ Board / Engine
+   Added option to set board's LED brightness 
+   Added repeating button position events to allow scrolling large menus or large pickers
+
+---------------
+-- Bug Fixes --
+---------------
+   Corrected bug that failed to require landing square on a capture to see a
+   change
+
++------------------------------------------------------------------------------+
 Release      1.0
 Date         4/27/16
 
-Description
 First Working version with the following features:
    Player vs. Player
    Player vs. Computer
@@ -13,50 +33,48 @@ First Working version with the following features:
 +------------------------------------------------------------------------------+
 
 
+Future Version Planning
+=======================
 
-Future Planning
----------------
++-----+
+| 1.1 |
++-----+
 
-1.1
----
-Ability to set time parameters (Equal, Odds, None)
+Setup arbitrary position
+Add U/I elements to allow underpromotion 
+Fix lock-up issue
+Fix Launch at power-up
+Ability to set time parameters (Equal, Odds, None):
    If Equal, set (up to) three periods (time, increment & moves)
    If Odds, set time / increment for each player
    if None, ability to select engine strategy (time/move, depth/move, till button)
-Setting arbitrary position
-Underpromotion
-Hardening of state transitions to/from in-game menu
 
-1.2
----
+
+
++-----+
+| 1.2 |
++-----+
+More robust handling of unexpected board events during game.
 Saving/Restoring options
-Engine settings menu:
-   OpenBook enable/disable
-   Engine Strength
-Option to set LED brightness
 Move take-back
 Verify board contents during game
 
-1.3
----
-More robust handling of unexpected board events during game.
++-----+
+| 1.3 |
++-----+
+Sound??
+   Piece Move
+   Computer Move
+   Notification of important screen contents
 
 
-
-2.0
----
-
-
-
->> Later...
-Figure launch at power-up
-Pass engine initial position & move history
++-------+
+| Future|
++-------+
+Coaching and Tournament modes
 Pondering
-Under-promotion
 75 move rule detection
 5-fold repetition detection
-50-move draw claim arbitration
-3-fold draw claim arbitration
-Set & play arbitrary position
-Save options on exit
+50-move draw claim arbitration (auto, manual)
+3-fold draw claim arbitration (auto, manual)
 EGTB

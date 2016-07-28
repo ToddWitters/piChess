@@ -111,6 +111,27 @@ void playerMoves_boardChange( event_t ev)
          break;
 
       case MV_PRECURSOR:
+
+         // Is a white pawn about to promote?
+         if( ev.ev == EV_PIECE_LIFT && 
+             ( game.brd.pieces[PAWN]  & 
+               game.brd.colors[WHITE] & 
+               squareMask[ev.data]    & 
+               rowMask[1] ) )
+         {
+            // Prompt for promote piece
+         }
+      
+         // Is a black pawn about to promote?
+         else if( ev.ev == EV_PIECE_LIFT && 
+                  ( game.brd.pieces[PAWN]  & 
+                    game.brd.colors[BLACK] & 
+                    squareMask[ev.data]    & 
+                    rowMask[6] ) )
+         {
+            // Prompt for promote piece
+         }
+      
          LED_SetGridState(dirtySquares);
          break;
 

@@ -14,6 +14,10 @@ typedef enum stateId_e
        ST_MAINMENU,                // Top-most menu
        ST_DIAGMENU,                // Diagnostic menu
        ST_OPTIONMENU,
+       ST_BOARD_OPTION_MENU,
+       ST_GAME_OPTION_MENU,
+       ST_ENGINE_OPTION_MENU,
+     ST_TIME_OPTION_MENU,
      ST_INIT_POS_SETUP,            // Set up initial position
      ST_IN_GAME,                   // A game is in progress
        ST_PLAYING_GAME,            // Actively making moves (or thinking)
@@ -21,23 +25,17 @@ typedef enum stateId_e
          ST_COMPUTER_MOVE,         // Computer is thinking
          ST_MOVE_FOR_COMPUTER,     // Player is making computer's chosen move
        ST_GAMEMENU,                // Navigating in-game menu
-/*
-       ST_FIXING_BOARD,            // Player(s) are being guided to fix the board position
-*/
        ST_EXITING_GAME,             // Game has concluded, waiting for confirmation
-
      ST_DIAG_SENSORS,
 
-   ST_COUNT,
-   ST_NONE = ST_COUNT
+   ST_NONE // MUST BE LAST ITEM IN LIST...
 }stateId_t;
 
 
 // Events
 typedef enum eventId_e
 {
-   EV_RESERVED, // NOTE:  Zero is reserved value passed to entry functions on init
-   EV_NULL = EV_RESERVED,
+   EV_NULL,           // Dummy event.  Value of 0 reserved for use by HSM logic
 
    // BUTTONS
    EV_BUTTON_STATE,
@@ -53,11 +51,14 @@ typedef enum eventId_e
    EV_GOTO_MAIN_MENU,
    EV_GOTO_DIAG_MENU,
    EV_GOTO_OPTION_MENU,
+   EV_GOTO_BOARD_OPTIONS,
+   EV_GOTO_GAME_OPTIONS,
+   EV_GOTO_ENGINE_OPTIONS,
+   EV_GOTO_TIME_OPTIONS,
+
    EV_GOTO_GAME,
    EV_GOTO_PLAYING_GAME,
    EV_GOTO_GAMEMENU,
-
-   //
    EV_GAME_DONE,
 
    // TIMER EVENTS

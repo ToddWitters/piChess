@@ -1,0 +1,141 @@
+HSM implementation
+
+Hierarchal State Machine Engine
+
+UML state machine support:
+   Nested states
+   Transition guard functions (including for internal transitions)
+   entry/exit functions for all states
+   action functions possible on all transistions (except initial... see caveats below)
+   local and external transitions
+   internal transisions
+
+Constructs NOT directly supported
+   orthogonal regions
+   event deferral
+   action functions on initial transitions (but the picker function could easily do this OR the entry function could by testing
+      the passed action for zero - indicating entry via the picker)
+   pseudo-states (these can be accomplished by multiple guard conditions)
+
+Extensions
+   Initial transitions are defined by a picker function that returns which substate to traverse into.  This allows a fixed or 
+      variable entry point into a composite state
+   Triggering event has data attached which is passed, along with the event, into all entry, exit, guard, statePicker and action functions
+   When multiple transitions are available from a given state for a given event, the ordering of the guard functions is deterministic
+
+API
+
+// State definitions
+//   Upon creation of a new state machine, the user provides a pointer to an array of stateDef_t objects
+//    which provide information about the states within the state machine
+typedef struct stateDef_s
+{
+   char                *displayName;   // Optional name for debugging
+   uint16_t             parent;        // The parent state.  Use TOTAL_STATES for topmost state only
+   substatePickerFunc_t pickerFunc;    // Called to choose a substate when transition target is a container state
+   entryFunc_t          entryFunc;     // run on entry
+   exitFunc_t           exitFunc;      // run on exit
+}stateDef_t;
+
+// User definition of an event handler.
+//   Upon creation of a new state machine, the user provides a pointer to an array of transDef_t objects
+//    which provide a list of all state transition (including internal ones) that are recognized.
+//    This array must be sorted on the "ev" field.  There may be multiple entries for each ev value 
+
+typedef struct transDef_s
+ {
+   uint16_t       ev;       // The event trigger
+   uint16_t       from;     // The originating state
+   uint16_t       to;       // The target state (stateCount if handled internally)
+   guardFunc_t    guard;    // The guard condition.  If non-NULL, must return true to make transition
+   actionFunc_t   action;   // The action, if any, to perform on transition
+   bool_t         local;    // When to/from are direct ancestors/decendents, choose type of transition
+}transDef_t;
+
+typedef struct HSM_Handle_s
+{
+   const stateDef_t   *states;
+   const transDef_t   *transitions;
+   uint16_t            currentState;
+   uint16_t            transCount;
+   uint16_t            stateCount;
+}HSM_Handle_t;
+
+typedef enum HSM_Error_e
+{                                       // Functions which return these values
+                                        // -----------------------------------
+   HSM_NO_ERROR,                        // init   create  process  destroy
+   HSM_NULL_POINTER,                    //        create
+   HSM_EV_NOT_IN_TABLE,                 //                process
+   HSM_TOP_PARENT_NOT_NULL,             //        create
+   HSM_MISSING_PARENT_ON_SUBNODE,       //        create
+   HSM_MISSING_PICKER_FUNC,             //        create
+   HSM_UNEXPECTED_PICKER_FUNC,          //        create
+   HSM_INVALID_STATE,                   //        create  process
+   HSM_EVENT_LIST_NOT_SORTED,           //        create
+   HSM_NO_EV_HANDLER_FOUND,             //                process
+   HSM_NOT_INITIALIZED,                 // init           process
+   HSM_CIRCULAR_HIERARCY,               //        create
+   HSM_PICKER_RETURNED_INVALID_STATE,   // init           process
+   HSM_PICKER_RETURNED_NON_CHILD,       // init           process
+   HSM_OUT_OF_MEMORY,                   //        create
+}HSM_Error_t;   
+
+HSM_Error_t HSM_createHSM( const stateDef_t *states,
+                           const transDef_t *transitions,
+                           uint16_t stateCount,
+                           uint16_t transCount,
+                           HSM_Handle_t **hsm);
+
+HSM_Error_t HSM_init( HSM_Handle_t *hsm );
+HSM_Error_t HSM_destroy( HSM_Handle_t *hsm);
+HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev);
+
+// Typical usage
+
+// User creates a state table of type stateDef_t[], one entry per state.
+//    - First entry MUST be top-most entry state and must have no parents
+//    - Every other state must be a descendent of the top-most state
+
+// User creates a transition table of type transDef_t[], one entry per state transition
+//   - Event 0 is reserved and shall not be used
+//   - Table Must be sorted by event.  Multiple entries with same event will be scanned in order
+//   - Internal entries are represented by using "stateTotal" as "to" state
+
+// User calls the create function which verifies the integrity of the state and transition tables and
+//    initializes the HSM for use
+
+// User calls the "init" function to traverse down from the top-most state to a leaf node using 
+//    the statePicker functions until a leaf node is reached.
+
+// As an event occur, the event is passed to the HSM_processEvent function for handling.
+
+// Typical usage:
+
+if (HSM_Create(...) != HSM_NO_ERROR) 
+{
+   // Alert user
+}
+
+if (HSM_Init(...) != HSM_NO_ERROR)
+{
+   // Alert user
+}
+
+while(1)
+{
+   // wait for event
+   
+   if (HSM_processEvent( ev ) != HSM_NO_ERROR)
+   {
+      // Alert user
+      // NOTE:  HSM_EV_NOT_IN_TABLE and HSM_NOT_HANDLED aren't technically errors
+   }
+}
+
+
+
+Good reading....
+https://classes.soe.ucsc.edu/cmpe013/Spring11/LectureNotes/A_Crash_Course_in_UML_State_Machines.pdf
+
+

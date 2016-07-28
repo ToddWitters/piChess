@@ -40,7 +40,9 @@ void ResumeSwitchPoll( void );
 // Return all debounced switch states in a 64-bit value
 uint64_t GetSwitchStates ( void );
 
-// Register for a callback function 
+// Register for a callback function
 void SetSwitchCallback(cbPtr_t cb);
+
+void setButtonRepeat(uint8_t delay, uint8_t interval);
 
 #endif

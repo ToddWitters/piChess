@@ -23,6 +23,7 @@
 game_t game;
 
 extern menu_t *inGameMenu;
+extern bool_t computerMovePending;
 
 static char *convertTimeToString (uint32_t tenths );
 
@@ -82,7 +83,7 @@ void inGameEntry( event_t ev )
 void inGameExit( event_t ev )
 {
    SF_closeEngine();
-
+   computerMovePending = FALSE;
    LED_AllOff();
 }
 

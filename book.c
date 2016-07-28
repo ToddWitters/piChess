@@ -143,7 +143,7 @@ bookErr_t listBookMoves( board_t *b )
       correctCastling(b, &c.mv);
 
       // Show this move and its weight relative to the total.
-      printf("%4.1f%% %s\n", (100.0 * (float)c.weight)/(float)totalWeight, moveToSAN(c.mv, b));
+      DPRINT("%4.1f%% %s\n", (100.0 * (float)c.weight)/(float)totalWeight, moveToSAN(c.mv, b));
    }
 
    return BOOK_NO_ERROR;
@@ -388,13 +388,9 @@ static void correctCastling(board_t *b, move_t *mv)
       if( b->pieces[KING] & b->colors[b->toMove] & squareMask[E1] )
       {
          if ( mv->to == H1)
-         {
             mv->to = G1;
-         }
          else if (mv->to == A1)
-         {
             mv->to = C1;
-         }
       }
    }
 
@@ -403,13 +399,9 @@ static void correctCastling(board_t *b, move_t *mv)
       if( b->pieces[KING] & b->colors[b->toMove] & squareMask[E8] )
       {
          if( mv->to == H8)
-         {
             mv->to = G8;
-         }
          else if(mv->to == A8)
-         {
             mv->to = C8;
-         }
       }
    }
 }

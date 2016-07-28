@@ -32,35 +32,6 @@
 //              SEGG|SEGF|SEGE|SEGD|SEGC|SEGB|SEGA| DP
 //                A    B    C    D   E     F    G    H
 
-// NOTE:  This table must correlate with
-// typedef in header
-const unsigned long long pattern[] =
-{
-   0x0000000000000000, // All Off
-   0xFFFFFFFFFFFFFFFF, // All On
-
-   b8|d8|f8|h8|
-	a7|c7|e7|g7|
-	b6|d6|f6|h6|
-	a5|c5|e5|g5|
-	b4|d4|f4|h4|
-	a3|c3|e3|g3|
-	b2|d2|f2|h2|
-   a1|c1|e1|g1,       // Light Squares
-
-
-	b8|d8|f8|h8|
-	a7|c7|e7|g7|
-	b6|d6|f6|h6|
-	a5|c5|e5|g5|
-	b4|d4|f4|h4|
-	a3|c3|e3|g3|
-	b2|d2|f2|h2|
-   a1|c1|e1|g1,        // Dark  Squares
-
-};
-
-
 typedef struct led_row_t
 {
    unsigned char ledState;
@@ -233,22 +204,10 @@ void LED_Flash( int led )
 
 }
 
-// Set to known test pattern
-void LED_TestPattern( LED_Pattern_t patternNum )
-{
-
-   if(patternNum >= sizeof(pattern)/sizeof(pattern[0])) return;
-
-   LED_SetGridState( pattern[patternNum] );
-
-}
-
 // Set to arbitrary pattern
 void LED_SetGridState ( uint64_t bits )
 {
    int i;
-
-   // LED_AllOff();
 
    DPRINT("Fixing LED grid state to %016llX\n", bits);
 
@@ -267,7 +226,6 @@ void LED_SetGridState ( uint64_t bits )
       ledRowData[i].ledState &= ~(~mask & ~ledRowData[i].ledBlink);
       
       ledRowData[i].rowDirty = TRUE;
-      // ledRowData[i].ledBlink = 0;
    }
 
    pthread_mutex_unlock(&LED_dataMutex);
