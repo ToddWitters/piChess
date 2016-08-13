@@ -92,7 +92,7 @@ void timeOptionMenuButtonHandler( event_t ev)
             case SUBSTATE_ODDS:
             case SUBSTATE_UNTIMED:
                 subState = SUBSTATE_STATUS;
-               drawStatusScreen();
+                drawStatusScreen();
                break;
 
 
@@ -396,14 +396,21 @@ void timeOptionMenuButtonHandler( event_t ev)
                         if(pickRow == 1)
                         {
                            char temp[4];
+                           game.timeControl.computerStrategySetting.type = STRAT_FIXED_DEPTH;
                            sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.depth);
                            displayWriteChars(pickRow,17,3,temp);
                         }
                         else if (pickRow == 2)
                         {
                            char temp[4];
+                           game.timeControl.computerStrategySetting.type = STRAT_FIXED_TIME;
                            sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.timeInMs / 1000);
                            displayWriteChars(pickRow,17,3,temp);
+                        }
+                        else
+                        {
+                           game.timeControl.computerStrategySetting.type = STRAT_TILL_BUTTON;
+
                         }
                      }
                      break;
