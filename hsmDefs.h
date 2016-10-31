@@ -28,7 +28,8 @@ typedef enum stateId_e
        ST_EXITING_GAME,             // Game has concluded, waiting for confirmation
      ST_DIAG_SENSORS,
 
-   ST_NONE // MUST BE LAST ITEM IN LIST...
+   ST_NONE, // MUST BE LAST ITEM IN LIST...
+   ST_COUNT = ST_NONE
 }stateId_t;
 
 

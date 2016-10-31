@@ -42,7 +42,7 @@ uint64_t reverseBitOrder64( uint64_t input)
    return result;
 }
 
-bool_t isStatePress(event_t ev )
+bool isStatePress(event_t ev )
 {
    if(ev.ev == EV_BUTTON_STATE && ev.data == B_PRESSED)
       return TRUE;

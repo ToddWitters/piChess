@@ -46,6 +46,7 @@ void SF_initEngine( void )
    if(sfPipe == NULL)
    {
       DPRINT("Failed to open pipe for stockfish engine\n");
+
       return;
    }
 
@@ -187,13 +188,11 @@ static void *enginePollTask ( void *arg )
    {
       usleep(50000);
 
-      tmpFile = fopen(OUTPUT_FILE, "r+");
-
-      if(tmpFile != NULL)
+      if( access( OUTPUT_FILE, R_OK ) != -1 )
       {
          event_t ev = {EV_PROCESS_COMPUTER_MOVE, 0};
-         fclose(tmpFile);
          putEvent(EVQ_EVENT_MANAGER, &ev);
+         usleep(1000000);
       }
    }
 

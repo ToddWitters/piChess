@@ -14,6 +14,7 @@
 
 #include "sfInterface.h"
 
+extern game_t game;
 
 #include <string.h>
 

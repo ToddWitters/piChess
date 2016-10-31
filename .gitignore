@@ -3,6 +3,9 @@ Archive*
 Mechanical*
 
 Stockfish-master*
+
+qpc-master*
+
 *.o
 *.exe
 .tags1

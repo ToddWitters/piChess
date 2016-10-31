@@ -10,12 +10,13 @@
 #include "diag.h"
 
 uint8_t activeLine;
+extern game_t game;
 
 typedef enum timeSettingSubstate_e
 {
    SUBSTATE_STATUS,        // Displaying Status
    SUBSTATE_TIME_OPTION,   // Selecting scheme
-   SUBSTATE_EVEN,         // Period 1 setting
+   SUBSTATE_EVEN,          // Period 1 setting
    SUBSTATE_ODDS,          // Odds settings
    SUBSTATE_UNTIMED,       // Computer strategy setting
 }timeSettingSubstate_t;
@@ -60,16 +61,19 @@ void timeOptionMenuButtonHandler( event_t ev)
                {
                   case 1:
                   default:
+                     options.game.timeControl.type = TIME_EQUAL;
                      period = 1;
                      subState = SUBSTATE_EVEN;
                      drawEvenScreen(period);
                      break;
                   case 2:
+                     options.game.timeControl.type = TIME_ODDS;
                      subState = SUBSTATE_ODDS;
                      pickRow = 0;
                      drawOddsScreen();
                      break;
                   case 3:
+                     options.game.timeControl.type = TIME_NONE;
                      subState = SUBSTATE_UNTIMED;
                      pickRow = 1;
                      drawUntimedScreen();
@@ -396,20 +400,20 @@ void timeOptionMenuButtonHandler( event_t ev)
                         if(pickRow == 1)
                         {
                            char temp[4];
-                           game.timeControl.computerStrategySetting.type = STRAT_FIXED_DEPTH;
+                           options.game.timeControl.compStrategySetting.type = STRAT_FIXED_DEPTH;
                            sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.depth);
                            displayWriteChars(pickRow,17,3,temp);
                         }
                         else if (pickRow == 2)
                         {
                            char temp[4];
-                           game.timeControl.computerStrategySetting.type = STRAT_FIXED_TIME;
+                           options.game.timeControl.compStrategySetting.type = STRAT_FIXED_TIME;
                            sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.timeInMs / 1000);
                            displayWriteChars(pickRow,17,3,temp);
                         }
                         else
                         {
-                           game.timeControl.computerStrategySetting.type = STRAT_TILL_BUTTON;
+                           options.game.timeControl.compStrategySetting.type = STRAT_TILL_BUTTON;
 
                         }
                      }

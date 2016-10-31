@@ -25,57 +25,33 @@
 #include "st_timeOptionMenu.h"
 #include "util.h"
 
-// Used for diagnostics only
-const char *eventName[] =
-{
-   "",
-   "buttonState",
-   "buttonPos",
-   "pieceDrop",
-   "pieceLift",
-   "startSwitchDiag",
-   "startInitSetup",
-   "gotoMainMenu",
-   "gotoDiagMenu",
-   "gotoBoardOptions",
-   "gotoGameOptions",
-   "gotoEngineOptions",
-   "gotoTimeOptions",
-   
-   "gotoGame",
-   "gotoPlayingGame",
-   "gotoGameMenu",
-   "gameDone",
-   "moveClockTick",
-   "processComputerMove",
-   "playerMovedForComputer"
-};
+extern bool_t waitingForButton;
 
 // This array must be the same size as the state enum in hsmDefs.h
 //   define the states in the same order
 stateDef_t myStateDef[] =
 {
 
-//   displayName         parent            substatePicker              entry                  exit
-   { "top",              ST_NONE,          topPickSubstate,            topEntry,              NULL_EXIT_FUNC       },
-   { "splashScreen",     ST_TOP,           NULL_SUBSTATE_PICKER_FUNC,  splashScreenEntry,     splashScreenExit     },
-   { "menus",            ST_TOP,           menuPickSubstate,           NULL_ENTRY_FUNC,       menusExit            },
-   { "mainMenu",         ST_MENUS,         NULL_SUBSTATE_PICKER_FUNC,  mainMenuEntry,         mainMenuExit         },
-   { "diagMenu",         ST_MENUS,         NULL_SUBSTATE_PICKER_FUNC,  diagMenuEntry,         diagMenuExit         },
-   { "optionMenu",       ST_MENUS,         NULL_SUBSTATE_PICKER_FUNC,  optionMenuEntry,       optionMenuExit       },
-   { "boardOptionMenu",  ST_MENUS,         NULL_SUBSTATE_PICKER_FUNC,  boardOptionMenuEntry,  boardOptionMenuExit  },
-   { "gameOptionMenu",   ST_MENUS,         NULL_SUBSTATE_PICKER_FUNC,  gameOptionMenuEntry,   gameOptionMenuExit   },
-   { "engineOptionMenu", ST_MENUS,         NULL_SUBSTATE_PICKER_FUNC,  engineOptionMenuEntry, engineOptionMenuExit },
-   { "timeOptionMenu",   ST_TOP,           NULL_SUBSTATE_PICKER_FUNC,  timeOptionMenuEntry,   timeOptionMenuExit   },
-   { "initPosSetup",     ST_TOP,           NULL_SUBSTATE_PICKER_FUNC,  initPosSetupEntry,     initPosSetupExit     },
-   { "inGame",           ST_TOP,           inGamePickSubstate,         inGameEntry,           inGameExit           },
-   { "playingGame",      ST_IN_GAME,       playingGamePickSubstate,    playingGameEntry,      playingGameExit      },
-   { "playerMove",       ST_PLAYING_GAME,  NULL_SUBSTATE_PICKER_FUNC,  playerMoveEntry,       playerMoveExit       },
-   { "computerMove",     ST_PLAYING_GAME,  NULL_SUBSTATE_PICKER_FUNC,  computerMoveEntry,     computerMoveExit     },
-   { "moveForComputer",  ST_PLAYING_GAME,  NULL_SUBSTATE_PICKER_FUNC,  moveForComputerEntry,  moveForComputerExit  },
-   { "gameMenu",         ST_IN_GAME,       NULL_SUBSTATE_PICKER_FUNC,  inGameMenuEntry,       inGameMenuExit       },
-   { "exitingGame",      ST_IN_GAME,       NULL_SUBSTATE_PICKER_FUNC,  exitingGameEntry,      exitingGameExit      },
-   { "diagSensors",      ST_TOP,           NULL_SUBSTATE_PICKER_FUNC,  diagSwitchEntry,       diagSwitchExit       },
+//   parent            init                     entry                  exit
+   { ST_NONE,          topPickSubstate,         topEntry,              NULL_EXIT_FUNC       },
+   { ST_TOP,           NULL_INIT_FUNC,          splashScreenEntry,     splashScreenExit     },
+   { ST_TOP,           menuPickSubstate,        NULL_ENTRY_FUNC,       menusExit            },
+   { ST_MENUS,         NULL_INIT_FUNC,          mainMenuEntry,         mainMenuExit         },
+   { ST_MENUS,         NULL_INIT_FUNC,          diagMenuEntry,         diagMenuExit         },
+   { ST_MENUS,         NULL_INIT_FUNC,          optionMenuEntry,       optionMenuExit       },
+   { ST_MENUS,         NULL_INIT_FUNC,          boardOptionMenuEntry,  boardOptionMenuExit  },
+   { ST_MENUS,         NULL_INIT_FUNC,          gameOptionMenuEntry,   gameOptionMenuExit   },
+   { ST_MENUS,         NULL_INIT_FUNC,          engineOptionMenuEntry, engineOptionMenuExit },
+   { ST_TOP,           NULL_INIT_FUNC,          timeOptionMenuEntry,   timeOptionMenuExit   },
+   { ST_TOP,           NULL_INIT_FUNC,          initPosSetupEntry,     initPosSetupExit     },
+   { ST_TOP,           inGamePickSubstate,      inGameEntry,           inGameExit           },
+   { ST_IN_GAME,       playingGamePickSubstate, playingGameEntry,      playingGameExit      },
+   { ST_PLAYING_GAME,  NULL_INIT_FUNC,          playerMoveEntry,       playerMoveExit       },
+   { ST_PLAYING_GAME,  NULL_INIT_FUNC,          computerMoveEntry,     computerMoveExit     },
+   { ST_PLAYING_GAME,  NULL_INIT_FUNC,          moveForComputerEntry,  moveForComputerExit  },
+   { ST_IN_GAME,       NULL_INIT_FUNC,          inGameMenuEntry,       inGameMenuExit       },
+   { ST_IN_GAME,       NULL_INIT_FUNC,          exitingGameEntry,      exitingGameExit      },
+   { ST_TOP,           NULL_INIT_FUNC,          diagSwitchEntry,       diagSwitchExit       },
 };
 
 // Transition definitions...
@@ -87,51 +63,43 @@ stateDef_t myStateDef[] =
 
 transDef_t myTransDef[] =
 {
-// event                        from                  to                     guard                      action                       local?
-   { EV_BUTTON_STATE,           ST_SPLASH_SCREEN,     ST_MAINMENU,           isStatePress,              NULL_ACTION_FUNC,            FALSE },
-   { EV_BUTTON_STATE,           ST_DIAG_SENSORS,      ST_MAINMENU,           isStatePress,              NULL_ACTION_FUNC,            FALSE },
-   { EV_BUTTON_STATE,           ST_MENUS,             ST_NONE,               isStatePress,              menus_buttonState_pressed,   FALSE },
-   { EV_BUTTON_STATE,           ST_GAMEMENU,          ST_NONE,               isStatePress,              menus_buttonState_pressed,   FALSE },
-   { EV_BUTTON_STATE,           ST_INIT_POS_SETUP,    ST_MAINMENU,           isStatePress,              NULL_ACTION_FUNC,            FALSE },
-   { EV_BUTTON_STATE,           ST_EXITING_GAME,      ST_MAINMENU,           isStatePress,              NULL_ACTION_FUNC,            FALSE },
-   { EV_BUTTON_STATE,           ST_PLAYING_GAME,      ST_GAMEMENU,           isStatePress,              NULL_ACTION_FUNC,            FALSE },
-   { EV_BUTTON_STATE,           ST_TIME_OPTION_MENU,  ST_NONE,               isStatePress,              timeOptionMenuButtonHandler, FALSE },
-   { EV_BUTTON_STATE,           ST_COMPUTER_MOVE,     ST_NONE,               computerMoveWaitingButton, computerMoveButtonStop,      FALSE }, 
-   { EV_BUTTON_POS,             ST_MENUS,             ST_NONE,               NULL_GUARD_FUNC,           menus_buttonPos,             FALSE },
-   { EV_BUTTON_POS,             ST_GAMEMENU,          ST_NONE,               NULL_GUARD_FUNC,           menus_buttonPos,             FALSE },
-   { EV_BUTTON_POS,             ST_TIME_OPTION_MENU,  ST_NONE,               NULL_GUARD_FUNC,           timeOptionMenuButtonHandler, FALSE },
-   { EV_PIECE_DROP,             ST_DIAG_SENSORS,      ST_NONE,               NULL_GUARD_FUNC,           diagSwitch_boardChange,      FALSE },
-   { EV_PIECE_DROP,             ST_INIT_POS_SETUP,    ST_NONE,               NULL_GUARD_FUNC,           initPosSetup_boardChange,    FALSE },
-   { EV_PIECE_DROP,             ST_PLAYER_MOVE,       ST_NONE,               NULL_GUARD_FUNC,           playerMoves_boardChange,     FALSE },
-   { EV_PIECE_DROP,             ST_MOVE_FOR_COMPUTER, ST_NONE,               NULL_GUARD_FUNC,           moveForComputer_boardChange, FALSE },
-   { EV_PIECE_LIFT,             ST_DIAG_SENSORS,      ST_NONE,               NULL_GUARD_FUNC,           diagSwitch_boardChange,      FALSE },
-   { EV_PIECE_LIFT,             ST_INIT_POS_SETUP,    ST_NONE,               NULL_GUARD_FUNC,           initPosSetup_boardChange,    FALSE },
-   { EV_PIECE_LIFT,             ST_PLAYER_MOVE,       ST_NONE,               NULL_GUARD_FUNC,           playerMoves_boardChange,     FALSE },
-   { EV_PIECE_LIFT,             ST_MOVE_FOR_COMPUTER, ST_NONE,               NULL_GUARD_FUNC,           moveForComputer_boardChange, FALSE },
-   { EV_START_SENSOR_DIAG,      ST_DIAGMENU,          ST_DIAG_SENSORS,       NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            FALSE },
-   { EV_START_INIT_POS_SETUP,   ST_MAINMENU,          ST_INIT_POS_SETUP,     NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            FALSE },
-   { EV_GOTO_MAIN_MENU,         ST_TOP,               ST_MAINMENU,           NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            TRUE  },
-   { EV_GOTO_DIAG_MENU,         ST_MAINMENU,          ST_DIAGMENU,           NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            FALSE },
-   { EV_GOTO_OPTION_MENU,       ST_TOP,               ST_OPTIONMENU,         NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            FALSE },
-   { EV_GOTO_BOARD_OPTIONS,     ST_OPTIONMENU,        ST_BOARD_OPTION_MENU,  NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            FALSE },
-   { EV_GOTO_GAME_OPTIONS,      ST_OPTIONMENU,        ST_GAME_OPTION_MENU,   NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            FALSE },
-   { EV_GOTO_ENGINE_OPTIONS,    ST_OPTIONMENU,        ST_ENGINE_OPTION_MENU, NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            FALSE },
-   { EV_GOTO_TIME_OPTIONS,      ST_GAME_OPTION_MENU,  ST_TIME_OPTION_MENU,   NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            FALSE },
-   { EV_GOTO_GAME,              ST_TOP,               ST_IN_GAME,            NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            FALSE },
-   { EV_GOTO_PLAYING_GAME,      ST_IN_GAME,           ST_PLAYING_GAME,       NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            FALSE },
-   { EV_GOTO_GAMEMENU,          ST_IN_GAME,           ST_GAMEMENU,           NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            FALSE },
-   { EV_GAME_DONE,              ST_IN_GAME,           ST_EXITING_GAME,       NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            FALSE },
-   { EV_MOVE_CLOCK_TIC,         ST_IN_GAME,           ST_NONE,               NULL_GUARD_FUNC,           inGame_moveClockTick,        FALSE },
-   { EV_PROCESS_COMPUTER_MOVE,  ST_IN_GAME,           ST_NONE,               NULL_GUARD_FUNC,           computerMove_computerPicked, FALSE },
-   { EV_PLAYER_MOVED_FOR_COMP,  ST_MOVE_FOR_COMPUTER, ST_PLAYING_GAME,       NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            FALSE },
+//   event                      from                  guard                      action                       to                     local?
+   { EV_BUTTON_STATE,           ST_SPLASH_SCREEN,     isStatePress,              NULL_ACTION_FUNC,            ST_MAINMENU,           FALSE },
+   { EV_BUTTON_STATE,           ST_DIAG_SENSORS,      isStatePress,              NULL_ACTION_FUNC,            ST_MAINMENU,           FALSE },
+   { EV_BUTTON_STATE,           ST_MENUS,             isStatePress,              menus_buttonState_pressed,   ST_NONE,               FALSE },
+   { EV_BUTTON_STATE,           ST_GAMEMENU,          isStatePress,              menus_buttonState_pressed,   ST_NONE,               FALSE },
+   { EV_BUTTON_STATE,           ST_INIT_POS_SETUP,    isStatePress,              NULL_ACTION_FUNC,            ST_MAINMENU,           FALSE },
+   { EV_BUTTON_STATE,           ST_EXITING_GAME,      isStatePress,              NULL_ACTION_FUNC,            ST_MAINMENU,           FALSE },
+   { EV_BUTTON_STATE,           ST_PLAYING_GAME,      isStatePress,              NULL_ACTION_FUNC,            ST_GAMEMENU,           FALSE },
+   { EV_BUTTON_STATE,           ST_TIME_OPTION_MENU,  isStatePress,              timeOptionMenuButtonHandler, ST_NONE,               FALSE },
+   { EV_BUTTON_STATE,           ST_COMPUTER_MOVE,     computerMoveWaitingButton, computerMoveButtonStop,      ST_NONE,               FALSE },
+   { EV_BUTTON_POS,             ST_MENUS,             NULL_GUARD_FUNC,           menus_buttonPos,             ST_NONE,               FALSE },
+   { EV_BUTTON_POS,             ST_GAMEMENU,          NULL_GUARD_FUNC,           menus_buttonPos,             ST_NONE,               FALSE },
+   { EV_BUTTON_POS,             ST_TIME_OPTION_MENU,  NULL_GUARD_FUNC,           timeOptionMenuButtonHandler, ST_NONE,               FALSE },
+   { EV_PIECE_DROP,             ST_DIAG_SENSORS,      NULL_GUARD_FUNC,           diagSwitch_boardChange,      ST_NONE,               FALSE },
+   { EV_PIECE_DROP,             ST_INIT_POS_SETUP,    NULL_GUARD_FUNC,           initPosSetup_boardChange,    ST_NONE,               FALSE },
+   { EV_PIECE_DROP,             ST_PLAYER_MOVE,       NULL_GUARD_FUNC,           playerMoves_boardChange,     ST_NONE,               FALSE },
+   { EV_PIECE_DROP,             ST_MOVE_FOR_COMPUTER, NULL_GUARD_FUNC,           moveForComputer_boardChange, ST_NONE,               FALSE },
+   { EV_PIECE_LIFT,             ST_DIAG_SENSORS,      NULL_GUARD_FUNC,           diagSwitch_boardChange,      ST_NONE,               FALSE },
+   { EV_PIECE_LIFT,             ST_INIT_POS_SETUP,    NULL_GUARD_FUNC,           initPosSetup_boardChange,    ST_NONE,               FALSE },
+   { EV_PIECE_LIFT,             ST_PLAYER_MOVE,       NULL_GUARD_FUNC,           playerMoves_boardChange,     ST_NONE,               FALSE },
+   { EV_PIECE_LIFT,             ST_MOVE_FOR_COMPUTER, NULL_GUARD_FUNC,           moveForComputer_boardChange, ST_NONE,               FALSE },
+   { EV_START_SENSOR_DIAG,      ST_DIAGMENU,          NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_DIAG_SENSORS,       FALSE },
+   { EV_START_INIT_POS_SETUP,   ST_MAINMENU,          NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_INIT_POS_SETUP,     FALSE },
+   { EV_GOTO_MAIN_MENU,         ST_TOP,               NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_MAINMENU,           TRUE  },
+   { EV_GOTO_DIAG_MENU,         ST_MAINMENU,          NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_DIAGMENU,           FALSE },
+   { EV_GOTO_OPTION_MENU,       ST_TOP,               NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_OPTIONMENU,         FALSE },
+   { EV_GOTO_BOARD_OPTIONS,     ST_OPTIONMENU,        NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_BOARD_OPTION_MENU,  FALSE },
+   { EV_GOTO_GAME_OPTIONS,      ST_OPTIONMENU,        NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_GAME_OPTION_MENU,   FALSE },
+   { EV_GOTO_ENGINE_OPTIONS,    ST_OPTIONMENU,        NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_ENGINE_OPTION_MENU, FALSE },
+   { EV_GOTO_TIME_OPTIONS,      ST_GAME_OPTION_MENU,  NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_TIME_OPTION_MENU,   FALSE },
+   { EV_GOTO_GAME,              ST_TOP,               NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_IN_GAME,            FALSE },
+   { EV_GOTO_PLAYING_GAME,      ST_IN_GAME,           NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_PLAYING_GAME,       TRUE  },
+   { EV_GOTO_GAMEMENU,          ST_IN_GAME,           NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_GAMEMENU,           FALSE },
+   { EV_GAME_DONE,              ST_IN_GAME,           NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_EXITING_GAME,       FALSE },
+   { EV_MOVE_CLOCK_TIC,         ST_IN_GAME,           NULL_GUARD_FUNC,           inGame_moveClockTick,        ST_NONE,               FALSE },
+   { EV_PROCESS_COMPUTER_MOVE,  ST_IN_GAME,           NULL_GUARD_FUNC,           computerMove_computerPicked, ST_NONE,               FALSE },
+   { EV_PLAYER_MOVED_FOR_COMP,  ST_MOVE_FOR_COMPUTER, NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_PLAYING_GAME,       TRUE  },
 };
 
 const uint16_t transDefCount = (sizeof(myTransDef)/sizeof(myTransDef[0]));
-
-bool_t computerMoveWaitingButton( event_t ev )
-{
-
-   return ( (ev.data == B_PRESSED) && waitingForButton);
-}
-
-void computerMoveButtonStop( event_t ev )

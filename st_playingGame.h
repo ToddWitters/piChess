@@ -1,3 +1,5 @@
+#include "types.h"
+
 void playingGameEntry( event_t ev );
 void playingGameExit( event_t ev );
 uint16_t playingGamePickSubstate( event_t ev);

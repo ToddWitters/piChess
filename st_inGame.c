@@ -106,8 +106,11 @@ void inGame_moveClockTick( event_t ev)
 
    if(options.game.timeControl.type == TIME_NONE ) return;
 
-   // TODO Don't move computer clock when other player is also
-   //   computer and human is slow making the move.
+   // Don't move computer clock (or grace clock) when both players are computer 
+   //    and human is making the move for the computer
+   if(options.game.black == PLAYER_COMPUTER &&
+      options.game.white == PLAYER_COMPUTER &&
+      computerMovePending) return;
 
    // bail if game is not playable
    if(game.disposition != GAME_PLAYABLE) return;

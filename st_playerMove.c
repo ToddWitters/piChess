@@ -18,6 +18,8 @@
 
 #include <stddef.h>
 
+extern game_t game;
+
 typedef struct moveEffect_s
 {
    move_t move;          // A legal move
@@ -113,25 +115,25 @@ void playerMoves_boardChange( event_t ev)
       case MV_PRECURSOR:
 
          // Is a white pawn about to promote?
-         if( ev.ev == EV_PIECE_LIFT && 
-             ( game.brd.pieces[PAWN]  & 
-               game.brd.colors[WHITE] & 
-               squareMask[ev.data]    & 
+         if( ev.ev == EV_PIECE_LIFT &&
+             ( game.brd.pieces[PAWN]  &
+               game.brd.colors[WHITE] &
+               squareMask[ev.data]    &
                rowMask[1] ) )
          {
             // Prompt for promote piece
          }
-      
+
          // Is a black pawn about to promote?
-         else if( ev.ev == EV_PIECE_LIFT && 
-                  ( game.brd.pieces[PAWN]  & 
-                    game.brd.colors[BLACK] & 
-                    squareMask[ev.data]    & 
+         else if( ev.ev == EV_PIECE_LIFT &&
+                  ( game.brd.pieces[PAWN]  &
+                    game.brd.colors[BLACK] &
+                    squareMask[ev.data]    &
                     rowMask[6] ) )
          {
             // Prompt for promote piece
          }
-      
+
          LED_SetGridState(dirtySquares);
          break;
 

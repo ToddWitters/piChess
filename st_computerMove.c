@@ -15,8 +15,10 @@
 #include "options.h"
 #include "util.h"
 #include "book.h"
+#include "switch.h"
 
 extern bool_t computerMovePending;
+extern game_t game;
 bool_t waitingForButton = FALSE;
 
 static void computerMove_engineSelection( move_t mv, move_t ponder );
@@ -62,7 +64,7 @@ void computerMoveEntry( event_t ev )
                   SF_findMoveFixedDepth(options.game.timeControl.compStrategySetting.depth);
                   break;
                case STRAT_TILL_BUTTON:
-                  waitingForButton = TRUE:
+                  waitingForButton = true;
                   SF_go();
                   break;
             }
@@ -78,22 +80,22 @@ void computerMoveEntry( event_t ev )
 
       if(options.game.white != options.game.black)
       {
-         displayWriteLine(0, "Computer's Move", TRUE);
+         displayWriteLine(0, "Computer's Move", true);
       }
 
       else if(game.brd.toMove == WHITE)
       {
-         displayWriteLine(0, "White's Move", TRUE);
+         displayWriteLine(0, "White's Move", true);
       }
       else
       {
-         displayWriteLine(0, "Black's Move", TRUE);
+         displayWriteLine(0, "Black's Move", true);
       }
    }
 
 }
 
-bool_t computerMoveWaitingButton( event_t ev )
+bool computerMoveWaitingButton( event_t ev )
 {
 
    return ( (ev.data == B_PRESSED) && waitingForButton);
@@ -174,9 +176,10 @@ void computerMove_computerPicked( event_t ev)
 extern uint64_t mustMove;
 static void computerMove_engineSelection( move_t mv, move_t ponder )
 {
-   if(computerMovePending == FALSE)
+   if(computerMovePending == false)
    {
-      computerMovePending = TRUE;
+      DPRINT("setting pending move true\n");
+      computerMovePending = true;
 
       if(squareMask[mv.to] & (game.brd.colors[WHITE] | game.brd.colors[BLACK]))
       {

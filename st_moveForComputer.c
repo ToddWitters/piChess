@@ -15,6 +15,7 @@
 uint64_t occupiedSquares;
 extern bool_t computerMovePending;
 uint64_t mustMove;
+extern game_t game;
 
 void moveForComputerEntry( event_t ev )
 {
