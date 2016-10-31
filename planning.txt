@@ -1,6 +1,6 @@
 +------------------------------------------------------------------------------+
 Release      1.1
-Date         xx/xx/xx
+Date         10/31/16
 
 --------------------------
 -- New/Updated Features --
@@ -12,6 +12,10 @@ Date         xx/xx/xx
    Moved previous settings into three sub menus:  Game/ Board / Engine
    Added option to set board's LED brightness 
    Added repeating button position events to allow scrolling large menus or large pickers
+   Ability to set time parameters (Equal, Odds, None):
+      If Equal, set (up to) three periods (time, increment & moves)
+      If Odds, set time / increment for each player
+      if None, ability to select engine strategy (time/move, depth/move, till button)
 
 ---------------
 -- Bug Fixes --
@@ -42,12 +46,7 @@ Future Version Planning
 
 Setup arbitrary position
 Add U/I elements to allow underpromotion 
-Fix lock-up issue
 Fix Launch at power-up
-Ability to set time parameters (Equal, Odds, None):
-   If Equal, set (up to) three periods (time, increment & moves)
-   If Odds, set time / increment for each player
-   if None, ability to select engine strategy (time/move, depth/move, till button)
 
 
 
