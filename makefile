@@ -30,6 +30,7 @@ sources = bcm2835.c      \
 			 st_menus.c     \
 			 st_top.c       \
 			 st_initPosSetup.c \
+			 st_arbPosSetup.c \
 			 st_inGame.c  \
 			 st_playingGame.c \
 			 st_optionMenu.c \

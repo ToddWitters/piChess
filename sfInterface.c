@@ -183,8 +183,6 @@ void SF_go( void )
 
 static void *enginePollTask ( void *arg )
 {
-   FILE *tmpFile;
-
    while(1)
    {
       usleep(50000);

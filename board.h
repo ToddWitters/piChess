@@ -18,6 +18,7 @@ typedef enum fenErr_e
 revMove_t move(board_t *b, const move_t m);
 void unmove(board_t *b, const revMove_t m);
 fenErr_t setBoard(board_t *brd, const char *FEN);
+void setBoardEmpty(board_t *brd);
 char *getFEN(const board_t *b);
 boardErr_t testValidBoard(board_t *b);
 bool_t testInCheck( board_t *b );

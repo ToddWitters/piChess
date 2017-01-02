@@ -6,9 +6,15 @@ Date
 -- New/Updated Features --
 --------------------------
 
+   Added ability to set an arbitrary position
+   Removed count-down timer used when human making move for computer
+   Added in-game display of a few recent moves
+   Minor U/I wording changes
+
 ---------------
 -- Bug Fixes --
 ---------------
+   Computer strategy "till button" now working
 
 +------------------------------------------------------------------------------+
 Release      1.1
@@ -35,6 +41,14 @@ Date         10/31/16
    Corrected bug that failed to require landing square on a capture to see a
    change
 
+----------------
+-- Known Bugs --
+----------------
+
+   Computer strategy "till button" not working
+
+   Occassional read of NULL string when looking at Stockfish's chosen move
+
 +------------------------------------------------------------------------------+
 Release      1.0
 Date         4/27/16
@@ -57,7 +71,7 @@ Future Version Planning
 +-----+
 
 Update to Stockfish 8.0
-`Update to RPi3
+Update to RPi3
 Fix problem of broken pipe when started via startup script
 Setup arbitrary position
 More robust handling of unexpected board events during game.

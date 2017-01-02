@@ -19,6 +19,7 @@ typedef enum stateId_e
        ST_ENGINE_OPTION_MENU,
      ST_TIME_OPTION_MENU,
      ST_INIT_POS_SETUP,            // Set up initial position
+     ST_ARB_POS_SETUP,
      ST_IN_GAME,                   // A game is in progress
        ST_PLAYING_GAME,            // Actively making moves (or thinking)
          ST_PLAYER_MOVE,           // Player is moving
@@ -49,6 +50,9 @@ typedef enum eventId_e
    // MENU SELECTIONS
    EV_START_SENSOR_DIAG,
    EV_START_INIT_POS_SETUP,
+   EV_START_ARB_POS_SETUP,
+
+
    EV_GOTO_MAIN_MENU,
    EV_GOTO_DIAG_MENU,
    EV_GOTO_OPTION_MENU,

@@ -17,6 +17,29 @@ const char *startString = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 
 U64 positionHistory[POSITION_HISTORY_SIZE];
 int positionIndex = 0;
 
+void setBoardEmpty(board_t *brd)
+{
+	 brd->materialCount[WHITE] = 0;
+	 brd->materialCount[BLACK] = 0;
+	 brd->colors[WHITE] = 0;
+	 brd->colors[BLACK] = 0;
+	 brd->pieces[PAWN] = 0;
+	 brd->pieces[KNIGHT] = 0;
+	 brd->pieces[BISHOP] = 0;
+	 brd->pieces[ROOK] = 0;
+	 brd->pieces[QUEEN] = 0;
+	 brd->pieces[KING] = 0;
+	 brd->hash = 0;
+	 brd->castleBits = 0;
+	 brd->halfMoves = 0;
+	 brd->moveNumber = 1;
+	 brd->toMove = WHITE;
+	 brd->enPassantCol = 8;
+	 brd->zobristEnPassantCol = 8;
+
+}
+
+
 // Initialize board with given string
 //   NOTE:  Last two fields of FEN (half-move count and move number) are optional.  This allows
 //   Function to work with a string consisting of the first four fields of an EPD record
@@ -30,19 +53,8 @@ fenErr_t setBoard(board_t *brd, const char *FEN)
 	 // Index into the 64 squares of the board...
 	 int index = 0;
 
-	 // Initialize the board settings that are not directly set below...
-	 b.materialCount[WHITE] = 0;
-	 b.materialCount[BLACK] = 0;
-	 b.colors[WHITE] = 0;
-	 b.colors[BLACK] = 0;
-	 b.pieces[PAWN] = 0;
-	 b.pieces[KNIGHT] = 0;
-	 b.pieces[BISHOP] = 0;
-	 b.pieces[ROOK] = 0;
-	 b.pieces[QUEEN] = 0;
-	 b.pieces[KING] = 0;
-	 b.hash = 0;
-	 b.castleBits = 0;
+	 setBoardEmpty(&b);
+
 
     if (FEN == NULL) FEN = startString;
 
@@ -183,8 +195,6 @@ fenErr_t setBoard(board_t *brd, const char *FEN)
 	 // Check for no enPassant...
 	 if(*FEN == '-')
 	 {
-	 	b.enPassantCol = 8;
-	 	b.zobristEnPassantCol = 8;
 	 	FEN++;
 	 }
 
@@ -225,10 +235,6 @@ fenErr_t setBoard(board_t *brd, const char *FEN)
 	 }
 
 	 // At this point, and EPD record will end.  What follows then is optional....
-
-	 // Defaults...
-	 b.halfMoves = 0;
-	 b.moveNumber = 1;
 
 	 // If string ends here, leave defaults...
 	 if(*FEN != '\0')

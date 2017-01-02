@@ -10,6 +10,7 @@
 #include "st_splashScreen.h"
 #include "st_menus.h"
 #include "st_initPosSetup.h"
+#include "st_arbPosSetup.h"
 #include "st_inGame.h"
 #include "st_playingGame.h"
 #include "st_optionMenu.h"
@@ -44,6 +45,7 @@ stateDef_t myStateDef[] =
    { ST_MENUS,         NULL_INIT_FUNC,          engineOptionMenuEntry, engineOptionMenuExit },
    { ST_TOP,           NULL_INIT_FUNC,          timeOptionMenuEntry,   timeOptionMenuExit   },
    { ST_TOP,           NULL_INIT_FUNC,          initPosSetupEntry,     initPosSetupExit     },
+   { ST_TOP,           NULL_INIT_FUNC,          arbPosSetupEntry,      arbPosSetupExit      },
    { ST_TOP,           inGamePickSubstate,      inGameEntry,           inGameExit           },
    { ST_IN_GAME,       playingGamePickSubstate, playingGameEntry,      playingGameExit      },
    { ST_PLAYING_GAME,  NULL_INIT_FUNC,          playerMoveEntry,       playerMoveExit       },
@@ -73,19 +75,29 @@ transDef_t myTransDef[] =
    { EV_BUTTON_STATE,           ST_PLAYING_GAME,      isStatePress,              NULL_ACTION_FUNC,            ST_GAMEMENU,           FALSE },
    { EV_BUTTON_STATE,           ST_TIME_OPTION_MENU,  isStatePress,              timeOptionMenuButtonHandler, ST_NONE,               FALSE },
    { EV_BUTTON_STATE,           ST_COMPUTER_MOVE,     computerMoveWaitingButton, computerMoveButtonStop,      ST_NONE,               FALSE },
+   { EV_BUTTON_STATE,           ST_ARB_POS_SETUP,     arbPosSetupCheckPosition,  NULL_ACTION_FUNC,            ST_IN_GAME,            FALSE },
+   { EV_BUTTON_STATE,           ST_ARB_POS_SETUP,     isStatePress,              NULL_ACTION_FUNC,            ST_MAINMENU,           FALSE },
+    
    { EV_BUTTON_POS,             ST_MENUS,             NULL_GUARD_FUNC,           menus_buttonPos,             ST_NONE,               FALSE },
    { EV_BUTTON_POS,             ST_GAMEMENU,          NULL_GUARD_FUNC,           menus_buttonPos,             ST_NONE,               FALSE },
    { EV_BUTTON_POS,             ST_TIME_OPTION_MENU,  NULL_GUARD_FUNC,           timeOptionMenuButtonHandler, ST_NONE,               FALSE },
+   { EV_BUTTON_POS,             ST_ARB_POS_SETUP,     NULL_GUARD_FUNC,           arbPosSetupHandleBtnPos,     ST_NONE,               FALSE },
    { EV_PIECE_DROP,             ST_DIAG_SENSORS,      NULL_GUARD_FUNC,           diagSwitch_boardChange,      ST_NONE,               FALSE },
    { EV_PIECE_DROP,             ST_INIT_POS_SETUP,    NULL_GUARD_FUNC,           initPosSetup_boardChange,    ST_NONE,               FALSE },
    { EV_PIECE_DROP,             ST_PLAYER_MOVE,       NULL_GUARD_FUNC,           playerMoves_boardChange,     ST_NONE,               FALSE },
    { EV_PIECE_DROP,             ST_MOVE_FOR_COMPUTER, NULL_GUARD_FUNC,           moveForComputer_boardChange, ST_NONE,               FALSE },
+   { EV_PIECE_DROP,             ST_ARB_POS_SETUP,     NULL_GUARD_FUNC,           arbPosSetup_boardChange,     ST_NONE,               FALSE },
+
    { EV_PIECE_LIFT,             ST_DIAG_SENSORS,      NULL_GUARD_FUNC,           diagSwitch_boardChange,      ST_NONE,               FALSE },
    { EV_PIECE_LIFT,             ST_INIT_POS_SETUP,    NULL_GUARD_FUNC,           initPosSetup_boardChange,    ST_NONE,               FALSE },
    { EV_PIECE_LIFT,             ST_PLAYER_MOVE,       NULL_GUARD_FUNC,           playerMoves_boardChange,     ST_NONE,               FALSE },
    { EV_PIECE_LIFT,             ST_MOVE_FOR_COMPUTER, NULL_GUARD_FUNC,           moveForComputer_boardChange, ST_NONE,               FALSE },
+   { EV_PIECE_LIFT,             ST_ARB_POS_SETUP,     NULL_GUARD_FUNC,           arbPosSetup_boardChange,     ST_NONE,               FALSE },
    { EV_START_SENSOR_DIAG,      ST_DIAGMENU,          NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_DIAG_SENSORS,       FALSE },
    { EV_START_INIT_POS_SETUP,   ST_MAINMENU,          NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_INIT_POS_SETUP,     FALSE },
+  
+   { EV_START_ARB_POS_SETUP,    ST_MAINMENU,          NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_ARB_POS_SETUP,      FALSE },
+
    { EV_GOTO_MAIN_MENU,         ST_TOP,               NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_MAINMENU,           TRUE  },
    { EV_GOTO_DIAG_MENU,         ST_MAINMENU,          NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_DIAGMENU,           FALSE },
    { EV_GOTO_OPTION_MENU,       ST_TOP,               NULL_GUARD_FUNC,           NULL_ACTION_FUNC,            ST_OPTIONMENU,         FALSE },
