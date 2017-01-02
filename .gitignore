@@ -10,3 +10,8 @@ qpc-master*
 *.exe
 .tags1
 *.swp
+.piChess
+model.qm
+piChess.qm
+piChess.smproj
+Source/piChessHSM.c
