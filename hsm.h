@@ -98,7 +98,7 @@ typedef enum HSM_Error_e
    HSM_TOP_PARENT_NOT_NULL,                     // top-most state has a parent (but shouldn't)
    HSM_MISSING_PARENT_ON_SUBNODE,               // some other state is missing a parent (but should have one)
    HSM_MISSING_INIT_FUNC,                       // a state with substates lacks an init function
-   HSM_UNEXPECTED_INIT_FUNC,                    // a state without substates specifies and init function
+   HSM_UNEXPECTED_INIT_FUNC,                    // a state without substates specifies an init function
    HSM_INVALID_STATE,                           // an invalid state reference was found
    HSM_EVENT_LIST_NOT_SORTED,                   // the transition list was not sorted by event
    HSM_NO_EV_HANDLER_FOUND,                     // the event has no handler in the current state

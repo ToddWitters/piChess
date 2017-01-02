@@ -36,6 +36,7 @@ void inGameEntry( event_t ev )
    game.graceTime = 0;
    game.playedMoves = 0;
    game.moveRecord[0] = '\0';
+   game.SANRecord[0] = '\0';
 
    memset(&game.posHistory, 0x00, sizeof(game.posHistory));
 
@@ -47,6 +48,7 @@ void inGameEntry( event_t ev )
          game.btime = game.wtime;
          game.bIncrement = game.wIncrement;
          break;
+         
       case TIME_ODDS:
          game.wtime =      options.game.timeControl.timeSettings[WHITE].totalTime * 10;
          game.wIncrement = options.game.timeControl.timeSettings[WHITE].increment * 10;
@@ -237,7 +239,7 @@ void inGame_udpateClocks( void )
    }
    displayWriteChars(3, 10, 10, fullString);
 
-
+#if 0
    memset(fullString, ' ', 6);
    if(game.graceTime != 0)
    {
@@ -247,7 +249,7 @@ void inGame_udpateClocks( void )
       fullString[6 - strlen(timeString) - 2] = 0;
    }
    displayWriteChars(1, 14, 6, fullString);
-
+#endif
 
 }
 

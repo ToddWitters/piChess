@@ -147,6 +147,7 @@ typedef struct game_s
     // Holds the coord notation text string of the moves made in this game
     //  Sized to hold 4-character + 1 space per move + 16 promotion indicators + null string terminator.
     char moveRecord[MAX_MOVES_IN_GAME * 5 + 16 + 1];
+    char SANRecord[MAX_MOVES_IN_GAME * 5];
 
     int playedMoves;  // total number of half-moves already made in game
 

@@ -19,14 +19,14 @@ extern game_t game;
 
 void moveForComputerEntry( event_t ev )
 {
-   displayWriteLine(0, "Pls move for computer", TRUE);
+   displayWriteLine(0, "Make indicated move", TRUE);
    LED_SetGridState( (GetSwitchStates() ^ (game.brd.colors[WHITE] | game.brd.colors[BLACK])) | mustMove);
    game.graceTime = options.game.graceTimeForComputerMove;
 }
 
 void moveForComputerExit( event_t ev )
 {
-   displayClear();
+   // displayClear();
 }
 
 void moveForComputer_boardChange( event_t ev)

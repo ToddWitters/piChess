@@ -2,6 +2,9 @@
 #include "hsmDefs.h"
 #include "st_playingGame.h"
 
+#include "stdio.h"
+#include "string.h"
+
 #include "types.h"
 #include "options.h"
 #include "st_inGame.h"
@@ -11,6 +14,7 @@
 #include "event.h"
 #include "diag.h"
 #include "util.h"
+#include "display.h"
 
 #include "sfInterface.h"
 
@@ -20,9 +24,50 @@ extern game_t game;
 
 bool_t computerMovePending = FALSE;
 
+static void showMoveHistory(char* string);
+
 void playingGameEntry( event_t ev )
 {
    DPRINT("PlayingGameEntry\n");
+
+   // If a human is on move and there are no clocks...
+   if( 
+       (
+       (game.brd.toMove == WHITE && 
+       options.game.white == PLAYER_HUMAN)
+       ||
+       (game.brd.toMove == BLACK && 
+       options.game.black  == PLAYER_HUMAN)
+       )
+       &&
+       options.game.timeControl.type == TIME_NONE
+      )
+   {
+      displayWriteLine(3, "Untimed Game", true);
+   }
+
+
+   // If computer is on move with no clocks, note the strategy it is using...
+   else if(options.game.timeControl.type == TIME_NONE)
+   {
+      switch(options.game.timeControl.compStrategySetting.type)
+      {
+         case STRAT_FIXED_TIME:
+            displayWriteLine(3, "Fixed time search", true);
+            break;
+
+         case STRAT_FIXED_DEPTH:
+            displayWriteLine(3, "Fixed depth search", true);
+            break;
+
+         case STRAT_TILL_BUTTON:
+            displayWriteLine(3, "Search till button", true);
+            break;
+      }
+   } 
+
+   // Display the last few moves...
+   showMoveHistory(game.SANRecord);
 }
 
 void playingGameExit( event_t ev )
@@ -61,6 +106,17 @@ void playingGame_processSelectedMove( move_t mv)
 
    // Record the selected move
    game.posHistory[game.playedMoves].move = mv;
+
+   if(game.brd.toMove == WHITE)
+   {
+      char temp[4];
+      sprintf(temp, "%d.", game.brd.moveNumber);
+      strcat(game.SANRecord, temp);
+   }
+
+   strcat(game.SANRecord, moveToSAN(mv, &game.brd));
+   strcat(game.SANRecord," ");
+   showMoveHistory(game.SANRecord);
 
    // Make the move on the board and store reverse information
    game.posHistory[game.playedMoves].revMove = move(&game.brd, mv);
@@ -147,6 +203,9 @@ void playingGame_processSelectedMove( move_t mv)
    strcat(game.moveRecord," ");
 
 
+
+ 
+
    // These first two are not optional and have no associated options with them.
    // TODO test for 75-move rule
    // if(game.brd.halfMoves >= 150)
@@ -226,3 +285,22 @@ uint16_t playingGamePickSubstate( event_t ev)
          return ST_COMPUTER_MOVE;
 
 }
+
+static void showMoveHistory(char* string)
+{
+ 
+   // As long as the string is too long...
+   while(strlen(string) > 20)
+   {
+      // search for the next space character
+      while(*string != ' ') string++;
+
+      // Advance beyond it to the next character
+      string++;
+   }
+  
+   displayWriteLine(1, string, true);
+
+}
+
+

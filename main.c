@@ -68,7 +68,7 @@ int main ( void )
 //      else if(err == HSM_NO_EV_HANDLER_FOUND)
 //         DPRINT("Warning: HSM_ProcessEvent() could not find transition for event %d in state %d\n", eventData.ev, sm.currentState);
 
-      else if(err != HSM_NO_ERROR)
+      else if(err != HSM_NO_ERROR && err != HSM_NO_EV_HANDLER_FOUND)
          DPRINT("Error: HSM_ProcessEvent() returned error %d while processing event %d in state %d\n", err, eventData.ev, sm.currentState);
 
    }

@@ -2,7 +2,10 @@ HSM implementation
 
 Hierarchal State Machine Engine
 
-UML state machine support:
+Before digesting the following, a basic knowledge of state machines will be helpful.  Start here:
+https://classes.soe.ucsc.edu/cmpe013/Spring11/LectureNotes/A_Crash_Course_in_UML_State_Machines.pdf
+
+This library supports the following UML state machine concepts...
    Nested states
    Transition guard functions (including for internal transitions)
    entry/exit functions for all states
@@ -10,107 +13,243 @@ UML state machine support:
    local and external transitions
    internal transisions
 
-Constructs NOT directly supported
-   orthogonal regions
+This library does NOT support the following:
+   orthogonal regions 
    event deferral
-   action functions on initial transitions (but the picker function could easily do this OR the entry function could by testing
-      the passed action for zero - indicating entry via the picker)
-   pseudo-states (these can be accomplished by multiple guard conditions)
 
-Extensions
-   Initial transitions are defined by a picker function that returns which substate to traverse into.  This allows a fixed or 
-      variable entry point into a composite state
-   Triggering event has data attached which is passed, along with the event, into all entry, exit, guard, statePicker and action functions
-   When multiple transitions are available from a given state for a given event, the ordering of the guard functions is deterministic
+This library does NOT support the following, but workarounds can accomplish the same thing...
+   action functions on initial transitions 
+      WORKAROUND: The init function that returns the target state could easily do this.
+
+   pseudo-states 
+      WORKAROUND: These can be accomplished via multiple transitions with different guard conditions
+
+   history
+      WORKAROUND: The init function can return any substate, and could be implemented to track the 
+      last active substate.
+
+This library adds the following behavioral extensions to UML state machines...
+   - Initial transitions are implemented by "init function" that returns the substate to traverse into.  
+       This mechanism allows a fixed or variable entry point into a composite state.
+
+   - Events have a user-defined data type that is attached and passed, along with the event, into all 
+       entry, exit, guard, init and action functions.  This allows behavior within those function that
+       is dependant upon the triggering event.
 
 API
 
 // State definitions
 //   Upon creation of a new state machine, the user provides a pointer to an array of stateDef_t objects
 //    which provide information about the states within the state machine
+
 typedef struct stateDef_s
 {
-   char                *displayName;   // Optional name for debugging
-   uint16_t             parent;        // The parent state.  Use TOTAL_STATES for topmost state only
-   substatePickerFunc_t pickerFunc;    // Called to choose a substate when transition target is a container state
-   entryFunc_t          entryFunc;     // run on entry
-   exitFunc_t           exitFunc;      // run on exit
+   uint16_t             parent;        // The parent state.  Use ST_COUNT for top state (which has no parent)
+   initFunc_t           initFunc;      // Called to choose an initial substate when entering a container state
+                                       //    This function is required for states that contain substates
+                                       //    Use NULL_INIT_FUNC if this state has no substates
+   entryFunc_t          entryFunc;     // function to run on entry.  NULL_ENTRY_FUNC if none.
+   exitFunc_t           exitFunc;      // function to run on exit.   NULL_EXIT_FUNC if none.
 }stateDef_t;
 
 // User definition of an event handler.
 //   Upon creation of a new state machine, the user provides a pointer to an array of transDef_t objects
 //    which provide a list of all state transition (including internal ones) that are recognized.
 //    This array must be sorted on the "ev" field.  There may be multiple entries for each ev value 
-
 typedef struct transDef_s
  {
-   uint16_t       ev;       // The event trigger
-   uint16_t       from;     // The originating state
-   uint16_t       to;       // The target state (stateCount if handled internally)
-   guardFunc_t    guard;    // The guard condition.  If non-NULL, must return true to make transition
-   actionFunc_t   action;   // The action, if any, to perform on transition
-   bool_t         local;    // When to/from are direct ancestors/decendents, choose type of transition
+   uint16_t       ev;       // The event that triggers this transition
+   uint16_t       from;     // The state to which this trigger applies
+   guardFunc_t    guard;    // The guard condition. Use NULL_GUARD_FUNC to always make the transition.  
+                            //    If non-NULL, the function must return true to make transition
+   actionFunc_t   action;   // The action, if any, to perform just before making the transition (i.e. 
+                                  before exit/entry functions are run)
+   uint16_t       to;       // The state to transition to (NULL_STATE used if handled internally via the action function
+                                  and no other transition needed)
+   bool           local;    // When to/from are direct ancestors/decendents, choose type of transition
+                            // local transitions prevent entry/exit functions of upper most state from running.
+                            // Setting this to true without the states being ancestrally related is an error
 }transDef_t;
 
+// Structure used to hold state machine information...
 typedef struct HSM_Handle_s
 {
-   const stateDef_t   *states;
-   const transDef_t   *transitions;
-   uint16_t            currentState;
-   uint16_t            transCount;
-   uint16_t            stateCount;
+   uint32_t            key;           // holds a fixed pattern if handle is "created"
+   const stateDef_t   *states;        // Pointer to the state definitions
+   const transDef_t   *transitions;   // Pointer to the transitions definitions
+   uint16_t            currentState;  // The current state
+   uint16_t            transCount;    // The number of elements in the transition table
+   uint16_t            stateCount;    // The number of elements in the state table
+   initFunc_t          initFunc;      // The init function of the state machine
+   exitFunc_t          exitFunc;      // The exit function of the state machine
+
 }HSM_Handle_t;
 
 typedef enum HSM_Error_e
-{                                       // Functions which return these values
-                                        // -----------------------------------
-   HSM_NO_ERROR,                        // init   create  process  destroy
-   HSM_NULL_POINTER,                    //        create
-   HSM_EV_NOT_IN_TABLE,                 //                process
-   HSM_TOP_PARENT_NOT_NULL,             //        create
-   HSM_MISSING_PARENT_ON_SUBNODE,       //        create
-   HSM_MISSING_PICKER_FUNC,             //        create
-   HSM_UNEXPECTED_PICKER_FUNC,          //        create
-   HSM_INVALID_STATE,                   //        create  process
-   HSM_EVENT_LIST_NOT_SORTED,           //        create
-   HSM_NO_EV_HANDLER_FOUND,             //                process
-   HSM_NOT_INITIALIZED,                 // init           process
-   HSM_CIRCULAR_HIERARCY,               //        create
-   HSM_PICKER_RETURNED_INVALID_STATE,   // init           process
-   HSM_PICKER_RETURNED_NON_CHILD,       // init           process
-   HSM_OUT_OF_MEMORY,                   //        create
-}HSM_Error_t;   
+{
+   HSM_NO_ERROR,                                // SUCCESS - operation completed without error or exception
+   HSM_NULL_POINTER,                            // A null pointer was passed in one or more arguments
+   HSM_EV_NOT_IN_TABLE,                         // The event doesn't appear in transition table
+   HSM_TOP_PARENT_NOT_NULL,                     // top-most state has a parent (but shouldn't)
+   HSM_MISSING_PARENT_ON_SUBNODE,               // some other state is missing a parent (but should have one)
+   HSM_MISSING_INIT_FUNC,                       // a state with substates lacks an init function
+   HSM_UNEXPECTED_INIT_FUNC,                    // a state without substates specifies an init function
+   HSM_INVALID_STATE,                           // an invalid state reference was found
+   HSM_EVENT_LIST_NOT_SORTED,                   // the transition list was not sorted by event
+   HSM_NO_EV_HANDLER_FOUND,                     // the event has no handler in the current state (not really an error)
+   HSM_NOT_INITIALIZED,                         // action cannot be performed because the init function has not yet been called
+   HSM_NOT_CREATED,                             // action cannot be performed because the create function has not yet been called
+   HSM_ALREADY_INITIALIZED,                     // init has been called with a state machine that has already been init'd (and not exited)
+   HSM_ALREADY_CREATED,                         // create has been called with a state machine that has already been created
+   HSM_USELESS_TRANSITION,                      // transition table specifies an internal transition (.to == ST_NONE), but no action function
+   HSM_CIRCULAR_HIERARCY,                       // circular reference found in state hierarcy.
+   HSM_INIT_FUNC_RETURNED_INVALID_STATE,        // one of the state's init function returned a state that is out of range or not a descendent.
+   HSM_LOCAL_TRANS_NOT_ANCESTRALLY_RELATED,     // local flag was set on a transition between states not related ancestrally
+}HSM_Error_t;
 
-HSM_Error_t HSM_createHSM( const stateDef_t *states,
-                           const transDef_t *transitions,
-                           uint16_t stateCount,
-                           uint16_t transCount,
-                           HSM_Handle_t **hsm);
 
+// Create a state machine, verify passed structure
+//
+// Arguments
+//
+//   states - pointer to an array of stateDef_t objects that define the states in the system.  The first state must be
+//            the top-most state.  state hierarcy is checked to ensure that (a) the first state has ST_NONE specified
+//            as the parent, (b) all remaining states have a parent state that is < ST_NONE, (c) traversing any node
+//            upward will ultimately arrive at the top node and (d) no loops occur in the hierarchy
+//   transitions - pointer to an array defining all the transitions (including internal transitions).  The list must be
+//            sorted by event.  Within transitions that have the same event that originate from the same state, the
+//            transitions are evaluated in the order they appear, i.e. the guard functions (if any) are evaluted in
+//            sequence.
+//   stateCount - the number of elements in the states array
+//   transCount - the number of elements in the transitions array
+//   initFunc   - the upper-level initialization function that runs when the state machine is intiailized.  It returns the desired
+//            start state, which then triggers a series of entry functions until the state is reached.   If the target state is a
+//            composite, the process repeats until a leaf node is reached.
+//   exitFunc   - the upper-level exit function called when the state machine terminates.  May be NULL if no action needed.
+//   hsm      A pointer to a pointer to an hsm handle.
+//
+//  Return codes are as follows:
+//     HSM_NO_ERROR
+//     HSM_NULL_POINTER
+//     HSM_ALREADY_CREATED
+//     HSM_TOP_PARENT_NOT_NULL
+//     HSM_MISSING_PARENT_ON_SUBNODE
+//     HSM_MISSING_INIT_FUNC
+//     HSM_UNEXPECTED_INIT_FUNC
+//     HSM_INVALID_STATE
+//     HSM_EVENT_LIST_NOT_SORTED
+//     HSM_CIRCULAR_HIERARCY
+//     HSM_USELESS_TRANSITION
+//     HSM_LOCAL_TRANS_NOT_ANCESTRALLY_RELATED
+//
+HSM_Error_t HSM_createHSM( const stateDef_t *states,       // State information
+                           const transDef_t *transitions,  // State transition information
+                           uint16_t stateCount,            // Size of state information table
+                           uint16_t transCount,            // Size of transition information table
+                           initFunc_t initFunc,            // Function used to pick initial state machine state
+                           exitFunc_t exitFunc,            // Function to run when state machine is exited.
+                           HSM_Handle_t *hsm);             // Pointer to state machine
+
+// Initialize a created hsm
+//
+// Argument
+//
+//     hsm - Pointer to the state machine handle
+//
+//  Calls the initFunc provided by the earlier HSM_createHSM() call.  This function returns a state that should be navigated to by
+//    calling all the entry functions of the containing states until it is reached.  It that state itself is a container state,
+//    the process is repeated until a leaf node is reached.
+//
+//  Return codes are as follows:
+//
+//  HSM_NO_ERROR
+//  HSM_NULL_POINTER
+//  HSM_NOT_CREATED
+//  HSM_ALREADY_INITIALIZED
+//  HSM_INIT_FUNC_RETURNED_INVALID_STATE
+//
 HSM_Error_t HSM_init( HSM_Handle_t *hsm );
-HSM_Error_t HSM_destroy( HSM_Handle_t *hsm);
+
+// Process a new event
+//
+// Uses the current state, the transitions table, and the passed event to determine a course of action...
+//
+// (1) Staring with the current state, see if an entry exists in the transition table which meets all of the following
+//   (a) from = the current state
+//   (b) ev   = the passed event
+//   (c) guard() returns true OR is undefined
+// (2) if a suitable transition is found...
+//   (a) determine the lowest common ancestor (lca) between the current state and the ".to" state
+//   (b) call the action function associated with the transistion (if it exists)
+//   (c) navigate upwards towards the lca state, calling exit functions on the way up
+//   (d) navigate downwards towards the target state calling entry functions on the way down
+// (3) if (1) did not find a suitable transition, move to parent of current state and try looking there.
+// (4) repeat (3) until top reached.
+// Exception to (2c) and (2d):  If 'local' was set, do not execute entry/exit functions of outer-most containing state.
+//
+// Return codes are as follows
+//
+//  HSM_NO_ERROR
+//  HSM_NULL_POINTER
+//  HSM_NOT_INITIALIZED
+//  HSM_NOT_CREATED
+//  HSM_INVALID_STATE
+//  HSM_EV_NOT_IN_TABLE
+//  HSM_NO_EV_HANDLER_FOUND
+//  HSM_INIT_FUNC_RETURNED_INVALID_STATE
+//
 HSM_Error_t HSM_processEvent( HSM_Handle_t *hsm, event_t ev);
 
-// Typical usage
+// Call the exit functions from the current state, walking up to the top state and calling all those as well...
+// WARNING!!! Do not call this function from within any entry/exit/init/guard/action functions!!!
+//
+// Return codes are as follows
+//
+//  HSM_NO_ERROR
+//  HSM_NULL_POINTER
+//  HSM_NOT_INITIALIZED
+//  HSM_NOT_CREATED
+//  HSM_INVALID_STATE
+HSM_Error_t HSM_exit( HSM_Handle_t *hsm );
 
-// User creates a state table of type stateDef_t[], one entry per state.
+// Destroys a statemachine (resets the handle to an 'uncreated' state)
+// Return codes are as follows
+// NOTE:  This skips the normal exit sequence.
+//
+//  HSM_NO_ERROR
+//  HSM_NULL_POINTER
+//  HSM_NOT_CREATED
+HSM_Error_t HSM_destroy( HSM_Handle_t *hsm);
+
+// Returns a printable string representing the error
+char* HSM_getErrorString( HSM_Error_t err );
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Typical usage
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// User defines a state table of type stateDef_t[], one entry per state.
 //    - First entry MUST be top-most entry state and must have no parents
 //    - Every other state must be a descendent of the top-most state
 
-// User creates a transition table of type transDef_t[], one entry per state transition
+// User defines a transition table of type transDef_t[], one entry per state transition
 //   - Event 0 is reserved and shall not be used
-//   - Table Must be sorted by event.  Multiple entries with same event will be scanned in order
+//   - Table Must be sorted by event.  Multiple entries with same event will be evaluated in order
 //   - Internal entries are represented by using "stateTotal" as "to" state
 
 // User calls the create function which verifies the integrity of the state and transition tables and
 //    initializes the HSM for use
 
 // User calls the "init" function to traverse down from the top-most state to a leaf node using 
-//    the statePicker functions until a leaf node is reached.
+//    the init functions until a leaf node is reached.
 
 // As an event occur, the event is passed to the HSM_processEvent function for handling.
 
 // Typical usage:
+
 
 if (HSM_Create(...) != HSM_NO_ERROR) 
 {
@@ -124,18 +263,41 @@ if (HSM_Init(...) != HSM_NO_ERROR)
 
 while(1)
 {
+   HSM_Error_t err;
+
    // wait for event
    
-   if (HSM_processEvent( ev ) != HSM_NO_ERROR)
+   if ( (err = HSM_processEvent( ev )) != HSM_NO_ERROR)
    {
-      // Alert user
-      // NOTE:  HSM_EV_NOT_IN_TABLE and HSM_NOT_HANDLED aren't technically errors
+      switch(err)
+      {
+         case HSM_EV_NOT_IN_TABLE:
+            // The event passed to HSM_processEvent does not appear in the transition table
+            break;
+
+         case HSM_EV_NOT_HANDLED:
+            // The event passed to HSM_processEvent is not handled in the current state or any of its ancestors
+            break;
+
+         case HSM_NULL_POINTER:
+            // A null state machine pointer was passed to HSM_processEvent
+            break;
+
+         case HSM_NOT_CREATED:
+            // This state machine handle has not been passed to HSM_Create
+            break;
+
+         case HSM_NOT_INITIALIZED:
+            // This state machine handle has not been passed to HSM_Init
+            break;
+
+         case HSM_INVALID_STATE:
+            // The state machine is corrupted
+            break;
+
+         case HSM_INIT_FUNC_RETURNED_INVALID_STATE:
+            // The event caused a transition to a composite state, and the init function returned an invalid state
+            break;
+      }
    }
 }
-
-
-
-Good reading....
-https://classes.soe.ucsc.edu/cmpe013/Spring11/LectureNotes/A_Crash_Course_in_UML_State_Machines.pdf
-
-

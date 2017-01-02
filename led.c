@@ -209,8 +209,6 @@ void LED_SetGridState ( uint64_t bits )
 {
    int i;
 
-   DPRINT("Fixing LED grid state to %016llX\n", bits);
-
    bits = reverseBitOrder64(bits);
 
    pthread_mutex_lock(&LED_dataMutex);

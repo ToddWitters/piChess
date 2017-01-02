@@ -42,15 +42,7 @@ void computerMoveEntry( event_t ev )
    else
    {
 
-
-#if 0
-      // History-less
-      SF_setPosition(getFEN(&game.brd), NULL);
-#else
-      // Send start position and move record...
       SF_setPosition(game.startPos, game.moveRecord);
-#endif
-
 
       switch(options.game.timeControl.type)
       {
@@ -78,18 +70,19 @@ void computerMoveEntry( event_t ev )
 
       // timerStart(TMR_COMPUTER_POLL, 100, 100, EV_CHECK_COMPUTER_DONE);
 
+      // If there is only one computer player...
       if(options.game.white != options.game.black)
       {
-         displayWriteLine(0, "Computer's Move", true);
+         displayWriteLine(0, "Computer thinking...", true);
       }
 
       else if(game.brd.toMove == WHITE)
       {
-         displayWriteLine(0, "White's Move", true);
+         displayWriteLine(0, "White thinking...", true);
       }
       else
       {
-         displayWriteLine(0, "Black's Move", true);
+         displayWriteLine(0, "Black thinking...", true);
       }
    }
 

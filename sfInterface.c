@@ -173,7 +173,8 @@ void SF_go( void )
       DPRINT("SF_go called with uninitialized stockfish pipe\n");
       return;
    }
-   fprintf(sfPipe,"go\n");
+   DPRINT("Starting untimed computer analysis");
+   fprintf(sfPipe,"go infinite\n");
 }
 
 
@@ -191,8 +192,9 @@ static void *enginePollTask ( void *arg )
       if( access( OUTPUT_FILE, R_OK ) != -1 )
       {
          event_t ev = {EV_PROCESS_COMPUTER_MOVE, 0};
+         usleep(100000);
          putEvent(EVQ_EVENT_MANAGER, &ev);
-         usleep(1000000);
+         usleep(100000);
       }
    }
 

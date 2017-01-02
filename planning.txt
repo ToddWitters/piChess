@@ -1,4 +1,16 @@
 +------------------------------------------------------------------------------+
+Release      1.2
+Date
+
+--------------------------
+-- New/Updated Features --
+--------------------------
+
+---------------
+-- Bug Fixes --
+---------------
+
++------------------------------------------------------------------------------+
 Release      1.1
 Date         10/31/16
 
@@ -41,19 +53,15 @@ Future Version Planning
 =======================
 
 +-----+
-| 1.1 |
-+-----+
-
-Setup arbitrary position
-Add U/I elements to allow underpromotion 
-Fix Launch at power-up
-
-
-
-+-----+
 | 1.2 |
 +-----+
+
+Update to Stockfish 8.0
+`Update to RPi3
+Fix problem of broken pipe when started via startup script
+Setup arbitrary position
 More robust handling of unexpected board events during game.
+Add U/I elements to allow underpromotion 
 Saving/Restoring options
 Move take-back
 Verify board contents during game
@@ -62,7 +70,7 @@ Verify board contents during game
 | 1.3 |
 +-----+
 Sound??
-   Piece Move
+   Illegal Move
    Computer Move
    Notification of important screen contents
 
@@ -76,4 +84,11 @@ Pondering
 5-fold repetition detection
 50-move draw claim arbitration (auto, manual)
 3-fold draw claim arbitration (auto, manual)
+Adjourn/Restart
 EGTB
+Odds games
+Chess960
+Save position/games
+Scriptable language
+Gestures (resign / underprote / draw offer)
+

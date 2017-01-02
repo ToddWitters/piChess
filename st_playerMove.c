@@ -52,7 +52,7 @@ void playerMoveEntry( event_t ev )
 {
    DPRINT("PlayerMoveEntry\n");
 
-   displayClear();
+   displayClearLine(0);
 
    if(options.game.white != options.game.black)
    {
@@ -273,7 +273,6 @@ static moveVal_t checkValidMoveProgress(moveEffects_t *moveEffects, int numMoves
       // if exact match of dirtySquare and occupiedSquares are found, the move is complete
       if( (moveEffects[indx].occupiedSquares == occupiedSquares) && (moveEffects[indx].dirtySquares == dirtySquares) )
       {
-         DPRINT("Found legal move %s\n", moveToSAN(moveEffects[indx].move, &game.brd));
          *ret = &moveEffects[indx].move;
          return MV_LEGAL;
       }
@@ -281,7 +280,6 @@ static moveVal_t checkValidMoveProgress(moveEffects_t *moveEffects, int numMoves
       // else if dirtySquares fall within a subset (or match) of any dirty square pattern, keep going
       else if ( (~moveEffects[indx].dirtySquares & dirtySquares) == 0 )
       {
-         DPRINT("Found possible precursor to legal move %s\n", moveToSAN(moveEffects[indx].move, &game.brd));
          foundPrecursor = TRUE;
       }
       indx++;
@@ -294,7 +292,6 @@ static moveVal_t checkValidMoveProgress(moveEffects_t *moveEffects, int numMoves
    }
    else
    {
-      DPRINT("No legal moves (or precursors) found\n");
       return MV_ILLEGAL;
    }
 }
