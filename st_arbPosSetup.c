@@ -67,7 +67,7 @@ void arbPosSetupEntry( event_t ev)
         LED_FlashGridState(boardState);
 	}
 
-	displayWriteLine(3, "Press btn to exit", true);
+	displayWriteLine(3, "Press btn to abort", true);
 
 
 }
@@ -104,6 +104,9 @@ void arbPosSetupHandleBtnPos( event_t ev)
 
 void arbPosSetup_boardChange( event_t ev)
 {
+
+	boardErr_t err;
+
 	if(boardPrecleared == false)
 	{
 		boardState = GetSwitchStates();
@@ -148,15 +151,42 @@ void arbPosSetup_boardChange( event_t ev)
 
 	showCurrentSelectionLocations();
 
-	if(testValidBoard(&brd) != BRD_NO_ERROR)
+	if( (err = testValidBoard(&brd)) != BRD_NO_ERROR)
 	{
-		displayWriteLine(2, "Illegal position", true);
-		displayWriteLine(3, "Press btn to exit", true);
+		switch(err)
+		{
+	       case ERR_BAD_WHITE_KING_COUNT:
+           case ERR_BAD_BLACK_KING_COUNT:
+	  		  displayWriteLine(2, "Too many/few kings", true);
+           	  break;
+
+           case ERR_OPPOSING_KINGS:
+	  		  displayWriteLine(2, "King's are adjacent", true);
+           	  break;
+
+           case ERR_OPP_ALREADY_IN_CHECK:
+ 	  		  displayWriteLine(2, "King is capturable", true);             
+           	  break;
+
+           case ERR_BAD_PAWN_POSITION:
+ 	  		  displayWriteLine(2, "Pawn on illegal row", true);             
+           	  break;
+
+           case ERR_TOO_MANY_WHITE_PIECES:
+ 	  		  displayWriteLine(2, ">16 white pieces", true);             
+           	  break;
+
+           case ERR_TOO_MANY_BLACK_PIECES:
+ 	  		  displayWriteLine(2, ">16 black pieces", true);             
+           	  break;
+
+		}
+		displayWriteLine(3, "Press btn to abort", true);
 	}
 	else
 	{
 		displayClearLine(2);
-		displayWriteLine(3, "Press btn to accept", true);
+		displayWriteLine(3, "Press to start game", true);
 	}
 
 }
@@ -183,7 +213,7 @@ static void	arbPosShowSelectedPiece( void )
 {
 	char lineContents[21];
 
-	sprintf(lineContents,"%s %s", colorNames[currentColor], pieceNames[currentPiece]);
+	sprintf(lineContents,"Placing %s %s", colorNames[currentColor], pieceNames[currentPiece]);
 	displayWriteLine(1, lineContents, true);
 }	
 
