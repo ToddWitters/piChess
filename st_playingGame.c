@@ -200,15 +200,14 @@ void playingGame_processSelectedMove( move_t mv)
       case BISHOP: strcat(game.moveRecord, "b"); break;
       case KNIGHT: strcat(game.moveRecord, "n"); break;
    }
-   strcat(game.moveRecord," ");
-
-
-
- 
+   strcat(game.moveRecord," "); 
 
    // These first two are not optional and have no associated options with them.
    // TODO test for 75-move rule
-   // if(game.brd.halfMoves >= 150)
+   if(game.brd.halfMoves >= 150)
+   {
+      
+   }
 
    // TODO test for 5-fold repetition rule
    // Current position repeats 4 other times: 4, 8, 12, and 16 half-moves back

@@ -17,8 +17,12 @@
 #include "options.h"
 
 #include <stddef.h>
+#include <stdio.h>
 
 extern game_t game;
+
+static piece_t promotePiece;
+bool promoteInProgress;
 
 typedef struct moveEffect_s
 {
@@ -51,6 +55,8 @@ static uint64_t occupiedSquares, dirtySquares;
 void playerMoveEntry( event_t ev )
 {
    DPRINT("PlayerMoveEntry\n");
+   promotePiece = PIECE_NONE;
+   promoteInProgress = false;
 
    displayClearLine(0);
 
@@ -94,12 +100,16 @@ void playerMoves_boardChange( event_t ev)
    move_t     *moveMade;
    moveVal_t  moveProgress;
 
+   // Find out which squares have pieces on them
    occupiedSquares = GetSwitchStates();
 
+   // Note this new square as "dirty"
    dirtySquares |= squareMask[ev.data];
 
+   // Remove those squares which are unoccupied AND should not have anything on them...
    dirtySquares &= (game.brd.colors[WHITE] | game.brd.colors[BLACK] | occupiedSquares);
 
+   // If we are back to the original position, clear the dirty squares.
    if(occupiedSquares == (game.brd.colors[WHITE] | game.brd.colors[BLACK])) dirtySquares = 0;
 
    moveProgress = checkValidMoveProgress(moveEffects, totalLegalMoves, dirtySquares, occupiedSquares, &moveMade);
@@ -109,29 +119,37 @@ void playerMoves_boardChange( event_t ev)
    switch(moveProgress)
    {
       case MV_LEGAL:
+
+         if(moveMade->promote == QUEEN)
+            moveMade->promote = promotePiece;
+
          playingGame_processSelectedMove(*moveMade);
          break;
 
       case MV_PRECURSOR:
 
-         // Is a white pawn about to promote?
-         if( ev.ev == EV_PIECE_LIFT &&
-             ( game.brd.pieces[PAWN]  &
-               game.brd.colors[WHITE] &
-               squareMask[ev.data]    &
-               rowMask[1] ) )
+         // Is a pawn about to promote?
+         if(
+            ev.ev == EV_PIECE_LIFT &&
+            (
+               (
+                  game.brd.pieces[PAWN]  &
+                  game.brd.colors[WHITE] &
+                  squareMask[ev.data]    &
+                  rowMask[1]
+               )
+               ||
+               (
+                  game.brd.pieces[PAWN]  &
+                  game.brd.colors[BLACK] &
+                  squareMask[ev.data]    &
+                  rowMask[6]
+                )
+            ) )
          {
-            // Prompt for promote piece
-         }
-
-         // Is a black pawn about to promote?
-         else if( ev.ev == EV_PIECE_LIFT &&
-                  ( game.brd.pieces[PAWN]  &
-                    game.brd.colors[BLACK] &
-                    squareMask[ev.data]    &
-                    rowMask[6] ) )
-         {
-            // Prompt for promote piece
+            promoteInProgress = true;
+            promotePiece = QUEEN;
+            displayWriteLine(1, "Promote to: QUEEN", true);
          }
 
          LED_SetGridState(dirtySquares);
@@ -143,8 +161,51 @@ void playerMoves_boardChange( event_t ev)
    }
 }
 
+bool playerMoves_promoting( event_t ev )
+{
+   return promoteInProgress;
+}
 
 
+static const char *pieceName[] =
+{
+   "ERROR",
+   "KNIGHT",
+   "BISHOP",
+   "ROOK",
+   "QUEEN",
+   "ERROR",
+   "ERROR"
+};
+
+void playerMoves_changeProPiece( event_t ev )
+{
+   char tempStr[21];
+
+   switch(ev.data)
+   {
+      case POS_DOWN:
+         if(promotePiece != KNIGHT)
+            promotePiece--;
+         else
+            return;
+         break;
+      case POS_UP:
+         if(promotePiece != QUEEN)
+            promotePiece++;
+         else
+            return;
+         break;
+      case POS_LEFT:
+      case POS_RIGHT:
+         return;
+         break;
+   }
+
+   sprintf(tempStr, "Promote to: %s", pieceName[promotePiece] );
+   displayWriteLine(1, tempStr, true);
+
+}
 ///////////////////////
 // Helper functions
 ///////////////////////
@@ -294,4 +355,9 @@ static moveVal_t checkValidMoveProgress(moveEffects_t *moveEffects, int numMoves
    {
       return MV_ILLEGAL;
    }
+}
+
+bool playerMoves_moveNotInProgress( event_t ev )
+{
+   return( (ev.data == B_PRESSED)  && (dirtySquares == 0));
 }

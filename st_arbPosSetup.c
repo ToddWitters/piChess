@@ -9,6 +9,9 @@
 #include "constants.h"
 #include "hsmDefs.h"
 #include "diag.h"
+#include "util.h"
+#include "bitboard.h"
+#include "diag.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -20,8 +23,6 @@ uint64_t boardState;
 board_t brd;
 
 static void	arbPosShowSelectedPiece( void );
-static piece_t getPieceAtSquare( uint8_t sq );
-static color_t getColorAtSquare( uint8_t sq );
 static void showCurrentSelectionLocations( void );
 
 extern game_t game;
@@ -83,6 +84,10 @@ void arbPosSetupHandleBtnPos( event_t ev)
 
 	if(boardPrecleared == false) return;
 
+	// If king counts are wrong, don't allow changing the piece...
+	if( bitCount(brd.colors[WHITE] & brd.pieces[KING]) != 1) return;
+	if( bitCount(brd.colors[BLACK] & brd.pieces[KING]) != 1) return;
+
 	switch(ev.data)
 	{
 		case POS_LEFT:
@@ -91,10 +96,10 @@ void arbPosSetupHandleBtnPos( event_t ev)
 			else                      currentColor = WHITE;
 			break; 
 		case POS_UP:
-			if(++currentPiece == PIECE_NONE) currentPiece = PAWN;
+			if(++currentPiece == KING) currentPiece = PAWN;
 			break;
 		case POS_DOWN:
-			if(currentPiece == PAWN) currentPiece = KING;
+			if(currentPiece == PAWN) currentPiece = QUEEN;
 			else                           --currentPiece;
 			break;
 	}
@@ -106,7 +111,7 @@ void arbPosSetup_boardChange( event_t ev)
 {
 
 	boardErr_t err;
-
+			
 	if(boardPrecleared == false)
 	{
 		boardState = GetSwitchStates();
@@ -124,18 +129,14 @@ void arbPosSetup_boardChange( event_t ev)
 
 		if(ev.ev == EV_PIECE_LIFT)
 		{
-			color_t thisColor = getColorAtSquare(ev.data);
-			piece_t thisPiece = getPieceAtSquare(ev.data);
+			color_t thisColor = getColorAtSquare(&brd, ev.data);
+			piece_t thisPiece = getPieceAtSquare(&brd, ev.data);
 			if( (thisColor != COLOR_NONE) && (thisPiece != PIECE_NONE))
 			{
 				removePiece(&brd, location, thisPiece, thisColor);
 				currentColor = thisColor;
 				currentPiece = thisPiece;
 				arbPosShowSelectedPiece();
-			}
-			else
-			{
-				DPRINT("Unknown piece at location");
 			}
 		}
 		else if(ev.ev == EV_PIECE_DROP)
@@ -145,7 +146,16 @@ void arbPosSetup_boardChange( event_t ev)
 			{
 				brd.toMove = currentColor;
 				displayWriteChars(0,3,strlen(colorNames[brd.toMove]),(char *)colorNames[brd.toMove]);
+
+				if( !(brd.colors[WHITE] & brd.pieces[KING]))
+					currentColor = WHITE;
+				else if( !(brd.colors[BLACK] & brd.pieces[KING]) )
+					currentColor = BLACK;
+				else
+					currentPiece = PAWN;
 			}
+			arbPosShowSelectedPiece();
+
 		}
 	}
 
@@ -157,7 +167,7 @@ void arbPosSetup_boardChange( event_t ev)
 		{
 	       case ERR_BAD_WHITE_KING_COUNT:
            case ERR_BAD_BLACK_KING_COUNT:
-	  		  displayWriteLine(2, "Too many/few kings", true);
+	  		  displayWriteLine(2, "", true);
            	  break;
 
            case ERR_OPPOSING_KINGS:
@@ -179,6 +189,10 @@ void arbPosSetup_boardChange( event_t ev)
            case ERR_TOO_MANY_BLACK_PIECES:
  	  		  displayWriteLine(2, ">16 black pieces", true);             
            	  break;
+
+           case BRD_NO_ERROR:
+           default:
+           	  break;	  
 
 		}
 		displayWriteLine(3, "Press btn to abort", true);
@@ -214,31 +228,9 @@ static void	arbPosShowSelectedPiece( void )
 	char lineContents[21];
 
 	sprintf(lineContents,"Placing %s %s", colorNames[currentColor], pieceNames[currentPiece]);
-	displayWriteLine(1, lineContents, true);
+	displayWriteLine(1, lineContents, false);
 }	
 
-static piece_t getPieceAtSquare( uint8_t sq )
-{
-	uint64_t mask = squareMask[sq];
-
-	if(brd.pieces[PAWN] & mask) return PAWN;
-	if(brd.pieces[KNIGHT] & mask) return KNIGHT;
-	if(brd.pieces[BISHOP] & mask) return BISHOP;
-	if(brd.pieces[ROOK] & mask) return ROOK;
-	if(brd.pieces[QUEEN] & mask) return QUEEN;
-	if(brd.pieces[KING] & mask) return KING;
-	return PIECE_NONE;
-}
-
-
-static color_t getColorAtSquare( uint8_t sq )
-{
-	uint64_t mask = squareMask[sq];
-
-	if(brd.colors[BLACK] & mask) return BLACK;
-	if(brd.colors[WHITE] & mask) return WHITE;
-	return COLOR_NONE;
-}
 
 static void showCurrentSelectionLocations( void )
 {

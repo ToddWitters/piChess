@@ -6,10 +6,12 @@ Date
 -- New/Updated Features --
 --------------------------
 
+   Added logic for underpromotion
    Added ability to set an arbitrary position
    Removed count-down timer used when human making move for computer
    Added in-game display of a few recent moves
    Minor U/I wording changes
+   In-game menu no longer available once player has begun his move
 
 ---------------
 -- Bug Fixes --
@@ -73,14 +75,14 @@ First Working version with the following features:
 Future Version Planning
 =======================
 
-Update to Stockfish 8.0
-Update to RPi3
-Auto-launch on Pi startup
 More robust handling of unexpected board events during game.
-Add U/I elements to allow underpromotion
 Saving/Restoring options
 Move take-back
 Verify board contents during game
+
+Update to Stockfish 8.0
+Update to RPi3
+Auto-launch on Pi startup
 Sound??
    Illegal Move
    Computer Move

@@ -3,6 +3,7 @@
 #include "types.h"
 #include "hsmDefs.h"
 #include "switch.h"
+#include "constants.h"
 
 // This is a software correction for a hardware wiring issues.  LED bit mapping was wired
 //   in the opposite bit order.  Since a SW change is much easier, we'll fix that here...
@@ -101,3 +102,29 @@ move_t convertCoordMove( char *coord )
 
    return mv;
 }
+
+extern game_t game;
+
+piece_t getPieceAtSquare( board_t *brd, uint8_t sq )
+{
+  uint64_t mask = squareMask[sq];
+
+  if(brd->pieces[PAWN] & mask) return PAWN;
+  if(brd->pieces[KNIGHT] & mask) return KNIGHT;
+  if(brd->pieces[BISHOP] & mask) return BISHOP;
+  if(brd->pieces[ROOK] & mask) return ROOK;
+  if(brd->pieces[QUEEN] & mask) return QUEEN;
+  if(brd->pieces[KING] & mask) return KING;
+  return PIECE_NONE;
+}
+
+
+color_t getColorAtSquare( board_t *brd, uint8_t sq )
+{
+  uint64_t mask = squareMask[sq];
+
+  if(brd->colors[BLACK] & mask) return BLACK;
+  if(brd->colors[WHITE] & mask) return WHITE;
+  return COLOR_NONE;
+}
+
