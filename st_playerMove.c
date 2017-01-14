@@ -15,6 +15,8 @@
 #include "st_playingGame.h"
 #include "st_inGame.h"
 #include "options.h"
+#include "bitboard.h"
+#include "st_fixBoard.h"
 
 #include <stddef.h>
 #include <stdio.h>
@@ -51,12 +53,25 @@ static moveVal_t checkValidMoveProgress(moveEffects_t *moveEffects, int numMoves
 static void calculateMoveEffects(const move_t *moves, const board_t *brd, moveEffects_t *effects, int num);
 
 static uint64_t occupiedSquares, dirtySquares;
+static uint8_t boardChangeCount;
 
 void playerMoveEntry( event_t ev )
 {
    DPRINT("PlayerMoveEntry\n");
    promotePiece = PIECE_NONE;
    promoteInProgress = false;
+
+   if(GetSwitchStates() != (game.brd.colors[WHITE] | game.brd.colors[BLACK]))
+   {
+      event_t ev;
+
+      fixBoard_setDirty(dirtySquares);
+
+      ev.ev = EV_FIX_BOARD;
+      putEvent(EVQ_EVENT_MANAGER, &ev);
+      return;
+     
+   }
 
    displayClearLine(0);
 
@@ -88,6 +103,7 @@ void playerMoveEntry( event_t ev )
    occupiedSquares = GetSwitchStates();
    dirtySquares    = occupiedSquares ^ (game.brd.colors[WHITE] | game.brd.colors[BLACK]);
 
+   boardChangeCount = 0;
 }
 
 void playerMoveExit( event_t ev )
@@ -128,6 +144,19 @@ void playerMoves_boardChange( event_t ev)
 
       case MV_PRECURSOR:
 
+         // This catches a condition where a piece was added to the board and happened to be placed
+         //   on a target square of a legal move...
+         if( bitCount(occupiedSquares) > bitCount(game.brd.colors[WHITE] | game.brd.colors[BLACK]))
+         {
+            event_t ev;
+
+            fixBoard_setDirty(dirtySquares);
+
+            ev.ev = EV_FIX_BOARD;
+            putEvent(EVQ_EVENT_MANAGER, &ev);
+            return;
+         }
+
          // Is a pawn about to promote?
          if(
             ev.ev == EV_PIECE_LIFT &&
@@ -156,7 +185,22 @@ void playerMoves_boardChange( event_t ev)
          break;
 
       case MV_ILLEGAL:
-         LED_FlashGridState(dirtySquares);
+         if( bitCount(occupiedSquares) > bitCount(game.brd.colors[WHITE] | game.brd.colors[BLACK]) ||
+             bitCount(dirtySquares) >4 ||
+             boardChangeCount > 5)
+         {
+            event_t ev;
+
+            fixBoard_setDirty(dirtySquares);
+
+            ev.ev = EV_FIX_BOARD;
+            putEvent(EVQ_EVENT_MANAGER, &ev);
+            return;
+         }
+         else
+         {
+            LED_FlashGridState(dirtySquares);
+         }
          break;
    }
 }

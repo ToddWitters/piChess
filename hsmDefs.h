@@ -26,6 +26,7 @@ typedef enum stateId_e
          ST_COMPUTER_MOVE,         // Computer is thinking
          ST_MOVE_FOR_COMPUTER,     // Player is making computer's chosen move
        ST_GAMEMENU,                // Navigating in-game menu
+       ST_FIX_BOARD,
        ST_EXITING_GAME,             // Game has concluded, waiting for confirmation
      ST_DIAG_SENSORS,
 
@@ -73,6 +74,8 @@ typedef enum eventId_e
    EV_PROCESS_COMPUTER_MOVE,
 
    EV_PLAYER_MOVED_FOR_COMP,
+
+   EV_FIX_BOARD
 
 }eventId_t;
 

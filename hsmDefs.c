@@ -24,6 +24,7 @@
 #include "st_inGameMenu.h"
 #include "st_moveForComputer.h"
 #include "st_timeOptionMenu.h"
+#include "st_fixBoard.h"
 #include "util.h"
 
 extern bool_t waitingForButton;
@@ -52,6 +53,7 @@ stateDef_t myStateDef[] =
    { ST_PLAYING_GAME,  NULL_INIT_FUNC,          computerMoveEntry,     computerMoveExit     },
    { ST_PLAYING_GAME,  NULL_INIT_FUNC,          moveForComputerEntry,  moveForComputerExit  },
    { ST_IN_GAME,       NULL_INIT_FUNC,          inGameMenuEntry,       inGameMenuExit       },
+   { ST_IN_GAME,       NULL_INIT_FUNC,          fixBoardEntry,         fixBoardExit         },
    { ST_IN_GAME,       NULL_INIT_FUNC,          exitingGameEntry,      exitingGameExit      },
    { ST_TOP,           NULL_INIT_FUNC,          diagSwitchEntry,       diagSwitchExit       },
 };
@@ -72,7 +74,7 @@ transDef_t myTransDef[] =
    { EV_BUTTON_STATE,           ST_GAMEMENU,          isStatePress,                  menus_buttonState_pressed,   ST_NONE,               FALSE },
    { EV_BUTTON_STATE,           ST_INIT_POS_SETUP,    isStatePress,                  NULL_ACTION_FUNC,            ST_MAINMENU,           FALSE },
    { EV_BUTTON_STATE,           ST_EXITING_GAME,      isStatePress,                  NULL_ACTION_FUNC,            ST_MAINMENU,           FALSE },
-   { EV_BUTTON_STATE,           ST_PLAYER_MOVE,       playerMoves_moveNotInProgress, NULL_ACTION_FUNC,            ST_GAMEMENU,           FALSE },
+   { EV_BUTTON_STATE,           ST_PLAYER_MOVE,       isStatePress,                  NULL_ACTION_FUNC,            ST_GAMEMENU,           FALSE },
    { EV_BUTTON_STATE,           ST_TIME_OPTION_MENU,  isStatePress,                  timeOptionMenuButtonHandler, ST_NONE,               FALSE },
    { EV_BUTTON_STATE,           ST_COMPUTER_MOVE,     computerMoveWaitingButton,     computerMoveButtonStop,      ST_NONE,               FALSE },
    { EV_BUTTON_STATE,           ST_ARB_POS_SETUP,     arbPosSetupCheckPosition,      NULL_ACTION_FUNC,            ST_IN_GAME,            FALSE },
@@ -88,12 +90,15 @@ transDef_t myTransDef[] =
    { EV_PIECE_DROP,             ST_PLAYER_MOVE,       NULL_GUARD_FUNC,               playerMoves_boardChange,     ST_NONE,               FALSE },
    { EV_PIECE_DROP,             ST_MOVE_FOR_COMPUTER, NULL_GUARD_FUNC,               moveForComputer_boardChange, ST_NONE,               FALSE },
    { EV_PIECE_DROP,             ST_ARB_POS_SETUP,     NULL_GUARD_FUNC,               arbPosSetup_boardChange,     ST_NONE,               FALSE },
+   { EV_PIECE_DROP,             ST_FIX_BOARD,         NULL_GUARD_FUNC,               fixBoard_boardChange,        ST_NONE,               FALSE },
 
    { EV_PIECE_LIFT,             ST_DIAG_SENSORS,      NULL_GUARD_FUNC,               diagSwitch_boardChange,      ST_NONE,               FALSE },
    { EV_PIECE_LIFT,             ST_INIT_POS_SETUP,    NULL_GUARD_FUNC,               initPosSetup_boardChange,    ST_NONE,               FALSE },
    { EV_PIECE_LIFT,             ST_PLAYER_MOVE,       NULL_GUARD_FUNC,               playerMoves_boardChange,     ST_NONE,               FALSE },
    { EV_PIECE_LIFT,             ST_MOVE_FOR_COMPUTER, NULL_GUARD_FUNC,               moveForComputer_boardChange, ST_NONE,               FALSE },
    { EV_PIECE_LIFT,             ST_ARB_POS_SETUP,     NULL_GUARD_FUNC,               arbPosSetup_boardChange,     ST_NONE,               FALSE },
+   { EV_PIECE_LIFT,             ST_FIX_BOARD,         NULL_GUARD_FUNC,               fixBoard_boardChange,        ST_NONE,               FALSE },
+
    { EV_START_SENSOR_DIAG,      ST_DIAGMENU,          NULL_GUARD_FUNC,               NULL_ACTION_FUNC,            ST_DIAG_SENSORS,       FALSE },
    { EV_START_INIT_POS_SETUP,   ST_MAINMENU,          NULL_GUARD_FUNC,               NULL_ACTION_FUNC,            ST_INIT_POS_SETUP,     FALSE },
 
@@ -113,6 +118,8 @@ transDef_t myTransDef[] =
    { EV_MOVE_CLOCK_TIC,         ST_IN_GAME,           NULL_GUARD_FUNC,               inGame_moveClockTick,        ST_NONE,               FALSE },
    { EV_PROCESS_COMPUTER_MOVE,  ST_IN_GAME,           NULL_GUARD_FUNC,               computerMove_computerPicked, ST_NONE,               FALSE },
    { EV_PLAYER_MOVED_FOR_COMP,  ST_MOVE_FOR_COMPUTER, NULL_GUARD_FUNC,               NULL_ACTION_FUNC,            ST_PLAYING_GAME,       TRUE  },
+
+   { EV_FIX_BOARD,              ST_IN_GAME,           NULL_GUARD_FUNC,               NULL_ACTION_FUNC,            ST_FIX_BOARD,          TRUE  },
 };
 
 const uint16_t transDefCount = (sizeof(myTransDef)/sizeof(myTransDef[0]));

@@ -174,15 +174,6 @@ static void computerMove_engineSelection( move_t mv, move_t ponder )
       DPRINT("setting pending move true\n");
       computerMovePending = true;
 
-      if(squareMask[mv.to] & (game.brd.colors[WHITE] | game.brd.colors[BLACK]))
-      {
-         mustMove = squareMask[mv.to];
-      }
-      else
-      {
-         mustMove = 0;
-      }
-
       playingGame_processSelectedMove(mv);
    }
 }

@@ -43,6 +43,7 @@ sources = bcm2835.c      \
 			 st_exitingGame.c \
 			 st_inGameMenu.c \
 			 st_timeOptionMenu.c \
+			 st_fixBoard.c \
 			 switch.c       \
 			 timer.c        \
 			 util.c         \

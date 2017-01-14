@@ -11,7 +11,7 @@ Date
    Removed count-down timer used when human making move for computer
    Added in-game display of a few recent moves
    Minor U/I wording changes
-   In-game menu no longer available once player has begun his move
+   More robust handling of unexpected board events during game.
 
 ---------------
 -- Bug Fixes --
@@ -75,7 +75,6 @@ First Working version with the following features:
 Future Version Planning
 =======================
 
-More robust handling of unexpected board events during game.
 Saving/Restoring options
 Move take-back
 Verify board contents during game
