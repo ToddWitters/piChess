@@ -79,6 +79,7 @@ transDef_t myTransDef[] =
    { EV_BUTTON_STATE,           ST_COMPUTER_MOVE,     computerMoveWaitingButton,     computerMoveButtonStop,      ST_NONE,               FALSE },
    { EV_BUTTON_STATE,           ST_ARB_POS_SETUP,     arbPosSetupCheckPosition,      NULL_ACTION_FUNC,            ST_IN_GAME,            FALSE },
    { EV_BUTTON_STATE,           ST_ARB_POS_SETUP,     isStatePress,                  NULL_ACTION_FUNC,            ST_MAINMENU,           FALSE },
+   { EV_BUTTON_STATE,           ST_FIX_BOARD,         isStatePress,                  NULL_ACTION_FUNC,            ST_MAINMENU,           FALSE },
 
    { EV_BUTTON_POS,             ST_MENUS,             NULL_GUARD_FUNC,               menus_buttonPos,             ST_NONE,               FALSE },
    { EV_BUTTON_POS,             ST_GAMEMENU,          NULL_GUARD_FUNC,               menus_buttonPos,             ST_NONE,               FALSE },
