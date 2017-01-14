@@ -94,7 +94,7 @@ void moveForComputer_boardChange( event_t ev)
 
    // If we have moved things around too much OR there are more pieces on the board than there should be...
    else if(boardChangeCount > 5 || 
-           bitCount(current) > bitCount(game.brd.colors[WHITE] | game.brd.colors[BLACK]) )
+           bitCount(current) > bitCount(prevBoard.colors[WHITE] | prevBoard.colors[BLACK]) )
    {
       event_t ev;
 
@@ -115,10 +115,6 @@ void moveForComputer_boardChange( event_t ev)
       // If we captured, 
       if( game.posHistory[game.playedMoves - 1].revMove.captured != PIECE_NONE)
          expectedDirty |= squareMask[game.posHistory[game.playedMoves - 1].move.to]; 
-
-
-      DPRINT("Expected Dirty: %016llX\n", expectedDirty );
-      DPRINT("Dirty: %016llX\n", dirty );
 
       if(dirty & ~expectedDirty)
       {
