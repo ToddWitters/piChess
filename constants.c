@@ -842,3 +842,19 @@ const BB ray[8][64] =
 }
 
 };
+
+const char* pieceNames[] =
+{
+   "Pawn",
+   "Knight",
+   "Bishop",
+   "Rook",
+   "Queen",
+   "King"
+};
+
+const char* colorNames[] =
+{
+   "Black",
+   "White"
+};

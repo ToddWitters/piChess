@@ -159,3 +159,7 @@ extern const BB rowMask[8];
 extern const BB fileMask[8];
 
 extern const BB ray[8][64];
+
+extern const char* pieceNames[];
+extern const char* colorNames[];
+

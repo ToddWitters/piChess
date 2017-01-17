@@ -37,22 +37,6 @@ static void showCastlingEnPassant( void );
 
 extern game_t game;
 
-const char* pieceNames[] =
-{
-	"Pawn",
-	"Knight",
-	"Bishop",
-	"Rook",
-	"Queen",
-	"King"
-};
-
-const char* colorNames[] =
-{
-	"Black",
-	"White"
-};
-
 void arbPosSetupEntry( event_t ev)
 {
 

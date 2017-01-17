@@ -1,12 +1,10 @@
 #include "hsm.h"
 #include "hsmDefs.h"
-#include "st_playerMove.h"
 
 #include "types.h"
 #include "constants.h"
 
 #include "moves.h"
-#include "st_inGame.h"
 #include "switch.h"
 #include "diag.h"
 #include "display.h"
@@ -18,7 +16,6 @@
 #include "bitboard.h"
 #include "st_fixBoard.h"
 
-#include <stddef.h>
 #include <stdio.h>
 
 extern game_t game;
@@ -70,27 +67,19 @@ void playerMoveEntry( event_t ev )
       ev.ev = EV_FIX_BOARD;
       putEvent(EVQ_EVENT_MANAGER, &ev);
       return;
-     
+
    }
 
    displayClearLine(0);
 
    if(options.game.white != options.game.black)
-   {
       displayWriteLine(0, "Human's Move", TRUE);
-   }
-
    else if(game.brd.toMove == WHITE)
-   {
       displayWriteLine(0, "White's Move", TRUE);
-   }
    else
-   {
       displayWriteLine(0, "Black's Move", TRUE);
-   }
 
    inGame_udpateClocks();
-
 
    // Find all the legal moves from here
    totalLegalMoves = findMoves(&game.brd, legalMoves);
@@ -98,11 +87,7 @@ void playerMoveEntry( event_t ev )
    // Figure out the move primitives for all legal moves...
    calculateMoveEffects(legalMoves, &game.brd, moveEffects, totalLegalMoves);
 
-   // Even though we aren't responding to piece event, we still need
-   //  to set the LEDs accordingly....
-   occupiedSquares = GetSwitchStates();
-   dirtySquares    = occupiedSquares ^ (game.brd.colors[WHITE] | game.brd.colors[BLACK]);
-
+   dirtySquares    = 0;
    boardChangeCount = 0;
 }
 
@@ -136,23 +121,26 @@ void playerMoves_boardChange( event_t ev)
    {
       case MV_LEGAL:
 
+         // If the selected move had "QUEEN" as the promotion piece, it was a promotion move..
          if(moveMade->promote == QUEEN)
+            // Assign promotion piece to that selected by user...
             moveMade->promote = promotePiece;
 
          playingGame_processSelectedMove(*moveMade);
+
          break;
 
       case MV_PRECURSOR:
 
          // This catches a condition where a piece was added to the board and happened to be placed
-         //   on a target square of a legal move...
+         //   on an unoccupied target square of a legal move...
          if( bitCount(occupiedSquares) > bitCount(game.brd.colors[WHITE] | game.brd.colors[BLACK]))
          {
-            event_t ev;
-
+            // Make sure we fix all squares marked as dirty...
             fixBoard_setDirty(dirtySquares);
 
             ev.ev = EV_FIX_BOARD;
+            ev.data = 0;
             putEvent(EVQ_EVENT_MANAGER, &ev);
             return;
          }
@@ -185,6 +173,10 @@ void playerMoves_boardChange( event_t ev)
          break;
 
       case MV_ILLEGAL:
+
+         // If (1) extra pieces were added to the board, OR (2) Move than 4 squares are "dirty" OR (3) there
+         //   there have been more than 5 changes to the board since state entry...
+
          if( bitCount(occupiedSquares) > bitCount(game.brd.colors[WHITE] | game.brd.colors[BLACK]) ||
              bitCount(dirtySquares) >4 ||
              boardChangeCount > 5)
@@ -205,6 +197,7 @@ void playerMoves_boardChange( event_t ev)
    }
 }
 
+// Used to allow HSM to trigger playerMoves_changeProPiece if appropriate...
 bool playerMoves_promoting( event_t ev )
 {
    return promoteInProgress;
@@ -399,9 +392,4 @@ static moveVal_t checkValidMoveProgress(moveEffects_t *moveEffects, int numMoves
    {
       return MV_ILLEGAL;
    }
-}
-
-bool playerMoves_moveNotInProgress( event_t ev )
-{
-   return( (ev.data == B_PRESSED)  && (dirtySquares == 0));
 }

@@ -1,6 +1,8 @@
 #ifndef HSM_DEFS_H
 #define HSM_DEFS_H
 
+#include "hsm.h"
+
 extern stateDef_t myStateDef[];
 extern transDef_t myTransDef[];
 
@@ -27,6 +29,7 @@ typedef enum stateId_e
          ST_MOVE_FOR_COMPUTER,     // Player is making computer's chosen move
        ST_GAMEMENU,                // Navigating in-game menu
        ST_FIX_BOARD,
+       ST_CHECK_BOARD,
        ST_EXITING_GAME,             // Game has concluded, waiting for confirmation
      ST_DIAG_SENSORS,
 
@@ -52,7 +55,7 @@ typedef enum eventId_e
    EV_START_SENSOR_DIAG,
    EV_START_INIT_POS_SETUP,
    EV_START_ARB_POS_SETUP,
-
+   EV_START_BOARD_CHECK,
 
    EV_GOTO_MAIN_MENU,
    EV_GOTO_DIAG_MENU,

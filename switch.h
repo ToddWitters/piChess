@@ -1,3 +1,5 @@
+#include "types.h"
+
 #ifndef SWITCH_H
 #define SWITCH_H
 

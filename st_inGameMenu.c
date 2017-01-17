@@ -17,6 +17,7 @@ void inGameMenuEntry( event_t ev )
       //          menu      offset      text                   press                  right   picker
       menuAddItem(inGameMenu, ADD_TO_END, "Back to Game",        EV_GOTO_PLAYING_GAME,  0,      NULL);
       menuAddItem(inGameMenu, ADD_TO_END, "Abort Game",          EV_GOTO_MAIN_MENU,     0,      NULL);
+      menuAddItem(inGameMenu, ADD_TO_END, "Verify Board",        EV_START_BOARD_CHECK,  0,      NULL);
    }
 
    drawMenu(inGameMenu);

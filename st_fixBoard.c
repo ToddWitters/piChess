@@ -8,12 +8,10 @@
 #include "switch.h"
 #include "led.h"
 #include "bitboard.h"
-#include "util.h"
 #include "event.h"
 #include "st_fixBoard.h"
 #include "options.h"
 #include "board.h"
-
 
 extern game_t game;
 
@@ -24,7 +22,6 @@ static color_t currentColor;
 board_t targetBoard;
 extern bool_t computerMovePending;
 
-
 void fixBoardEntry( event_t ev)
 {
 
@@ -34,19 +31,14 @@ void fixBoardEntry( event_t ev)
 	displayWriteLine(0, "Fixing board...", true);
 	displayWriteLine(3, "btn = abort game", true);
 
-	ev.data = 0xFFFF;
 	currentPiece = PAWN;
 	currentColor = WHITE;
 
 	memcpy(&targetBoard, &game.brd, sizeof(board_t));
 
-	// If a computer move was just decided, fix the board to the pre-move state...
-	if( ((targetBoard.toMove == WHITE) && (options.game.black == PLAYER_COMPUTER) && computerMovePending) ||
-	    ((targetBoard.toMove == BLACK) && (options.game.white == PLAYER_COMPUTER) && computerMovePending)  )
-	{
+	// If we were in process of entering a computer move, back up to the pre-move position....
+	if( computerMovePending )
 		unmove(&targetBoard, game.posHistory[game.playedMoves-1].revMove);
-
-	}
 
 	fixBoard_boardChange(ev);
 
@@ -84,7 +76,7 @@ void fixBoard_boardChange( event_t ev )
 	extra |= dirtySquares;
 
 	// Step 1:  Make sure any extra or dirty pieces are removed...
-	
+
 	if(extra != 0)
 	{
 		LED_SetGridState(0);
@@ -92,11 +84,11 @@ void fixBoard_boardChange( event_t ev )
 		displayWriteLine(2, "Remove pieces", true);
 	}
 
-	// Step 2: Add groups of pieces 
+	// Step 2: Add groups of pieces
 
 	// Are there more of the currently selected piece?
 	else if (missing != 0)
-	{	
+	{
 		while ( ! (missing & targetBoard.colors[currentColor] & targetBoard.pieces[currentPiece]) )
 		{
 			if(currentPiece == KING)
@@ -112,11 +104,12 @@ void fixBoard_boardChange( event_t ev )
 				currentPiece++;
 			}
 		}
+
 		LED_FlashGridState(0);
 		LED_SetGridState(missing & targetBoard.colors[currentColor] & targetBoard.pieces[currentPiece]);
-		sprintf(tempStr, 
-			    "Place %s %s", 
-			    colorName[currentColor], 
+		sprintf(tempStr,
+			    "Place %s %s",
+			    colorName[currentColor],
 			    pieceName[currentPiece]
 			    );
 
@@ -130,7 +123,7 @@ void fixBoard_boardChange( event_t ev )
 		LED_AllOff();
 		ev.ev   = EV_GOTO_PLAYING_GAME;
 		ev.data = 0;
-		putEvent(EVQ_EVENT_MANAGER, &ev); 
+		putEvent(EVQ_EVENT_MANAGER, &ev);
 	}
 
 }
