@@ -83,26 +83,21 @@ void gameMenu_goBack2( event_t ev)
          }
 
          tempPtr = &game.moveRecord[strlen(game.moveRecord)];
-         DPRINT("[%s]", game.moveRecord);
 
          while(*tempPtr != ' ' && (tempPtr != game.moveRecord))
             tempPtr--;
 
          *tempPtr = '\0';
-         DPRINT("[%s]", game.moveRecord);
 
          tempPtr = &game.SANRecord[strlen(game.SANRecord)];
-         DPRINT("[%s]", game.SANRecord);
 
          while(*tempPtr != ' ' && (tempPtr != game.SANRecord))
             tempPtr--;
 
          *tempPtr = '\0';
-         DPRINT("[%s]", game.SANRecord);
 
-         // TODO... update moveRecord && SANRecord
-
-         // TODO... restore clocks
+         game.wtime = game.posHistory[game.playedMoves -1].clocks[WHITE];
+         game.btime = game.posHistory[game.playedMoves -1].clocks[BLACK];
 
          game.playedMoves--;
       }
