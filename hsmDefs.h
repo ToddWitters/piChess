@@ -78,7 +78,9 @@ typedef enum eventId_e
 
    EV_PLAYER_MOVED_FOR_COMP,
 
-   EV_FIX_BOARD
+   EV_FIX_BOARD,
+
+   EV_TAKEBACK
 
 }eventId_t;
 

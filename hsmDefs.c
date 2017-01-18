@@ -131,6 +131,8 @@ transDef_t myTransDef[] =
    { EV_PLAYER_MOVED_FOR_COMP,  ST_MOVE_FOR_COMPUTER, NULL_GUARD_FUNC,               NULL_ACTION_FUNC,                 ST_PLAYING_GAME,       TRUE  },
 
    { EV_FIX_BOARD,              ST_IN_GAME,           NULL_GUARD_FUNC,               NULL_ACTION_FUNC,                 ST_FIX_BOARD,          TRUE  },
+
+   { EV_TAKEBACK,               ST_GAMEMENU,          NULL_GUARD_FUNC,               gameMenu_goBack2,                 ST_FIX_BOARD,          FALSE  },
 };
 
 const uint16_t transDefCount = (sizeof(myTransDef)/sizeof(myTransDef[0]));

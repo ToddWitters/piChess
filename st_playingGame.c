@@ -31,12 +31,12 @@ void playingGameEntry( event_t ev )
    DPRINT("PlayingGameEntry\n");
 
    // If a human is on move and there are no clocks...
-   if( 
+   if(
        (
-       (game.brd.toMove == WHITE && 
+       (game.brd.toMove == WHITE &&
        options.game.white == PLAYER_HUMAN)
        ||
-       (game.brd.toMove == BLACK && 
+       (game.brd.toMove == BLACK &&
        options.game.black  == PLAYER_HUMAN)
        )
        &&
@@ -64,7 +64,7 @@ void playingGameEntry( event_t ev )
             displayWriteLine(3, "Search till button", true);
             break;
       }
-   } 
+   }
 
    // Display the last few moves...
    showMoveHistory(game.SANRecord);
@@ -75,27 +75,6 @@ void playingGameExit( event_t ev )
 
 }
 
-// Display logic during game...
-
-// Line 1 : Comp. thinking / White's Move / Black's Move
-// Line 2 : Last Few Moves
-// Line 3 : White/Black, Human/Computer, Computer/Human
-// Line 4 : Clock Times / Untimed Game
-
-// After lift of pawn that could promote
-//    Line 1: Empty
-//    Line 2: Press to undrpromote
-//    Line 3: Empty
-
-// After illegal move (but before recovery)
-//    Line 1: Empty
-//    Line 2: ----Illegal Move----
-//    Line 3: Empty
-
-// When making move for computer
-//    Line 1: <Grace time>
-//    Line 2: Please make move
-//    Line 3: for Computer
 
 void playingGame_processSelectedMove( move_t mv)
 {
@@ -107,6 +86,9 @@ void playingGame_processSelectedMove( move_t mv)
    // Record the selected move
    game.posHistory[game.playedMoves].move = mv;
 
+   if(strlen(game.SANRecord)!= 0)
+      strcat(game.SANRecord," ");
+
    if(game.brd.toMove == WHITE)
    {
       char temp[4];
@@ -115,7 +97,6 @@ void playingGame_processSelectedMove( move_t mv)
    }
 
    strcat(game.SANRecord, moveToSAN(mv, &game.brd));
-   strcat(game.SANRecord," ");
    showMoveHistory(game.SANRecord);
 
    // Make the move on the board and store reverse information
@@ -191,6 +172,9 @@ void playingGame_processSelectedMove( move_t mv)
    game.posHistory[game.playedMoves].clocks[BLACK] = game.btime;
 
    // pump out to move record...
+   if(strlen(game.moveRecord) != 0)
+      strcat(game.moveRecord," ");
+
    strcat(game.moveRecord, convertSqNumToCoord(mv.from));
    strcat(game.moveRecord, convertSqNumToCoord(mv.to));
    switch(mv.promote)
@@ -200,13 +184,13 @@ void playingGame_processSelectedMove( move_t mv)
       case BISHOP: strcat(game.moveRecord, "b"); break;
       case KNIGHT: strcat(game.moveRecord, "n"); break;
    }
-   strcat(game.moveRecord," "); 
+
 
    // These first two are not optional and have no associated options with them.
    // TODO test for 75-move rule
    if(game.brd.halfMoves >= 150)
    {
-      
+
    }
 
    // TODO test for 5-fold repetition rule
@@ -287,7 +271,7 @@ uint16_t playingGamePickSubstate( event_t ev)
 
 static void showMoveHistory(char* string)
 {
- 
+
    // As long as the string is too long...
    while(strlen(string) > 20)
    {
@@ -297,7 +281,7 @@ static void showMoveHistory(char* string)
       // Advance beyond it to the next character
       string++;
    }
-  
+
    displayWriteLine(1, string, true);
 
 }
