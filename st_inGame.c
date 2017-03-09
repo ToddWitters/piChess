@@ -48,7 +48,7 @@ void inGameEntry( event_t ev )
          game.btime = game.wtime;
          game.bIncrement = game.wIncrement;
          break;
-         
+
       case TIME_ODDS:
          game.wtime =      options.game.timeControl.timeSettings[WHITE].totalTime * 10;
          game.wIncrement = options.game.timeControl.timeSettings[WHITE].increment * 10;
@@ -108,7 +108,7 @@ void inGame_moveClockTick( event_t ev)
 
    if(options.game.timeControl.type == TIME_NONE ) return;
 
-   // Don't move computer clock (or grace clock) when both players are computer 
+   // Don't move computer clock (or grace clock) when both players are computer
    //    and human is making the move for the computer
    if(options.game.black == PLAYER_COMPUTER &&
       options.game.white == PLAYER_COMPUTER &&
@@ -238,18 +238,6 @@ void inGame_udpateClocks( void )
       fullString[10 - strlen(timeString) - 2] = 0;
    }
    displayWriteChars(3, 10, 10, fullString);
-
-#if 0
-   memset(fullString, ' ', 6);
-   if(game.graceTime != 0)
-   {
-      timeString = convertTimeToString(game.graceTime);
-      memcpy(&fullString[6-strlen(timeString)], timeString, strlen(timeString));
-      defineCharacter(0, charRightFilledArrow);
-      fullString[6 - strlen(timeString) - 2] = 0;
-   }
-   displayWriteChars(1, 14, 6, fullString);
-#endif
 
 }
 

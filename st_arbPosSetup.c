@@ -387,7 +387,7 @@ bool arbPosSetupCheckPosition(event_t ev)
    if(result == true)
    {
 
-   	   // since we are going to return true for this guard position, do these things now...
+   	   // since we are going to return true for this guard condition, do these things now...
 
    	   char* currentFEN = getFEN(&brd);
    	   game.startPos = malloc(strlen(currentFEN)+1);

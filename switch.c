@@ -58,6 +58,46 @@ static const buttonPos_t switchStateTable[16] =
    POS_ERROR      // 1111
 };
 
+#if 0
+
+static const eventId_t switchStateTable[32] =
+{
+   EV_BUTTON_NONE     // 00000
+   EV_BUTTON_RIGHT,   // 00001
+   EV_BUTTON_LEFT,    // 00010
+   EV_BUTTON_CHORD,   // 00011 LR
+   EV_BUTTON_DOWN,    // 00100
+   EV_BUTTON_CHORD,   // 00101 DR
+   EV_BUTTON_CHORD,   // 00110 DL
+   EV_BUTTON_CHORD,   // 00111 DLR
+   EV_BUTTON_UP,      // 01000
+   EV_BUTTON_CHORD,   // 01001 UR
+   EV_BUTTON_CHORD,   // 01010 UL
+   EV_BUTTON_CHORD,   // 01011 ULR
+   EV_BUTTON_CHORD,   // 01100 UD
+   EV_BUTTON_CHORD,   // 01101 UDR
+   EV_BUTTON_CHORD,   // 01110 UDL
+   EV_BUTTON_CHORD,   // 01111 UDLR
+   EV_BUTTON_CENTER,  // 10000
+   EV_BUTTON_CHORD,   // 10001 CR
+   EV_BUTTON_CHORD,   // 10010 CL
+   EV_BUTTON_CHORD,   // 10011 CRL
+   EV_BUTTON_CHORD,   // 10100 CD
+   EV_BUTTON_CHORD,   // 10101 CDR
+   EV_BUTTON_CHORD,   // 10110 CDL
+   EV_BUTTON_CHORD,   // 10111 CDLR
+   EV_BUTTON_CHORD,   // 11000 CU
+   EV_BUTTON_CHORD,   // 11001 CUR
+   EV_BUTTON_CHORD,   // 11010 CUL
+   EV_BUTTON_CHORD,   // 11011 CULR
+   EV_BUTTON_CHORD,   // 11100 CUD
+   EV_BUTTON_CHORD,   // 11101 CUDR
+   EV_BUTTON_CHORD,   // 11110 CUDL
+   EV_BUTTON_CHORD    // 11111 CUDLR
+};
+
+#endif
+
 // The state of the most recent reed switch readings
 static uint64_t sampleState = 0;
 
@@ -152,7 +192,7 @@ void ResumeSwitchPoll( void )
     pthread_mutex_lock(&Switch_dataMutex);
 
     DPRINT("Resuming switch polling\n");
-    
+
     // reset counters since we dont know how long we have been shut off
     memset(debounceCounters, 0x00, sizeof(debounceCounters));
     pollingOn = TRUE;
@@ -387,7 +427,7 @@ static void buttonDebounce (uint8_t switchData)
       {
          // Update the debounced state
          posDebouncedState = posSampledState;
-         
+
          if(posDebouncedState == POS_CENTER)
          {
             repeatCounter = 0;
@@ -420,7 +460,7 @@ static void buttonDebounce (uint8_t switchData)
             evnt.data = posDebouncedState;
 
             putEvent(EVQ_EVENT_MANAGER,   &evnt);
-            
+
          }
       }
    }
@@ -453,6 +493,6 @@ static void buttonDebounce (uint8_t switchData)
 
 void setButtonRepeat(uint8_t delay, uint8_t interval)
 {
-   repeatDelay    = delay;   
+   repeatDelay    = delay;
    repeatInterval = interval;
 }

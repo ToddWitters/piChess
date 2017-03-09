@@ -90,7 +90,7 @@ transDef_t myTransDef[] =
    { EV_BUTTON_POS,             ST_TIME_OPTION_MENU,  NULL_GUARD_FUNC,               timeOptionMenuButtonHandler,      ST_NONE,               FALSE },
    { EV_BUTTON_POS,             ST_ARB_POS_SETUP,     NULL_GUARD_FUNC,               arbPosSetupHandleBtnPos,          ST_NONE,               FALSE },
    { EV_BUTTON_POS,             ST_PLAYER_MOVE,       playerMoves_promoting,         playerMoves_changeProPiece,       ST_NONE,               FALSE },
-   { EV_BUTTON_POS,             ST_CHECK_BOARD,       NULL_GUARD_FUNC,               checkBoard_handleButtonPosChange, ST_NONE,              FALSE },
+   { EV_BUTTON_POS,             ST_CHECK_BOARD,       NULL_GUARD_FUNC,               checkBoard_handleButtonPosChange, ST_NONE,               FALSE },
 
    { EV_PIECE_DROP,             ST_DIAG_SENSORS,      NULL_GUARD_FUNC,               diagSwitch_boardChange,           ST_NONE,               FALSE },
    { EV_PIECE_DROP,             ST_INIT_POS_SETUP,    NULL_GUARD_FUNC,               initPosSetup_boardChange,         ST_NONE,               FALSE },

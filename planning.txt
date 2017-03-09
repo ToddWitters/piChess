@@ -6,12 +6,13 @@ Date
 -- New/Updated Features --
 --------------------------
 
-   Added ability to underpromotion
+   Added ability to underpromote
    Added ability to set an arbitrary position
    Removed display of count-down timer used when human making move for computer
    Added in-game display of a few recent moves
    Added more robust handling of unexpected board events during game.
    Added ability of player to verify board contents during game
+   Added Move take-back
 
 ---------------
 -- Bug Fixes --
@@ -76,7 +77,8 @@ Future Version Planning
 =======================
 
 Saving/Restoring options
-Move take-back
+
+Replace joystick w/ 5 independent buttons
 
 Update to Stockfish 8.0
 Update to RPi3

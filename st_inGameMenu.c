@@ -51,6 +51,7 @@ void gameMenu_goBack2( event_t ev)
       for(i=0;i<2;i++)
       {
          char *tempPtr;
+
          // Save off existing board...
          board_t prev;
          memcpy(&prev, &game.brd, sizeof(board_t));
@@ -82,6 +83,7 @@ void gameMenu_goBack2( event_t ev)
             }
          }
 
+         // Remove last move from game record
          tempPtr = &game.moveRecord[strlen(game.moveRecord)];
 
          while(*tempPtr != ' ' && (tempPtr != game.moveRecord))
@@ -89,6 +91,7 @@ void gameMenu_goBack2( event_t ev)
 
          *tempPtr = '\0';
 
+         // Remove last move from SAN record
          tempPtr = &game.SANRecord[strlen(game.SANRecord)];
 
          while(*tempPtr != ' ' && (tempPtr != game.SANRecord))
@@ -96,9 +99,13 @@ void gameMenu_goBack2( event_t ev)
 
          *tempPtr = '\0';
 
+         // Restore clock times
          game.wtime = game.posHistory[game.playedMoves -1].clocks[WHITE];
          game.btime = game.posHistory[game.playedMoves -1].clocks[BLACK];
 
+
+
+         // Adjust # of moves...
          game.playedMoves--;
       }
 

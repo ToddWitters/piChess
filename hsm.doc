@@ -14,25 +14,25 @@ This library supports the following UML state machine concepts...
    internal transisions
 
 This library does NOT support the following:
-   orthogonal regions 
+   orthogonal regions
    event deferral
 
 This library does NOT support the following, but workarounds can accomplish the same thing...
-   action functions on initial transitions 
+   action functions on initial transitions
       WORKAROUND: The init function that returns the target state could easily do this.
 
-   pseudo-states 
+   pseudo-states
       WORKAROUND: These can be accomplished via multiple transitions with different guard conditions
 
    history
-      WORKAROUND: The init function can return any substate, and could be implemented to track the 
+      WORKAROUND: The init function can return any substate, and could be implemented to track the
       last active substate.
 
 This library adds the following behavioral extensions to UML state machines...
-   - Initial transitions are implemented by "init function" that returns the substate to traverse into.  
+   - Initial transitions are implemented by "init function" that returns the substate to traverse into.
        This mechanism allows a fixed or variable entry point into a composite state.
 
-   - Events have a user-defined data type that is attached and passed, along with the event, into all 
+   - Events have a user-defined data type that is attached and passed, along with the event, into all
        entry, exit, guard, init and action functions.  This allows behavior within those function that
        is dependant upon the triggering event.
 
@@ -52,17 +52,18 @@ typedef struct stateDef_s
    exitFunc_t           exitFunc;      // function to run on exit.   NULL_EXIT_FUNC if none.
 }stateDef_t;
 
-// User definition of an event handler.
 //   Upon creation of a new state machine, the user provides a pointer to an array of transDef_t objects
 //    which provide a list of all state transition (including internal ones) that are recognized.
-//    This array must be sorted on the "ev" field.  There may be multiple entries for each ev value 
+//    This array must be sorted on the "ev" field.  There may be multiple entries for each ev value
+//    When two or more states have the same 'from' and 'to' field, the guard functions are evaluated
+//    in the order that the transitions occur in the table
 typedef struct transDef_s
  {
    uint16_t       ev;       // The event that triggers this transition
    uint16_t       from;     // The state to which this trigger applies
-   guardFunc_t    guard;    // The guard condition. Use NULL_GUARD_FUNC to always make the transition.  
+   guardFunc_t    guard;    // The guard condition. Use NULL_GUARD_FUNC to always make the transition.
                             //    If non-NULL, the function must return true to make transition
-   actionFunc_t   action;   // The action, if any, to perform just before making the transition (i.e. 
+   actionFunc_t   action;   // The action, if any, to perform just before making the transition (i.e.
                                   before exit/entry functions are run)
    uint16_t       to;       // The state to transition to (NULL_STATE used if handled internally via the action function
                                   and no other transition needed)
@@ -243,7 +244,7 @@ char* HSM_getErrorString( HSM_Error_t err );
 // User calls the create function which verifies the integrity of the state and transition tables and
 //    initializes the HSM for use
 
-// User calls the "init" function to traverse down from the top-most state to a leaf node using 
+// User calls the "init" function to traverse down from the top-most state to a leaf node using
 //    the init functions until a leaf node is reached.
 
 // As an event occur, the event is passed to the HSM_processEvent function for handling.
@@ -251,7 +252,7 @@ char* HSM_getErrorString( HSM_Error_t err );
 // Typical usage:
 
 
-if (HSM_Create(...) != HSM_NO_ERROR) 
+if (HSM_Create(...) != HSM_NO_ERROR)
 {
    // Alert user
 }
@@ -266,7 +267,7 @@ while(1)
    HSM_Error_t err;
 
    // wait for event
-   
+
    if ( (err = HSM_processEvent( ev )) != HSM_NO_ERROR)
    {
       switch(err)
