@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "menu.h"
+#include "hsmDefs.h"
 #include "display.h"
 #include "diag.h"
 #include "st_menus.h"
@@ -130,7 +131,7 @@ bool_t menuAddItem(menu_t *menu,
 
 bool_t menuDeleteItem(menu_t *menu, char *text)
 {
-   int i;
+   int i = 0;
    int numElements;
    bool_t found = FALSE;
 
@@ -155,16 +156,16 @@ bool_t menuDeleteItem(menu_t *menu, char *text)
 
 }
 
-void menuProcessButtonPos(menu_t *menu, buttonPos_t pos)
+void menuProcessNavButton(menu_t *menu, event_t button)
 {
 
    event_t ev = {0, 0};
 
    if(menu == NULL) return;
 
-   switch(pos)
+   switch(button.ev)
    {
-      case POS_RIGHT:
+      case EV_BUTTON_RIGHT:
          // If the selected item doesn't have a picker, return the event
          if(menu->items[menu->selectedItem].picker == NULL)
          {
@@ -192,7 +193,7 @@ void menuProcessButtonPos(menu_t *menu, buttonPos_t pos)
          }
          break;
 
-      case POS_LEFT:
+      case EV_BUTTON_LEFT:
          // If no picker...
          if(menu->items[menu->selectedItem].picker == NULL)
          {
@@ -225,7 +226,7 @@ void menuProcessButtonPos(menu_t *menu, buttonPos_t pos)
          }
          break;
 
-      case POS_UP:
+      case EV_BUTTON_UP:
 
          // If the selected item isn't already the first one..
          if(menu->selectedItem > 0)
@@ -272,7 +273,7 @@ void menuProcessButtonPos(menu_t *menu, buttonPos_t pos)
          }
          break;
 
-      case POS_DOWN:
+      case EV_BUTTON_DOWN:
          if(menu->selectedItem < menu->itemCount - 1)
          {
 
@@ -325,7 +326,7 @@ void menuProcessButtonPress(menu_t *menu)
 
    if(menu != NULL)
    {
-      if(menu->items[menu->selectedItem].pressEvent != 0);
+      if(menu->items[menu->selectedItem].pressEvent != 0)
       {
          event_t ev;
          ev.ev = menu->items[menu->selectedItem].pressEvent;

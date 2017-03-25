@@ -53,7 +53,7 @@ void gpioInit( void )
    i2cSendCommand(GPIO_EXPANDER_43_ADDR, command, 3);
    i2cSendCommand(GPIO_EXPANDER_21_ADDR, command, 3);
 
-// U/I Board (Display and 5-way switch)
+// U/I Board (Display and switches)
 
    // Set up GPIO Expander pin directions
    command[0] = IODIRA_ADDR;

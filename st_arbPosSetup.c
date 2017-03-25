@@ -63,7 +63,7 @@ void arbPosSetupEntry( event_t ev)
         LED_FlashGridState(boardState);
 	}
 
-	displayWriteLine(3, "Press btn to abort", true);
+	displayWriteLine(3, "Press a btn to abort", true);
 
 
 }
@@ -74,7 +74,7 @@ void arbPosSetupExit( event_t ev)
 }
 
 
-void arbPosSetupHandleBtnPos( event_t ev)
+void arbPosSetupHandleNavBtn( event_t ev)
 {
 
 	if(boardPrecleared == false) return;
@@ -85,20 +85,20 @@ void arbPosSetupHandleBtnPos( event_t ev)
 
 	lastLiftSquare = 64;
 
-	switch(ev.data)
+	switch(ev.ev)
 	{
-		case POS_LEFT:
-		case POS_RIGHT:
+		case EV_BUTTON_LEFT:
+		case EV_BUTTON_RIGHT:
 			if(currentColor == WHITE) currentColor = BLACK;
 			else                      currentColor = WHITE;
 			lastEnPassantCol = brd.enPassantCol = 8;
 			showCastlingEnPassant();
 
 			break;
-		case POS_UP:
+		case EV_BUTTON_UP:
 			if(++currentPiece == KING) currentPiece = PAWN;
 			break;
-		case POS_DOWN:
+		case EV_BUTTON_DOWN:
 			if(currentPiece == PAWN) currentPiece = QUEEN;
 			else                           --currentPiece;
 			break;
@@ -370,19 +370,19 @@ void arbPosSetup_boardChange( event_t ev)
            	  break;
 
 		}
-		displayWriteLine(3, "Press btn to abort", true);
+		displayWriteLine(3, "Press a btn to abort", true);
 	}
 	else
 	{
 		showCastlingEnPassant();
-		displayWriteLine(3, "Press to start game", true);
+		displayWriteLine(3, "Any btn = start game", true);
 	}
 
 }
 
 bool arbPosSetupCheckPosition(event_t ev)
 {
-   bool_t result = ( (ev.data == B_PRESSED) && (testValidBoard(&brd) == BRD_NO_ERROR) );
+   bool_t result = (testValidBoard(&brd) == BRD_NO_ERROR );
 
    if(result == true)
    {

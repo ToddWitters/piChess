@@ -18,14 +18,14 @@ void diagSwitchEntry( event_t ev )
 
    displayClear();
    displayWriteLine(1, "Sensor Test Mode", TRUE);
-   displayWriteLine(2, "press button to exit", TRUE);
+   displayWriteLine(2, "any button to exit", TRUE);
 
    prevDropDeb = options.board.pieceDropDebounce;
    prevLiftDeb = options.board.pieceLiftDebounce;
 
    options.board.pieceDropDebounce = (50 / MS_PER_TIC);
    options.board.pieceLiftDebounce = (50 / MS_PER_TIC);
-   
+
    LED_SetGridState(GetSwitchStates());
 
 }

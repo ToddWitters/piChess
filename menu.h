@@ -70,7 +70,7 @@ bool_t menuAddItem(menu_t *menu,             // Menu to add to
 bool_t menuDeleteItem(menu_t *menu, char *text);
 
 // Handles button position events for given menu
-void menuProcessButtonPos(menu_t *menu, buttonPos_t pos);
+void menuProcessNavButton(menu_t *menu, event_t button);
 
 // Handles button pos/press events for given menu
 void menuProcessButtonPress(menu_t *menu);

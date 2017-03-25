@@ -32,26 +32,3 @@ void DIAG_print(char *msg, ...)
 
    va_end(argp);
 }
-
-void DIAG_log(char *filename, char *msg, ...)
-{
-   va_list argp;
-   FILE *logFile;
-
-   char fullPath[200];
-
-	sprintf(fullPath,"logs/%s.log", filename);
-
-	logFile = fopen(fullPath, "a");
-
-	if(logFile)
-	{
-      va_start(argp, msg);
-
-      vfprintf(logFile, msg, argp);
-
-		va_end(argp);
-	}
-
-	fclose(logFile);
-}

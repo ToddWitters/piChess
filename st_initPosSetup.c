@@ -29,7 +29,7 @@ void initPosSetupEntry( event_t ev)
       displayClear();
       displayWriteLine( 0, "Set pieces to", TRUE );
       displayWriteLine( 1, "initial position", TRUE );
-      displayWriteLine( 3, "Press btn to go back", TRUE );
+      displayWriteLine( 3, "any btn = go back", TRUE );
       showDiffs();
    }
 }

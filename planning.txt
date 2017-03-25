@@ -1,6 +1,20 @@
 +------------------------------------------------------------------------------+
+Release      1.2.1
+Date         3/25/17
+
+--------------------------
+-- New/Updated Features --
+--------------------------
+   Updated switch routines to move from joystick to 5 individual buttons
+      - Create individual switch events, all-off event and chord event
+      - Modify event enum and event transition table
+      - Remove references to joystick position and press state
+   Misc. clean-up
+
+
++------------------------------------------------------------------------------+
 Release      1.2
-Date
+Date         3/9/17
 
 --------------------------
 -- New/Updated Features --
@@ -19,10 +33,6 @@ Date
 ---------------
 
    Computer strategy "till button" now working
-
-----------------
--- Known Bugs --
-----------------
 
    Occassional read of NULL string when looking at Stockfish's chosen move
 
@@ -56,8 +66,6 @@ Date         10/31/16
 ----------------
 
    Computer strategy "till button" not working
-
-   Occassional read of NULL string when looking at Stockfish's chosen move
 
 +------------------------------------------------------------------------------+
 Release      1.0

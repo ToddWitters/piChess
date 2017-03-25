@@ -91,7 +91,7 @@ void computerMoveEntry( event_t ev )
 bool computerMoveWaitingButton( event_t ev )
 {
 
-   return ( (ev.data == B_PRESSED) && waitingForButton);
+   return ( waitingForButton);
 }
 
 void computerMoveButtonStop( event_t ev )

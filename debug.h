@@ -14,13 +14,11 @@
 
 #define ASSERT(X) assert(X)
 #define WARN(X)  {if(X) {printf("WARNING: in %s at line %d\n", __FILE__, __LINE__);}}
-#define TRACE    {printf("TRACE: In %s, function %s at line %d\n", __FILE__, __FUNCTION__, __LINE__);} 
-#define DEBUG_PRINT(args...) printf(args)
+#define TRACE    {printf("TRACE: In %s, function %s at line %d\n", __FILE__, __FUNCTION__, __LINE__);}
 
 #else
 
 #define ASSERT(X)
-#define DEBUG_PRINT(args...) 
 #define WARN(X)
 #define TRACE
 

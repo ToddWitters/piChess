@@ -26,13 +26,13 @@ void menuRegisterButtonEvents(menu_t *menu)
    currentMenu = menu;
 }
 
-void menus_buttonState_pressed( event_t ev )
+void menus_centerButton_pressed( event_t ev )
 {
    (void)ev;
    menuProcessButtonPress( currentMenu );
 }
 
-void menus_buttonPos( event_t ev )
+void menus_navButton_pressed( event_t ev )
 {
-   menuProcessButtonPos( currentMenu, ev.data );
+   menuProcessNavButton( currentMenu, ev );
 }

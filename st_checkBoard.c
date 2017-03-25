@@ -24,7 +24,7 @@ void checkBoardEntry( event_t ev)
 
    displayWriteLine(0, "Verifying Board...", true);
    showCurrentPiece( currentColor, currentPiece );
-   displayWriteLine(3, "Press btn when done", true);
+   displayWriteLine(3, "Press a btn to exit", true);
 
 }
 
@@ -34,27 +34,23 @@ void checkBoardExit( event_t ev)
    displayClear();
 }
 
-void checkBoard_handleButtonPosChange (event_t ev)
+void checkBoard_handleNavButtons (event_t ev)
 {
    int dir;
 
-   if(ev.ev != EV_BUTTON_POS) return;
-
-   switch(ev.data)
+   switch(ev.ev)
    {
-      case POS_UP:
-      case POS_LEFT:
+      case EV_BUTTON_UP:
+      case EV_BUTTON_LEFT:
          dir = 1;
          break;
 
-      case POS_DOWN:
-      case POS_RIGHT:
+      case EV_BUTTON_DOWN:
+      case EV_BUTTON_RIGHT:
          dir = -1;
          break;
 
-      default:
-         return; // This covers a return to center....
-   }
+    }
 
    do
    {

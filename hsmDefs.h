@@ -44,8 +44,13 @@ typedef enum eventId_e
    EV_NULL,           // Dummy event.  Value of 0 reserved for use by HSM logic
 
    // BUTTONS
-   EV_BUTTON_STATE,
-   EV_BUTTON_POS,
+   EV_BUTTON_NONE,
+   EV_BUTTON_RIGHT,
+   EV_BUTTON_LEFT,
+   EV_BUTTON_UP,
+   EV_BUTTON_DOWN,
+   EV_BUTTON_CENTER,
+   EV_BUTTON_CHORD,
 
    // PIECE MOVEMENT
    EV_PIECE_DROP,

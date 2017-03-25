@@ -29,7 +29,6 @@ static void drawStatusScreen( void );
 static void drawEvenScreen( uint8_t period );
 static void drawOddsScreen( void );
 static void drawUntimedScreen( void );
-
 static char *createPeriodSummary( periodTimingSettings_t *settings );
 
 static void displayTotalTime( int min, int line );
@@ -48,12 +47,12 @@ void timeOptionMenuExit( event_t ev )
    displayClear();
 }
 
-void timeOptionMenuButtonHandler( event_t ev)
+void timeOptionNavButtonHandler( event_t ev)
 {
 
    switch(ev.ev)
    {
-      case EV_BUTTON_STATE:
+      case EV_BUTTON_CENTER:
          switch(subState)
          {
             case SUBSTATE_TIME_OPTION:
@@ -105,17 +104,96 @@ void timeOptionMenuButtonHandler( event_t ev)
          }
          break;
 
-      case EV_BUTTON_POS:
+      case EV_BUTTON_LEFT:
          switch(subState)
          {
             case SUBSTATE_STATUS:
-
-               if(ev.data == POS_LEFT)
                {
                   event_t outputEvent = { EV_GOTO_OPTION_MENU, 0};
                   putEvent(EVQ_EVENT_MANAGER, &outputEvent);
                }
-               else if(ev.data == POS_RIGHT)
+               break;
+
+            case SUBSTATE_TIME_OPTION:
+               break;
+
+            case SUBSTATE_EVEN:
+
+               break;
+
+            case SUBSTATE_ODDS:
+               {
+                  int min;
+
+                  switch(pickRow)
+                  {
+                     case 0:
+                     case 2:
+                        // Intervals are 1-30   in increments of 1
+                        //              30-120  in increments of 5
+                        //             120-240  in increments of 15
+
+                        min = options.game.timeControl.timeSettings[pickRow==0 ? WHITE : BLACK].totalTime / 60;
+
+                        if (min > 120) {
+                           min -= 15;
+                        } else if (min > 30) {
+                           min -= 5;
+                        } else if (min > 0) {
+                           min--;
+                        } else {
+                           break;
+                        }
+
+                        options.game.timeControl.timeSettings[pickRow==0?WHITE:BLACK].totalTime = min * 60;
+
+                        displayTotalTime(min, pickRow);
+
+                        break;
+
+                     case 1:
+                     case 3:
+
+                        if(options.game.timeControl.timeSettings[pickRow==1?WHITE:BLACK].increment > 0)
+                        {
+                           displayIncrement(--options.game.timeControl.timeSettings[pickRow==1?WHITE:BLACK].increment, pickRow);
+                        }
+                        break;
+                  }
+
+               }
+               break;
+
+            case SUBSTATE_UNTIMED:
+               if(pickRow == 1)
+               {
+                  if(options.game.timeControl.compStrategySetting.depth > 4)
+                  {
+                     char temp[4];
+                     sprintf(temp,"%3d",--options.game.timeControl.compStrategySetting.depth);
+                     displayWriteChars(1,17,3,temp);
+                  }
+               }
+               else if(pickRow == 2)
+               {
+                  if(options.game.timeControl.compStrategySetting.timeInMs > 1000)
+                  {
+                     char temp[4];
+                     options.game.timeControl.compStrategySetting.timeInMs -= 1000;
+                     sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.timeInMs / 1000);
+                     displayWriteChars(2,17,3,temp);
+                  }
+               }
+
+               break;
+
+         }
+         break;
+
+      case EV_BUTTON_RIGHT:
+         switch(subState)
+         {
+            case SUBSTATE_STATUS:
                {
                   subState = SUBSTATE_TIME_OPTION;
 
@@ -133,340 +211,274 @@ void timeOptionMenuButtonHandler( event_t ev)
                   }
                   displayWriteChars(pickRow,0,1,">");
                }
+
                break;
 
             case SUBSTATE_TIME_OPTION:
-               switch(ev.data)
+                break;
+
+            case SUBSTATE_EVEN:
                {
-                  case POS_LEFT:
-                  case POS_UP:
-                     if(pickRow > 1)
-                     {
-                        displayWriteChars(pickRow,0,1," ");
-                        pickRow--;
-                        displayWriteChars(pickRow,0,1,">");
-                     }
-                     break;
-                  case POS_RIGHT:
-                  case POS_DOWN:
-                     if(pickRow < 3)
-                     {
-                        displayWriteChars(pickRow,0,1," ");
-                        pickRow++;
-                        displayWriteChars(pickRow,0,1,">");
-                     }
-                     break;
+
+                  int  min;
+
+                  switch(pickRow)
+                  {
+                     case 1:
+                        // Intervals are 1-30   in increments of 1
+                        //              30-120  in increments of 5
+                        //             120-240  in increments of 15
+
+                        min = options.game.timeControl.timeSettings[period-1].totalTime / 60;
+
+                        if (min < 30) {
+                           min++;
+                        } else if (min < 120) {
+                           min += 5;
+                        } else if (min < 240) {
+                           min += 15;
+                        } else {
+                           break;
+                        }
+
+                        options.game.timeControl.timeSettings[period-1].totalTime = min * 60;
+
+                        displayTotalTime(min, 1);
+
+                        break;
+
+                     case 2:
+
+                        if(options.game.timeControl.timeSettings[period-1].increment < 99)
+                        {
+                           displayIncrement(++options.game.timeControl.timeSettings[period-1].increment, 2);
+                        }
+                        break;
+
+                     case 3:
+
+                        if(options.game.timeControl.timeSettings[period-1].increment < 99)
+                        {
+                           displayMoves(++options.game.timeControl.timeSettings[period-1].moves);
+                        }
+                        break;
+                  }
+               }
+
+               break;
+
+            case SUBSTATE_ODDS:
+
+               {
+
+                  int  min;
+
+                  switch(pickRow)
+                  {
+                     case 0:
+                     case 2:
+                        // Intervals are 1-30   in increments of 1
+                        //              30-120  in increments of 5
+                        //             120-240  in increments of 15
+
+                        min = options.game.timeControl.timeSettings[pickRow==0?WHITE:BLACK].totalTime / 60;
+
+                        if (min < 30) {
+                           min++;
+                        } else if (min < 120) {
+                           min += 5;
+                        } else if (min < 240) {
+                           min += 15;
+                        } else {
+                           break;
+                        }
+
+                        options.game.timeControl.timeSettings[pickRow==0?WHITE:BLACK].totalTime = min * 60;
+
+                        displayTotalTime(min, pickRow);
+
+                        break;
+
+                     case 1:
+                     case 3:
+
+                        if(options.game.timeControl.timeSettings[pickRow==1?WHITE:BLACK].increment < 99)
+                        {
+                           displayIncrement(++options.game.timeControl.timeSettings[pickRow==1?WHITE:BLACK].increment, pickRow);
+                        }
+                        break;
+                  }
+               }
+               break;
+
+            case SUBSTATE_UNTIMED:
+               if(pickRow == 1)
+               {
+                  if(options.game.timeControl.compStrategySetting.depth < 30)
+                  {
+                     char temp[4];
+                     sprintf(temp,"%3d",++options.game.timeControl.compStrategySetting.depth);
+                     displayWriteChars(1,17,3,temp);
+                  }
+               }
+               else if(pickRow == 2)
+               {
+                  if(options.game.timeControl.compStrategySetting.timeInMs < 999 * 1000)
+                  {
+                     char temp[4];
+                     options.game.timeControl.compStrategySetting.timeInMs += 1000;
+                     sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.timeInMs / 1000);
+                     displayWriteChars(2,17,3,temp);
+                  }
+               }
+
+               break;
+
+
+         }
+         break;
+
+      case EV_BUTTON_UP:
+         switch(subState)
+         {
+            case SUBSTATE_STATUS:
+                break;
+
+            case SUBSTATE_TIME_OPTION:
+               if(pickRow > 1)
+               {
+                  displayWriteChars(pickRow,0,1," ");
+                  pickRow--;
+                  displayWriteChars(pickRow,0,1,">");
+               }
+
+               break;
+
+            case SUBSTATE_EVEN:
+
+               if(pickRow > 1)
+               {
+                  displayWriteChars(pickRow,0,1," ");
+                  pickRow--;
+                  displayWriteChars(pickRow,0,1,">");
+               }
+               break;
+
+            case SUBSTATE_ODDS:
+               if(pickRow > 0)
+               {
+                  displayWriteChars(pickRow,0,1," ");
+                  pickRow--;
+                  displayWriteChars(pickRow,0,1,">");
+               }
+               break;
+
+            case SUBSTATE_UNTIMED:
+               if( pickRow > 0 )
+               {
+                  displayWriteChars(pickRow,0,1," ");
+                  displayWriteChars(pickRow,17,3,"   ");
+
+                  pickRow--;
+
+                  displayWriteChars(pickRow,0,1,">");
+
+                  if(pickRow == 1)
+                  {
+                     char temp[4];
+                     options.game.timeControl.compStrategySetting.type = STRAT_FIXED_DEPTH;
+                     sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.depth);
+                     displayWriteChars(pickRow,17,3,temp);
+                  }
+                  else if (pickRow == 2)
+                  {
+                     char temp[4];
+                     options.game.timeControl.compStrategySetting.type = STRAT_FIXED_TIME;
+                     sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.timeInMs / 1000);
+                     displayWriteChars(pickRow,17,3,temp);
+                  }
+                  else
+                  {
+                     options.game.timeControl.compStrategySetting.type = STRAT_TILL_BUTTON;
+
+                  }
+               }
+               break;
+
+
+         }
+         break;
+
+      case EV_BUTTON_DOWN:
+         switch(subState)
+         {
+            case SUBSTATE_STATUS:
+                break;
+
+            case SUBSTATE_TIME_OPTION:
+               if(pickRow < 3)
+               {
+                  displayWriteChars(pickRow,0,1," ");
+                  pickRow++;
+                  displayWriteChars(pickRow,0,1,">");
                }
                break;
 
             case SUBSTATE_EVEN:
-               switch(ev.data)
+               if(pickRow < 2 || (pickRow < 3 && (period != 3)))
                {
-                  case POS_RIGHT:
-                     {
-
-                        int  min;
-
-                        switch(pickRow)
-                        {
-                           case 1:
-                              // Intervals are 1-30   in increments of 1
-                              //              30-120  in increments of 5
-                              //             120-240  in increments of 15
-
-                              min = options.game.timeControl.timeSettings[period-1].totalTime / 60;
-
-                              if (min < 30) {
-                                 min++;
-                              } else if (min < 120) {
-                                 min += 5;
-                              } else if (min < 240) {
-                                 min += 15;
-                              } else {
-                                 break;
-                              }
-
-                              options.game.timeControl.timeSettings[period-1].totalTime = min * 60;
-
-                              displayTotalTime(min, 1);
-
-                              break;
-
-                           case 2:
-
-                              if(options.game.timeControl.timeSettings[period-1].increment < 99)
-                              {
-                                 displayIncrement(++options.game.timeControl.timeSettings[period-1].increment, 2);
-                              }
-                              break;
-
-                           case 3:
-
-                              if(options.game.timeControl.timeSettings[period-1].increment < 99)
-                              {
-                                 displayMoves(++options.game.timeControl.timeSettings[period-1].moves);
-                              }
-                              break;
-                        }
-                     }
-                     break;
-
-                  case POS_LEFT:
-                     {
-                        int min;
-
-                        switch(pickRow)
-                        {
-                           case 1:
-                           // Intervals are 1-30   in increments of 1
-                           //              30-120  in increments of 5
-                           //             120-240  in increments of 15
-
-                           min = options.game.timeControl.timeSettings[period-1].totalTime / 60;
-
-                           if (min > 120) {
-                              min -= 15;
-                           } else if (min > 30) {
-                              min -= 5;
-                           } else if (min > 1) {
-                              min--;
-                           } else {
-                              break;
-                           }
-
-                           options.game.timeControl.timeSettings[period-1].totalTime = min * 60;
-
-                           displayTotalTime(min, 1);
-
-                           break;
-
-                           case 2:
-                              if(options.game.timeControl.timeSettings[period-1].increment > 0 )
-                              {
-                                 displayIncrement(--options.game.timeControl.timeSettings[period-1].increment, 2);
-                              }
-                              break;
-                           case 3:
-                              if(options.game.timeControl.timeSettings[period-1].moves > 0 )
-                              {
-                                 displayMoves(--options.game.timeControl.timeSettings[period-1].moves);
-                              }
-                              break;
-                        }
-
-                     }
-                     break;
-                  case POS_UP:
-                     if(pickRow > 1)
-                     {
-                        displayWriteChars(pickRow,0,1," ");
-                        pickRow--;
-                        displayWriteChars(pickRow,0,1,">");
-                     }
-                     break;
-                  case POS_DOWN:
-                     if(pickRow < 2 || (pickRow < 3 && (period != 3)))
-                     {
-                        displayWriteChars(pickRow,0,1," ");
-                        pickRow++;
-                        displayWriteChars(pickRow,0,1,">");
-                     }
-                     break;
+                  displayWriteChars(pickRow,0,1," ");
+                  pickRow++;
+                  displayWriteChars(pickRow,0,1,">");
                }
+
                break;
 
-         case SUBSTATE_ODDS:
-            switch(ev.data)
-            {
-               case POS_RIGHT:
-                  {
+            case SUBSTATE_ODDS:
+               if(pickRow < 3)
+               {
+                  displayWriteChars(pickRow,0,1," ");
+                  pickRow++;
+                  displayWriteChars(pickRow,0,1,">");
+               }
 
-                     int  min;
-
-                     switch(pickRow)
-                     {
-                        case 0:
-                        case 2:
-                           // Intervals are 1-30   in increments of 1
-                           //              30-120  in increments of 5
-                           //             120-240  in increments of 15
-
-                           min = options.game.timeControl.timeSettings[pickRow==0?WHITE:BLACK].totalTime / 60;
-
-                           if (min < 30) {
-                              min++;
-                           } else if (min < 120) {
-                              min += 5;
-                           } else if (min < 240) {
-                              min += 15;
-                           } else {
-                              break;
-                           }
-
-                           options.game.timeControl.timeSettings[pickRow==0?WHITE:BLACK].totalTime = min * 60;
-
-                           displayTotalTime(min, pickRow);
-
-                           break;
-
-                        case 1:
-                        case 3:
-
-                           if(options.game.timeControl.timeSettings[pickRow==1?WHITE:BLACK].increment < 99)
-                           {
-                              displayIncrement(++options.game.timeControl.timeSettings[pickRow==1?WHITE:BLACK].increment, pickRow);
-                           }
-                           break;
-                     }
-                  }
-                  break;
-
-               case POS_LEFT:
-                  {
-                     int min;
-
-                     switch(pickRow)
-                     {
-                        case 0:
-                        case 2:
-                           // Intervals are 1-30   in increments of 1
-                           //              30-120  in increments of 5
-                           //             120-240  in increments of 15
-
-                           min = options.game.timeControl.timeSettings[pickRow==0 ? WHITE : BLACK].totalTime / 60;
-
-                           if (min > 120) {
-                              min -= 15;
-                           } else if (min > 30) {
-                              min -= 5;
-                           } else if (min > 0) {
-                              min--;
-                           } else {
-                              break;
-                           }
-
-                           options.game.timeControl.timeSettings[pickRow==0?WHITE:BLACK].totalTime = min * 60;
-
-                           displayTotalTime(min, pickRow);
-
-                           break;
-
-                        case 1:
-                        case 3:
-
-                           if(options.game.timeControl.timeSettings[pickRow==1?WHITE:BLACK].increment > 0)
-                           {
-                              displayIncrement(--options.game.timeControl.timeSettings[pickRow==1?WHITE:BLACK].increment, pickRow);
-                           }
-                           break;
-                     }
-
-                  }
-                  break;
-               case POS_UP:
-                  if(pickRow > 0)
-                  {
-                     displayWriteChars(pickRow,0,1," ");
-                     pickRow--;
-                     displayWriteChars(pickRow,0,1,">");
-                  }
-                  break;
-               case POS_DOWN:
-                  if(pickRow < 3)
-                  {
-                     displayWriteChars(pickRow,0,1," ");
-                     pickRow++;
-                     displayWriteChars(pickRow,0,1,">");
-                  }
-                  break;
-            }
-            break;
+               break;
 
             case SUBSTATE_UNTIMED:
-               switch(ev.data)
+
+               if( pickRow < 3 )
                {
-                  case POS_UP:
-                  case POS_DOWN:
-                     if( (ev.data == POS_DOWN && pickRow < 3) ||
-                         (ev.data == POS_UP  && pickRow > 0 ) )
-                     {
-                        displayWriteChars(pickRow,0,1," ");
-                        displayWriteChars(pickRow,17,3,"   ");
+                  displayWriteChars(pickRow,0,1," ");
+                  displayWriteChars(pickRow,17,3,"   ");
 
-                        if(ev.data == POS_DOWN) pickRow++; else pickRow--;
+                  pickRow++;
 
-                        displayWriteChars(pickRow,0,1,">");
+                  displayWriteChars(pickRow,0,1,">");
 
-                        if(pickRow == 1)
-                        {
-                           char temp[4];
-                           options.game.timeControl.compStrategySetting.type = STRAT_FIXED_DEPTH;
-                           sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.depth);
-                           displayWriteChars(pickRow,17,3,temp);
-                        }
-                        else if (pickRow == 2)
-                        {
-                           char temp[4];
-                           options.game.timeControl.compStrategySetting.type = STRAT_FIXED_TIME;
-                           sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.timeInMs / 1000);
-                           displayWriteChars(pickRow,17,3,temp);
-                        }
-                        else
-                        {
-                           options.game.timeControl.compStrategySetting.type = STRAT_TILL_BUTTON;
+                  if(pickRow == 1)
+                  {
+                     char temp[4];
+                     options.game.timeControl.compStrategySetting.type = STRAT_FIXED_DEPTH;
+                     sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.depth);
+                     displayWriteChars(pickRow,17,3,temp);
+                  }
+                  else if (pickRow == 2)
+                  {
+                     char temp[4];
+                     options.game.timeControl.compStrategySetting.type = STRAT_FIXED_TIME;
+                     sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.timeInMs / 1000);
+                     displayWriteChars(pickRow,17,3,temp);
+                  }
+                  else
+                  {
+                     options.game.timeControl.compStrategySetting.type = STRAT_TILL_BUTTON;
 
-                        }
-                     }
-                     break;
-
-                 case POS_LEFT:
-                     if(pickRow == 1)
-                     {
-                        if(options.game.timeControl.compStrategySetting.depth > 4)
-                        {
-                           char temp[4];
-                           sprintf(temp,"%3d",--options.game.timeControl.compStrategySetting.depth);
-                           displayWriteChars(1,17,3,temp);
-                       }
-                     }
-                     else if(pickRow == 2)
-                     {
-                        if(options.game.timeControl.compStrategySetting.timeInMs > 1000)
-                        {
-                           char temp[4];
-                           options.game.timeControl.compStrategySetting.timeInMs -= 1000;
-                           sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.timeInMs / 1000);
-                           displayWriteChars(2,17,3,temp);
-                        }
-                     }
-                     break;
-
-                 case POS_RIGHT:
-                     if(pickRow == 1)
-                     {
-                        if(options.game.timeControl.compStrategySetting.depth < 30)
-                        {
-                           char temp[4];
-                           sprintf(temp,"%3d",++options.game.timeControl.compStrategySetting.depth);
-                           displayWriteChars(1,17,3,temp);
-                       }
-                     }
-                     else if(pickRow == 2)
-                     {
-                        if(options.game.timeControl.compStrategySetting.timeInMs < 999 * 1000)
-                        {
-                           char temp[4];
-                           options.game.timeControl.compStrategySetting.timeInMs += 1000;
-                           sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.timeInMs / 1000);
-                           displayWriteChars(2,17,3,temp);
-                        }
-                     }
-                     break;
+                  }
                }
+
                break;
 
-            default:
-               break;
+
          }
          break;
 

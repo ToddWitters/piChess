@@ -29,7 +29,7 @@ void fixBoardEntry( event_t ev)
 	LED_AllOff();
 
 	displayWriteLine(0, "Fixing board...", true);
-	displayWriteLine(3, "btn = abort game", true);
+	displayWriteLine(3, "any btn = abort game", true);
 
 	currentPiece = PAWN;
 	currentColor = WHITE;

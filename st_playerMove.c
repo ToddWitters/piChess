@@ -219,22 +219,22 @@ void playerMoves_changeProPiece( event_t ev )
 {
    char tempStr[21];
 
-   switch(ev.data)
+   switch(ev.ev)
    {
-      case POS_DOWN:
+      case EV_BUTTON_DOWN:
          if(promotePiece != KNIGHT)
             promotePiece--;
          else
             return;
          break;
-      case POS_UP:
+      case EV_BUTTON_UP:
          if(promotePiece != QUEEN)
             promotePiece++;
          else
             return;
          break;
-      case POS_LEFT:
-      case POS_RIGHT:
+      case EV_BUTTON_LEFT:
+      case EV_BUTTON_RIGHT:
          return;
          break;
    }

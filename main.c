@@ -62,13 +62,13 @@ int main ( void )
       err = HSM_processEvent(&sm, eventData);
 
       // report any errors found...
-      if(err == HSM_EV_NOT_IN_TABLE)
-         DPRINT("Warning: HSM_ProcessEvent() could not find event %d in transition table\n", eventData.ev);
+//      if(err == HSM_EV_NOT_IN_TABLE)
+//         DPRINT("Warning: HSM_ProcessEvent() could not find event %d in transition table\n", eventData.ev);
 
 //      else if(err == HSM_NO_EV_HANDLER_FOUND)
 //         DPRINT("Warning: HSM_ProcessEvent() could not find transition for event %d in state %d\n", eventData.ev, sm.currentState);
 
-      else if(err != HSM_NO_ERROR && err != HSM_NO_EV_HANDLER_FOUND)
+      if(err != HSM_NO_ERROR && err != HSM_NO_EV_HANDLER_FOUND)
          DPRINT("Error: HSM_ProcessEvent() returned error %d while processing event %d in state %d\n", err, eventData.ev, sm.currentState);
 
    }

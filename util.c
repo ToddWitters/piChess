@@ -43,15 +43,6 @@ uint64_t reverseBitOrder64( uint64_t input)
    return result;
 }
 
-bool isStatePress(event_t ev )
-{
-   if(ev.ev == EV_BUTTON_STATE && ev.data == B_PRESSED)
-      return TRUE;
-   else
-      return FALSE;
-}
-
-
 char *convertSqNumToCoord(int sq)
 {
    static char coord[3];

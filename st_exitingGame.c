@@ -24,7 +24,7 @@ void exitingGameEntry( event_t ev )
          displayWriteLine(0, "Aborted", TRUE);
          break;
    }
-   displayWriteLine(2, "Press button to", TRUE);
+   displayWriteLine(2, "Press any button to", TRUE);
    displayWriteLine(3, "return to main menu", TRUE);
 
 }

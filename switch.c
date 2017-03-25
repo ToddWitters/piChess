@@ -37,32 +37,9 @@
 //    A  B  C  D  E  F  G  H
 //    1  2  3  4  5  6  7  8
 
-// For diagnostics...
-static const buttonPos_t switchStateTable[16] =
-{
-   POS_CENTER,    // 0000
-   POS_RIGHT,     // 0001
-   POS_LEFT,      // 0010
-   POS_ERROR,     // 0011
-   POS_DOWN,      // 0100
-   POS_DOWN_RIGHT,// 0101
-   POS_DOWN_LEFT, // 0110
-   POS_ERROR,     // 0111
-   POS_UP,        // 1000
-   POS_UP_RIGHT,  // 1001
-   POS_UP_LEFT,   // 1010
-   POS_ERROR,     // 1011
-   POS_ERROR,     // 1100
-   POS_ERROR,     // 1101
-   POS_ERROR,     // 1110
-   POS_ERROR      // 1111
-};
-
-#if 0
-
 static const eventId_t switchStateTable[32] =
 {
-   EV_BUTTON_NONE     // 00000
+   EV_BUTTON_NONE,     // 00000
    EV_BUTTON_RIGHT,   // 00001
    EV_BUTTON_LEFT,    // 00010
    EV_BUTTON_CHORD,   // 00011 LR
@@ -96,8 +73,6 @@ static const eventId_t switchStateTable[32] =
    EV_BUTTON_CHORD    // 11111 CUDLR
 };
 
-#endif
-
 // The state of the most recent reed switch readings
 static uint64_t sampleState = 0;
 
@@ -111,14 +86,13 @@ static uint8_t repeatInterval = 0;
 // Down-Counter to track repeating button positions:
 static uint8_t repeatCounter = 0;
 
-
 // The debounced state of each sample
 static uint64_t debouncedState = 0xFFFFFFFFFFFFFFFF;
 
 // debounce counter for each reed switch
 static uint8_t  debounceCounters[64];
 
-// The current and previous 5-way button reading
+// The current and previous button reading
 //   This is a simplified button debouncing scheme.  Two consecutive matching samples
 //   will change the state.
 static uint8_t bSampleState = 0;
@@ -138,11 +112,6 @@ static void switchChanged(int sq, bool_t state);
 
 // Checks a given row on the chess board.
 static uint8_t checkRow(uint8_t row, uint8_t intPin, uint8_t portAddress, uint8_t slaveAddress);
-
-// debounce the state of the 5-way button
-static void buttonDebounce (uint8_t switchData);
-
-
 
 // reed switch states.  Used to avoid i2c read of data when interrupt line not asserted.
 static uint64_t lastBitBoard = 0;
@@ -221,6 +190,8 @@ void switchPoll ( void )
    uint64_t mask;
    int i;
 
+   event_t evnt;
+
    // Lock access to these while we modify them...
    pthread_mutex_lock(&Switch_dataMutex);
 
@@ -272,50 +243,83 @@ void switchPoll ( void )
          mask <<= 1;
       }
 
-      // 5-WAY BUTTON
-
-      // Has the state changed?
-      if( bcm2835_gpio_lev(BUTTON_SWITCH_INT_PIN) == 0)
-      {
-         uint8_t command[2];
-         uint8_t junk;
-
-         // Read the current state of the pins.
-         // NOTE, since the compare value hasn't changed yet, the interrupt will still
-         // be triggered... we'll handle that below...
-         command[0] = BUTTON_PORT;
-         i2cSendReceive(GPIO_EXPANDER_UI_ADDR, command, 1, &bSampleState, 1);
-
-         // Mask off the 5 button bits
-         bSampleState &= B_MASK;
-
-         // Use the new value as the comparison value
-         command[0] = BUTTON_PORT + (DEFVALA_ADDR - GPIOA_ADDR);
-         command[1] = bSampleState;
-         i2cSendCommand(GPIO_EXPANDER_UI_ADDR, command, 2);
-
-         // Read the current state of the pins again to clear the interrupt, now that
-         //  the new comparison value is written.
-         command[0] = BUTTON_PORT;
-         i2cSendReceive(GPIO_EXPANDER_UI_ADDR, command, 1, &junk, 1);
-
-         // Invert the logic for these bits (i.e. 0 = actively pressed)
-         bSampleState ^= B_MASK;
-      }
-      else
-      {
-         // No change ... just use last state
-         bSampleState = bLastSampleState;
-      }
-
-      // Since these aren't exclusive bits, handle the deboncing a little differently...
-      buttonDebounce(bSampleState);
-
-      // Keep track of last state
-      bLastSampleState = bSampleState;
 
    }
-    pthread_mutex_unlock(&Switch_dataMutex);
+
+   // Buttons
+
+   // Has the state at the GPIO expanders changed?
+   if( bcm2835_gpio_lev(BUTTON_SWITCH_INT_PIN) == 0)
+   {
+      uint8_t command[2];
+      uint8_t junk;
+
+      // Read the current state of the pins.
+      // NOTE, since the compare value hasn't changed yet, the interrupt will still
+      // be triggered... we'll handle that below...
+      command[0] = BUTTON_PORT;
+      i2cSendReceive(GPIO_EXPANDER_UI_ADDR, command, 1, &bSampleState, 1);
+
+      // Mask off the 5 button bits
+      bSampleState &= B_MASK;
+
+      // Use the new value as the comparison value
+      command[0] = BUTTON_PORT + (DEFVALA_ADDR - GPIOA_ADDR);
+      command[1] = bSampleState;
+      i2cSendCommand(GPIO_EXPANDER_UI_ADDR, command, 2);
+
+      // Read the current state of the pins again to clear the interrupt, now that
+      //  the new comparison value is written.
+      command[0] = BUTTON_PORT;
+      i2cSendReceive(GPIO_EXPANDER_UI_ADDR, command, 1, &junk, 1);
+
+      // Invert the logic for these bits (i.e. 0 = actively pressed)
+      bSampleState ^= B_MASK;
+   }
+   else
+   {
+      // No change ... don't bother reading... just use last state
+      bSampleState = bLastSampleState;
+   }
+
+   // Convert the 32 possible combinations into a (potential) event to be sent...
+   evnt.ev = switchStateTable[bSampleState];
+   if(evnt.ev == EV_BUTTON_CHORD)
+      evnt.data = (hsmUserData_t)bLastSampleState;
+   else
+      evnt.data = 0;
+
+   // If there was just a change in state, send the appropriate event...
+   if(bSampleState != bLastSampleState)
+   {
+
+      putEvent(EVQ_EVENT_MANAGER,   &evnt);
+
+      // Set up a repeat except for center button, chord, or "none"
+      if(evnt.ev != EV_BUTTON_CHORD  && evnt.ev != EV_BUTTON_CENTER && evnt.ev != EV_BUTTON_NONE)
+         repeatCounter = repeatDelay;
+      else
+         repeatCounter = 0;
+   }
+
+   // State is unchanged.... see if we need to repeat
+   else
+   {
+      if(repeatCounter)
+      {
+         if(--repeatCounter == 0)
+         {
+            repeatCounter = repeatInterval;
+            putEvent(EVQ_EVENT_MANAGER,   &evnt);
+         }
+      }
+   }
+
+   // Keep track of last state
+   bLastSampleState = bSampleState;
+
+
+   pthread_mutex_unlock(&Switch_dataMutex);
 }
 
 
@@ -396,98 +400,6 @@ static void switchChanged(int sq, bool_t state)
 
    evnt.data = sq;
    putEvent(EVQ_EVENT_MANAGER, &evnt);
-
-}
-
-
-// This is a simplified debounce routine that just looks for
-// two consecutive samples to change state..
-static void buttonDebounce (uint8_t switchData)
-{
-   // Used below when something changes.
-   event_t evnt;
-
-   static buttonPos_t posLastState      = POS_CENTER;
-   static buttonPos_t posDebouncedState = POS_CENTER;
-   buttonPos_t        posSampledState;
-
-   static buttonPress_t bLastState      = B_RELEASED;
-   static buttonPress_t bDebouncedState = B_RELEASED;
-   buttonPress_t        bSampledState;
-
-   // Lower four bits represent position.  Table contains
-   // state based on the possible 16 values (some of which are errors)
-   posSampledState = switchStateTable[switchData & 0x0F];
-
-   // If this position is differnt from the debounced one...
-   if(posSampledState != posDebouncedState)
-   {
-      // ... and it matches the previous one...
-      if(posSampledState == posLastState)
-      {
-         // Update the debounced state
-         posDebouncedState = posSampledState;
-
-         if(posDebouncedState == POS_CENTER)
-         {
-            repeatCounter = 0;
-         }
-         else
-         {
-            // New button state...
-            repeatCounter = repeatDelay;
-         }
-         // Populate the event data
-         evnt.ev    = EV_BUTTON_POS;
-         evnt.data = posDebouncedState;
-
-         // Show the new position
-         // DPRINT("Nav switch %s\n", switchStateText[switchData & 0x0F]);
-
-         putEvent(EVQ_EVENT_MANAGER,   &evnt);
-      }
-   }
-   else
-   {
-      if(repeatCounter)
-      {
-         if(--repeatCounter == 0)
-         {
-            repeatCounter = repeatInterval;
-
-            // Populate the event data
-            evnt.ev    = EV_BUTTON_POS;
-            evnt.data = posDebouncedState;
-
-            putEvent(EVQ_EVENT_MANAGER,   &evnt);
-
-         }
-      }
-   }
-
-   posLastState = posSampledState;
-
-   // Now do the same with the press/no press state...
-   bSampledState = ( ( (switchData & B_PRESS_MASK) == 0) ? B_RELEASED : B_PRESSED);
-
-   if(bSampledState != bDebouncedState)
-   {
-      // button not at debounced state AND consistent with last sample
-      if(bSampledState == bLastState)
-      {
-         bDebouncedState = bSampledState;
-
-         // Populate the event data
-         evnt.ev    = EV_BUTTON_STATE;
-         evnt.data = bDebouncedState;
-
-         // DPRINT("Nav switch %s\n", ( (bSampledState == B_RELEASED) ? "RELEASED" : "PRESSED") );
-
-         putEvent(EVQ_EVENT_MANAGER,   &evnt);
-      }
-
-   }
-   bLastState = bSampledState;
 
 }
 
