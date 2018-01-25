@@ -1,4 +1,15 @@
 +------------------------------------------------------------------------------+
+Release      2.0
+Date
+
+--------------------------
+-- New/Updated Features --
+--------------------------
+   Upgraded to Stockfish 8.0
+
+
+
++------------------------------------------------------------------------------+
 Release      1.2.1
 Date         3/25/17
 
@@ -84,11 +95,11 @@ First Working version with the following features:
 Future Version Planning
 =======================
 
+1.3
 Saving/Restoring options
-
-Replace joystick w/ 5 independent buttons
-
 Update to Stockfish 8.0
+
+
 Update to RPi3
 Auto-launch on Pi startup
 Sound??
