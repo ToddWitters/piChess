@@ -23,7 +23,6 @@ typedef struct eventData_t
 void     initEvent( void );
 void     putEvent(evQueueIndex_t indx, event_t *evData);
 event_t *getEvent( evQueueIndex_t indx );
-void     clearEvents( evQueueIndex_t indx );
 sem_t   *getQueueSem(evQueueIndex_t indx);
 
 #endif

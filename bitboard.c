@@ -2,7 +2,6 @@
 #include "types.h"
 #include "debug.h"
 
-// Count number of bits in a bitboard...
 int bitCount (BB x)
 {
 
@@ -19,10 +18,10 @@ int bitCount (BB x)
 }
 
 
-// Magic number used for getLSBindex
+/// Magic number used for getLSBindex
 static const U64 debruijn64 = 0x03f79d71b4cb0a89;
 
-// Magic array used for getLSBindex
+/// Magic array used for getLSBindex
 static const int index64[64] = {
     0,  1, 48,  2, 57, 49, 28,  3,
    61, 58, 50, 42, 38, 29, 17,  4,
@@ -35,14 +34,13 @@ static const int index64[64] = {
 };
 
 /**
- * bitScanForward (renamed getLSBindex)
  * @author Martin Läuter (1997)
  *         Charles E. Leiserson
  *         Harald Prokop
  *         Keith H. Randall
  * "Using de Bruijn Sequences to Index a 1 in a Computer Word"
  * @param bb bitboard to scan
- * @precondition bb != 0
+ * @pre bb != 0
  * @return index (0..63) of least significant one bit
  */
 int getLSBindex(U64 bb) {
@@ -50,8 +48,7 @@ int getLSBindex(U64 bb) {
    return index64[((bb & -bb) * debruijn64) >> 58];
 }
 
-///////////
-
+/// Magic array used for getMSBindex
 const int reverseIndex64[64] = {
     0, 47,  1, 56, 48, 27,  2, 60,
    57, 49, 41, 37, 28, 16,  3, 61,
@@ -64,10 +61,9 @@ const int reverseIndex64[64] = {
 };
 
 /**
- * bitScanReverse (renamed getMSBindex)
  * @authors Kim Walisch, Mark Dickinson
  * @param bb bitboard to scan
- * @precondition bb != 0
+ * @pre bb != 0
  * @return index (0..63) of most significant one bit
  */
 int getMSBindex(U64 bb) {
@@ -81,9 +77,6 @@ int getMSBindex(U64 bb) {
    return reverseIndex64[(bb * debruijn64) >> 58];
 }
 
-///////////
-
-// Fills bit pattern towards North/South.  Usefull for pawn evaluation.
 BB Nfill(BB gen) {
    gen |= (gen <<  8);
    gen |= (gen << 16);

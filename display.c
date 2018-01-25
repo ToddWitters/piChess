@@ -3,12 +3,14 @@
 
 #include <string.h>
 
+#include "bcm2835.h"
 #include "diag.h"
 #include "display.h"
 #include "types.h"
 #include "i2c.h"
 #include "gpio.h"
 #include "specChars.h"
+#include "hsm.h"
 
 // Some display parameters
 #define DISPLAY_STACK_DEPTH 10
@@ -509,4 +511,32 @@ void DEBUG_ShowDisplayContents( void )
          DPRINT("[%s]\n", lineContents);
       }
 
+}
+
+void checkDisplay( event_t ev )
+{
+
+   uint8_t cmd = IODIRB_ADDR;
+   uint8_t rsp;
+   int i;
+
+   // If we can communicate with GPIO Expander...
+   if( i2cSendReceive( GPIO_EXPANDER_UI_ADDR, &cmd, 1, &rsp, 1) == BCM2835_I2C_REASON_OK)
+   {
+       // If Configuration is not correct...
+      if(rsp != 0x1F)
+      {
+         // re-init the GPIO expander...
+         uiBoxInit();
+
+         // re-init the displpay....
+         WAIT_TILL_READY;
+         SEND(ENTRY_MODE(ID_INCREMENT, S_NOSHIFT)); // Increment, no display shift on entry
+         SEND(FUNC_SET(DL_8_BITS, N_2_LINES, F_5x7)); // Data len 8, 2 "lines", 5x7 characters
+
+         // Refresh the contents...
+         for(i=0; i < NUM_LINES; i++) sendString( &display.contents[i][0], i, 0, LINE_LENGTH);
+         displaySetCursor(display.cursor.line, display.cursor.col, display.cursor.on, display.cursor.blink);
+      }
+   }
 }

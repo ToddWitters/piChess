@@ -6,11 +6,11 @@
 #define GPIO_EXPANDER_21_ADDR 0x23
 
 // GPIO exander for the display and
-// button boards.  
+// button boards.
 #define GPIO_EXPANDER_UI_ADDR 0x24
 
-// Eight bit display data on Port A, 
-// three display control lines on Port B       
+// Eight bit display data on Port A,
+// three display control lines on Port B
 // five button input lines on Port B
 #define E_MASK   0x80  // Bit 7, Port B
 #define RS_MASK  0x40  // Bit 6, Port B
@@ -24,18 +24,18 @@
 #define B_LEFT_MASK  0x02
 #define B_RIGHT_MASK 0x01
 
-#define B_MASK ( B_PRESS_MASK | B_UP_MASK | B_DOWN_MASK | B_LEFT_MASK | B_RIGHT_MASK )  
+#define B_MASK ( B_PRESS_MASK | B_UP_MASK | B_DOWN_MASK | B_LEFT_MASK | B_RIGHT_MASK )
 
-#define ROW_8_SWITCH_INT_PIN  4   
-#define ROW_7_SWITCH_INT_PIN 25  
-#define ROW_6_SWITCH_INT_PIN 15  
+#define ROW_8_SWITCH_INT_PIN  4
+#define ROW_7_SWITCH_INT_PIN 25
+#define ROW_6_SWITCH_INT_PIN 15
 #define ROW_5_SWITCH_INT_PIN 17
-#define ROW_4_SWITCH_INT_PIN 18  
-#define ROW_3_SWITCH_INT_PIN 27  
-#define ROW_2_SWITCH_INT_PIN 22  
-#define ROW_1_SWITCH_INT_PIN 23  
+#define ROW_4_SWITCH_INT_PIN 18
+#define ROW_3_SWITCH_INT_PIN 27
+#define ROW_2_SWITCH_INT_PIN 22
+#define ROW_1_SWITCH_INT_PIN 23
 
-#define BUTTON_SWITCH_INT_PIN 24 
+#define BUTTON_SWITCH_INT_PIN 24
 
 // The following control register addresses assume BANK = 0 (the default)
 
@@ -63,4 +63,5 @@
 #define GPIOB_ADDR            0x13
 
 void gpioInit( void );
+void uiBoxInit( void );
 

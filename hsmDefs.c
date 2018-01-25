@@ -27,6 +27,7 @@
 #include "st_fixBoard.h"
 #include "st_checkBoard.h"
 #include "util.h"
+#include "display.h"
 
 
 extern bool_t waitingForButton;
@@ -36,34 +37,34 @@ extern bool_t waitingForButton;
 stateDef_t myStateDef[] =
 {
 
-//   parent            init                     entry                  exit
-   { ST_NONE,          topPickSubstate,         topEntry,              NULL_EXIT_FUNC       },
-   { ST_TOP,           NULL_INIT_FUNC,          splashScreenEntry,     splashScreenExit     },
-   { ST_TOP,           menuPickSubstate,        NULL_ENTRY_FUNC,       menusExit            },
-   { ST_MENUS,         NULL_INIT_FUNC,          mainMenuEntry,         mainMenuExit         },
-   { ST_MENUS,         NULL_INIT_FUNC,          diagMenuEntry,         diagMenuExit         },
-   { ST_MENUS,         NULL_INIT_FUNC,          optionMenuEntry,       optionMenuExit       },
-   { ST_MENUS,         NULL_INIT_FUNC,          boardOptionMenuEntry,  boardOptionMenuExit  },
-   { ST_MENUS,         NULL_INIT_FUNC,          gameOptionMenuEntry,   gameOptionMenuExit   },
-   { ST_MENUS,         NULL_INIT_FUNC,          engineOptionMenuEntry, engineOptionMenuExit },
-   { ST_TOP,           NULL_INIT_FUNC,          timeOptionMenuEntry,   timeOptionMenuExit   },
-   { ST_TOP,           NULL_INIT_FUNC,          initPosSetupEntry,     initPosSetupExit     },
-   { ST_TOP,           NULL_INIT_FUNC,          arbPosSetupEntry,      arbPosSetupExit      },
-   { ST_TOP,           inGamePickSubstate,      inGameEntry,           inGameExit           },
-   { ST_IN_GAME,       playingGamePickSubstate, playingGameEntry,      playingGameExit      },
-   { ST_PLAYING_GAME,  NULL_INIT_FUNC,          playerMoveEntry,       playerMoveExit       },
-   { ST_PLAYING_GAME,  NULL_INIT_FUNC,          computerMoveEntry,     computerMoveExit     },
-   { ST_PLAYING_GAME,  NULL_INIT_FUNC,          moveForComputerEntry,  moveForComputerExit  },
-   { ST_IN_GAME,       NULL_INIT_FUNC,          inGameMenuEntry,       inGameMenuExit       },
-   { ST_IN_GAME,       NULL_INIT_FUNC,          fixBoardEntry,         fixBoardExit         },
-   { ST_IN_GAME,       NULL_INIT_FUNC,          checkBoardEntry,       checkBoardExit       },
-   { ST_IN_GAME,       NULL_INIT_FUNC,          exitingGameEntry,      exitingGameExit      },
-   { ST_TOP,           NULL_INIT_FUNC,          diagSwitchEntry,       diagSwitchExit       },
+//                                    parent            init                     entry                  exit
+/* ST_TOP                     */   { ST_NONE,          topPickSubstate,         topEntry,              NULL_EXIT_FUNC       },
+/*   ST_SPLASH_SCREEN         */   { ST_TOP,           NULL_INIT_FUNC,          splashScreenEntry,     splashScreenExit     },
+/*   ST_MENUS                 */   { ST_TOP,           menuPickSubstate,        NULL_ENTRY_FUNC,       menusExit            },
+/*     ST_MAINMENU            */   { ST_MENUS,         NULL_INIT_FUNC,          mainMenuEntry,         mainMenuExit         },
+/*     ST_DIAGMENU            */   { ST_MENUS,         NULL_INIT_FUNC,          diagMenuEntry,         diagMenuExit         },
+/*     ST_OPTIONMENU          */   { ST_MENUS,         NULL_INIT_FUNC,          optionMenuEntry,       optionMenuExit       },
+/*     ST_BOARD_OPTION_MENU   */   { ST_MENUS,         NULL_INIT_FUNC,          boardOptionMenuEntry,  boardOptionMenuExit  },
+/*     ST_GAME_OPTION_MENU    */   { ST_MENUS,         NULL_INIT_FUNC,          gameOptionMenuEntry,   gameOptionMenuExit   },
+/*     ST_ENGINE_OPTION_MENU  */   { ST_MENUS,         NULL_INIT_FUNC,          engineOptionMenuEntry, engineOptionMenuExit },
+/*   ST_TIME_OPTION_MENU      */   { ST_TOP,           NULL_INIT_FUNC,          timeOptionMenuEntry,   timeOptionMenuExit   },
+/*   ST_INIT_POS_SETUP        */   { ST_TOP,           NULL_INIT_FUNC,          initPosSetupEntry,     initPosSetupExit     },
+/*   ST_ARB_POS_SETUP         */   { ST_TOP,           NULL_INIT_FUNC,          arbPosSetupEntry,      arbPosSetupExit      },
+/*   ST_IN_GAME               */   { ST_TOP,           inGamePickSubstate,      inGameEntry,           inGameExit           },
+/*     ST_PLAYING_GAME        */   { ST_IN_GAME,       playingGamePickSubstate, playingGameEntry,      playingGameExit      },
+/*       ST_PLAYER_MOVE       */   { ST_PLAYING_GAME,  NULL_INIT_FUNC,          playerMoveEntry,       playerMoveExit       },
+/*       ST_COMPUTER_MOVE     */   { ST_PLAYING_GAME,  NULL_INIT_FUNC,          computerMoveEntry,     computerMoveExit     },
+/*       ST_MOVE_FOR_COMPUTER */   { ST_PLAYING_GAME,  NULL_INIT_FUNC,          moveForComputerEntry,  moveForComputerExit  },
+/*     ST_GAMEMENU            */   { ST_IN_GAME,       NULL_INIT_FUNC,          inGameMenuEntry,       inGameMenuExit       },
+/*     ST_FIX_BOARD           */   { ST_IN_GAME,       NULL_INIT_FUNC,          fixBoardEntry,         fixBoardExit         },
+/*     ST_CHECK_BOARD         */   { ST_IN_GAME,       NULL_INIT_FUNC,          checkBoardEntry,       checkBoardExit       },
+/*     ST_EXITING_GAME        */   { ST_IN_GAME,       NULL_INIT_FUNC,          exitingGameEntry,      exitingGameExit      },
+/*   ST_DIAG_SENSORS          */   { ST_TOP,           NULL_INIT_FUNC,          diagSwitchEntry,       diagSwitchExit       },
 };
 
 // Transition definitions...
 
-// This list is sorted by event for quicker lookup (may be more than one entry per event)
+// This list is sorted by event (may be more than one entry per event)
 //   Special case:  Internal events are designated by making the "to" target
 //   equal to ST_NONE.  This causes no transitions and no entry/exit
 //   functions to run.
@@ -71,16 +72,6 @@ stateDef_t myStateDef[] =
 transDef_t myTransDef[] =
 {
 //   event                      from                  guard                          action                            to                     local?
-
-/*
-   EV_BUTTON_NONE,
-   EV_BUTTON_RIGHT,
-   EV_BUTTON_LEFT,
-   EV_BUTTON_UP,
-   EV_BUTTON_DOWN,
-   EV_BUTTON_CENTER,
-   EV_BUTTON_CHORD,
-*/
 
    { EV_BUTTON_RIGHT,           ST_SPLASH_SCREEN,     NULL_GUARD_FUNC,               NULL_ACTION_FUNC,                 ST_MAINMENU,           FALSE },
    { EV_BUTTON_RIGHT,           ST_DIAG_SENSORS,      NULL_GUARD_FUNC,               NULL_ACTION_FUNC,                 ST_MAINMENU,           FALSE },
@@ -185,6 +176,7 @@ transDef_t myTransDef[] =
    { EV_GOTO_GAMEMENU,          ST_IN_GAME,           NULL_GUARD_FUNC,               NULL_ACTION_FUNC,                 ST_GAMEMENU,           FALSE },
    { EV_GAME_DONE,              ST_IN_GAME,           NULL_GUARD_FUNC,               NULL_ACTION_FUNC,                 ST_EXITING_GAME,       FALSE },
    { EV_MOVE_CLOCK_TIC,         ST_IN_GAME,           NULL_GUARD_FUNC,               inGame_moveClockTick,             ST_NONE,               FALSE },
+   { EV_UI_BOX_CHECK,           ST_TOP,               NULL_GUARD_FUNC,               checkDisplay,                     ST_NONE,               FALSE },
    { EV_PROCESS_COMPUTER_MOVE,  ST_IN_GAME,           NULL_GUARD_FUNC,               computerMove_computerPicked,      ST_NONE,               FALSE },
    { EV_PLAYER_MOVED_FOR_COMP,  ST_MOVE_FOR_COMPUTER, NULL_GUARD_FUNC,               NULL_ACTION_FUNC,                 ST_PLAYING_GAME,       TRUE  },
 

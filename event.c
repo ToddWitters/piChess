@@ -97,18 +97,3 @@ event_t *getEvent( evQueueIndex_t indx )
    return &retValue;
 }
 
-void clearEvents( evQueueIndex_t indx )
-{
-   if(indx >= EVQ_TOTAL)
-   {
-      DPRINT("Invalid queue index %d passed to getEvent\n", (int)indx);
-      return;
-   }
-
-   pthread_mutex_lock(&eventQueue[indx].mutex);
-
-   eventQueue[indx].evPushIndex = eventQueue[indx].evPopIndex = 0;
-
-   pthread_mutex_unlock(&eventQueue[indx].mutex);
-
-}

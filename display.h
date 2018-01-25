@@ -1,5 +1,6 @@
 #include "types.h"
 #include "specChars.h"
+#include "hsm.h"
 
 #define NUM_LINES            4
 #define LINE_LENGTH         20
@@ -43,3 +44,5 @@ void rollUp( char *data, bool_t centered, bool_t keepTopLine);
 void rollDown( char *data, bool_t centered, bool_t keepTopLine);
 
 void DEBUG_ShowDisplayContents( void );
+
+void checkDisplay( event_t ev );

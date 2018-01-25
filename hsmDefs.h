@@ -8,6 +8,7 @@ extern transDef_t myTransDef[];
 
 extern const uint16_t transDefCount;
 
+// NOTE:  Indentation used below for a visual aide...
 typedef enum stateId_e
 {
    ST_TOP,                         // Top-most containing state
@@ -15,23 +16,23 @@ typedef enum stateId_e
      ST_MENUS,                     // In one of the top menus
        ST_MAINMENU,                // Top-most menu
        ST_DIAGMENU,                // Diagnostic menu
-       ST_OPTIONMENU,
-       ST_BOARD_OPTION_MENU,
-       ST_GAME_OPTION_MENU,
-       ST_ENGINE_OPTION_MENU,
-     ST_TIME_OPTION_MENU,
+       ST_OPTIONMENU,              // Top level option menu
+       ST_BOARD_OPTION_MENU,       // Board option menu
+       ST_GAME_OPTION_MENU,        // Game option menu
+       ST_ENGINE_OPTION_MENU,      // Engine option menu
+     ST_TIME_OPTION_MENU,          // Time option selections.  Not a typical menu...
      ST_INIT_POS_SETUP,            // Set up initial position
-     ST_ARB_POS_SETUP,
+     ST_ARB_POS_SETUP,             // User is setting board to an arbitrary position
      ST_IN_GAME,                   // A game is in progress
        ST_PLAYING_GAME,            // Actively making moves (or thinking)
          ST_PLAYER_MOVE,           // Player is moving
          ST_COMPUTER_MOVE,         // Computer is thinking
          ST_MOVE_FOR_COMPUTER,     // Player is making computer's chosen move
        ST_GAMEMENU,                // Navigating in-game menu
-       ST_FIX_BOARD,
-       ST_CHECK_BOARD,
-       ST_EXITING_GAME,             // Game has concluded, waiting for confirmation
-     ST_DIAG_SENSORS,
+       ST_FIX_BOARD,               // Prompting user to restore board to desired position
+       ST_CHECK_BOARD,             // User is verifying pieces at occupied squares are correct
+       ST_EXITING_GAME,            // Game has concluded, waiting for confirmation
+     ST_DIAG_SENSORS,              // Testing reed switches and sensors
 
    ST_NONE, // MUST BE LAST ITEM IN LIST...
    ST_COUNT = ST_NONE
@@ -44,25 +45,25 @@ typedef enum eventId_e
    EV_NULL,           // Dummy event.  Value of 0 reserved for use by HSM logic
 
    // BUTTONS
-   EV_BUTTON_NONE,
-   EV_BUTTON_RIGHT,
-   EV_BUTTON_LEFT,
-   EV_BUTTON_UP,
-   EV_BUTTON_DOWN,
-   EV_BUTTON_CENTER,
-   EV_BUTTON_CHORD,
+   EV_BUTTON_NONE,   // All buttons now released
+   EV_BUTTON_RIGHT,  // Just the right button is pressed
+   EV_BUTTON_LEFT,   // Just the left button is pressed
+   EV_BUTTON_UP,     // Just the up button is pressed
+   EV_BUTTON_DOWN,   // Just the down button is pressed
+   EV_BUTTON_CENTER, // Just the center button is pressed
+   EV_BUTTON_CHORD,  // Two or more buttons are pressed (argument determines which ones)
 
    // PIECE MOVEMENT
-   EV_PIECE_DROP,
-   EV_PIECE_LIFT,
+   EV_PIECE_DROP,    // A piece has been dropped on an empty square
+   EV_PIECE_LIFT,    // A piece has been removed
 
    // MENU SELECTIONS
-   EV_START_SENSOR_DIAG,
-   EV_START_INIT_POS_SETUP,
-   EV_START_ARB_POS_SETUP,
-   EV_START_BOARD_CHECK,
+   EV_START_SENSOR_DIAG,     // User selected "sensor diagnostics" from menu
+   EV_START_INIT_POS_SETUP,  // User selected "play" from top menu
+   EV_START_ARB_POS_SETUP,   // User selected "setup board" from top menu
+   EV_START_BOARD_CHECK,     // User selected "verify board" from in-game menu
 
-   EV_GOTO_MAIN_MENU,
+   EV_GOTO_MAIN_MENU,        // User
    EV_GOTO_DIAG_MENU,
    EV_GOTO_OPTION_MENU,
    EV_GOTO_BOARD_OPTIONS,
@@ -77,7 +78,7 @@ typedef enum eventId_e
 
    // TIMER EVENTS
    EV_MOVE_CLOCK_TIC,
-   // EV_CHECK_COMPUTER_DONE,
+   EV_UI_BOX_CHECK,
 
    EV_PROCESS_COMPUTER_MOVE,
 

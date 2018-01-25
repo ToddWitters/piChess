@@ -1,12 +1,24 @@
 +------------------------------------------------------------------------------+
-Release      2.0
+Release      1.3
 Date
 
 --------------------------
 -- New/Updated Features --
 --------------------------
-   Upgraded to Stockfish 8.0
+   Upgraded to Stockfish 8
+   Added feature to recover if UI box unplugged and replugged
 
+--------------------------
+-- In progress --
+--------------------------
+   Modify code for updates to HSM library
+   Add Doxygen comments
+
+--------------------------
+-- On deck --
+--------------------------
+   Saving/restoring options
+   - Added hashtable.c
 
 
 +------------------------------------------------------------------------------+
@@ -95,28 +107,31 @@ First Working version with the following features:
 Future Version Planning
 =======================
 
-1.3
-Saving/Restoring options
-Update to Stockfish 8.0
-
-
-Update to RPi3
-Auto-launch on Pi startup
-Sound??
-   Illegal Move
-   Computer Move
-   Notification of important screen contents
-Coaching and Tournament modes
-Pondering
+- 1.3 -
 75 move rule detection
 5-fold repetition detection
 50-move draw claim arbitration (auto, manual)
 3-fold draw claim arbitration (auto, manual)
-Adjourn/Restart
+Adjourn/restart
+   - Save board and options
+Resign gesture (lift/replace king 3 times in 5 seconds)
+Allow move takeback on last move (after checkmate/stalemate/draw)
+
+- FUTURE -
+Auto-launch on Pi startup
+Update to RPi3
+Sounds
+   Illegal Move
+   Computer Move
+   Notification of important screen contents
+Coaching and Tournament modes
+   Coaching   = show legal moves
+   Tournament = enforce touch rule, no move take-backs
+Pondering
 EGTB
 Odds games
 Chess960
 Save position/games
-Scriptable language
 Gestures (resign / underprote / draw offer)
+Scriptable language
 

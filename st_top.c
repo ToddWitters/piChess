@@ -13,6 +13,7 @@
 #include "switch.h"
 #include "event.h"
 #include "st_inGame.h"
+#include "hsmDefs.h"
 
 
 void topEntry( event_t ev )
@@ -47,6 +48,8 @@ void topEntry( event_t ev )
 
       // DEBUG ONLY
       setButtonRepeat(10, 2);
+
+      timerStart(TMR_UI_BOX_CHECK, 1000, 1000, EV_UI_BOX_CHECK);
 
 
       initDone = TRUE;

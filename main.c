@@ -4,7 +4,6 @@
 #include "diag.h"
 
 #include <string.h>
-
 #include <semaphore.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -17,9 +16,10 @@ uint16_t smInit( event_t ev )
    return ST_SPLASH_SCREEN;
 }
 
+// On the way out...
 void smExit( event_t ev )
 {
-
+   // Cleanup goes here...
 }
 
 int main ( void )

@@ -1,3 +1,10 @@
+/**
+   \file board.c
+
+   Board manipulation and query
+
+   \author Todd Witters
+*/
 #include "board.h"
 #include "bitboard.h"
 #include "constants.h"
@@ -10,13 +17,17 @@
 #include <ctype.h>
 
 // Local functions to help with move function
+
 static void movePiece  (board_t *b, U8 fromSq, U8 toSq, piece_t p, color_t c);
 
+/// Starting FEN position
 const char *startString = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+/// Hash of previous positions - used for draw detection
 U64 positionHistory[POSITION_HISTORY_SIZE];
 int positionIndex = 0;
 
+/// Create an empty board
 void setBoardEmpty(board_t *brd)
 {
 	 brd->materialCount[WHITE] = 0;
@@ -39,10 +50,15 @@ void setBoardEmpty(board_t *brd)
 
 }
 
-
-// Initialize board with given string
-//   NOTE:  Last two fields of FEN (half-move count and move number) are optional.  This allows
-//   Function to work with a string consisting of the first four fields of an EPD record
+/// Initialize a board with given FEN
+/**
+     Uses a provided FEN string to populate the board.  FEN syntax can be found
+     [here](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation)
+     \param brd pointer to the board to modify
+     \param FEN the FEN string to apply.  If NULL, the starting position is used
+     \note Last two fields of FEN (half-move count and move number) are optional.  This allows
+     the function to work with a string consisting of the first four fields of an EPD record
+*/
 fenErr_t setBoard(board_t *brd, const char *FEN)
 {
 
@@ -304,9 +320,13 @@ fenErr_t setBoard(board_t *brd, const char *FEN)
  	return FEN_OK;
 }
 
-// Move assumed valid for this board.
-// Add/remove functions will ASSERT adds are to empty squares and removes have expected piece there...
-// Castling moves assumed legal (if to/from square and piece moved match a castle for king), rook is also moved with king
+/// Make a move on the current board
+/**
+    \pre Move assumed valid for this board.
+    \param b pointer to the board to apply the move to
+    \param m the move to make.
+    \note Castling moves assumed legal (if to/from square and piece moved match a castle for king), rook is also moved with king
+*/
 revMove_t move(board_t *b, const move_t m)
 {
 
@@ -570,7 +590,7 @@ revMove_t move(board_t *b, const move_t m)
 	return retValue;
 }
 
-// Undo a previously made move.
+/// Undo a previously made move.
 void unmove(board_t *b, const revMove_t m)
 {
 
@@ -718,8 +738,7 @@ void unmove(board_t *b, const revMove_t m)
 
 }
 
-// For diagnostics... Shows ASCII representation of board
-
+/// For diagnostics... shows ASCII representation of board
 char *getFEN(const board_t *b)
 {
     int offset = 0;
@@ -810,7 +829,8 @@ char *getFEN(const board_t *b)
 
 }
 
-// ASSUMES piece placement routines set bitboard correctly
+/// Check that a board legal by either being playable or at a checkmate/stalement position
+/// \pre piece placement routines set bitboard correctly
 boardErr_t testValidBoard(board_t *b)
 {
 
@@ -867,6 +887,7 @@ boardErr_t testValidBoard(board_t *b)
 
 }
 
+/// Checks if current side to move is in check
 bool_t testInCheck( board_t *b )
 {
     color_t oppColor = (b->toMove == BLACK ? WHITE : BLACK);
@@ -936,7 +957,8 @@ bool_t testInCheck( board_t *b )
 
 }
 
-// Only called during board setup or to add a new piece at pawn promotion...
+/// Executes an 'add' move primative.
+/// Only called during board setup or to add a new piece at pawn promotion...
 void addPiece(board_t *b, U8 sq, piece_t p, color_t c)
 {
 
@@ -965,7 +987,8 @@ void addPiece(board_t *b, U8 sq, piece_t p, color_t c)
 
 }
 
-// Relocate a piece from one square to another
+/// Executes a 'remove' / 'add' move primative pair
+/// Relocate a piece from one square to another
 static void movePiece (board_t *b, U8 fromSq, U8 toSq, piece_t p, color_t c)
 {
 
@@ -995,7 +1018,8 @@ static void movePiece (board_t *b, U8 fromSq, U8 toSq, piece_t p, color_t c)
 
 }
 
-// Only called during captures OR to remove a pawn that gets promoted.
+/// Executes a 'remove' move primative.
+/// Only called during captures OR to remove a pawn that gets promoted.
 void removePiece(board_t *b, U8 sq, piece_t p, color_t c)
 {
 

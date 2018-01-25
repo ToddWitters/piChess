@@ -55,6 +55,14 @@ void gpioInit( void )
 
 // U/I Board (Display and switches)
 
+   uiBoxInit();
+
+}
+
+void uiBoxInit( void )
+{
+   uint8_t command[3];
+
    // Set up GPIO Expander pin directions
    command[0] = IODIRA_ADDR;
    command[1] = 0x00; // data for IODIRA ( dispaly data lines are all outputs )
