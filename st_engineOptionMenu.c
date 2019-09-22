@@ -36,19 +36,20 @@ static char *engineOptionsMenu_pickStrength( int dir )
 {
    static char textString[3];
 
+   int strength = getOptionVal("engineStrength");
+
    if(dir == 1)
    {
-      //TODO... set periodic timer to insert right events?
-      if(options.engine.strength < 20) options.engine.strength++;
+      if(strength < 20)
+         setOptionVal("engineStrength", ++strength);
    }
    else if(dir == -1)
    {
-      //TODO... set periodic timer to insert left events?
-      if(options.engine.strength > 0)  options.engine.strength--;
-
+      if(strength > 0)
+         setOptionVal("engineStrength", --strength);
    }
 
-   sprintf(textString, "%d", options.engine.strength);
+   sprintf(textString, "%d", strength);
    textString[2] = 0;
    return textString;
 }

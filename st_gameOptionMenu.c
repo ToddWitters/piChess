@@ -10,6 +10,8 @@
 static char* gameOptionsMenu_pickWhitePlayer( int dir );
 static char* gameOptionsMenu_pickBlackPlayer( int dir );
 static char* gameOptionsMenu_pickBook(int dir);
+static char* gameOptionsMenu_pickCoaching(int dir);
+static char* gameOptionsMenu_pickTakeback(int dir);
 // static char* gameOptionsMenu_pickTimeSetting(int dir);
 
 menu_t *gameOptionMenu = NULL;
@@ -26,6 +28,8 @@ void gameOptionMenuEntry( event_t ev )
       menuAddItem(gameOptionMenu, ADD_TO_END, "Black",        0,                   0,                   gameOptionsMenu_pickBlackPlayer);
       menuAddItem(gameOptionMenu, ADD_TO_END, "Clocks...",    EV_GOTO_TIME_OPTIONS,      0,                   NULL);
       menuAddItem(gameOptionMenu, ADD_TO_END, "OpeningBook",  0,                   0,                   gameOptionsMenu_pickBook);
+      menuAddItem(gameOptionMenu, ADD_TO_END, "Coaching",     0,                   0,                   gameOptionsMenu_pickCoaching);
+      menuAddItem(gameOptionMenu, ADD_TO_END, "Takeback",     0,                   0,                   gameOptionsMenu_pickTakeback);
 
    }
 
@@ -93,49 +97,39 @@ static char* gameOptionsMenu_pickBook( int dir )
 
 }
 
-#if 0
-static char* gameOptionsMenu_pickTimeSetting(int dir)
+static char* gameOptionsMenu_pickCoaching(int dir)
 {
-
-   if(dir == 1)
+   if( dir == 1 || dir == -1 )
    {
-      switch(options.game.timeControl.type)
+      if( isOptionStr("coaching", "true") )
       {
-         case TIME_NONE:  options.game.timeControl.type = TIME_EQUAL; break;
-         case TIME_EQUAL: options.game.timeControl.type = TIME_ODDS;  break;
-         case TIME_ODDS:  options.game.timeControl.type = TIME_NONE;  break;
+         setOptionStr("coaching", "false");
       }
-   }
-   else if(dir == -1)
-   {
-      switch(options.game.timeControl.type)
+      else
       {
-         case TIME_NONE:  options.game.timeControl.type = TIME_ODDS;  break;
-         case TIME_EQUAL: options.game.timeControl.type = TIME_NONE;  break;
-         case TIME_ODDS:  options.game.timeControl.type = TIME_EQUAL; break;
+         setOptionStr("coaching", "true");
       }
    }
 
-   switch(options.game.timeControl.type)
-   {
-
-      case TIME_NONE:
-         options.game.timeControl.compStrategySetting.type     = STRAT_FIXED_DEPTH;
-         options.game.timeControl.compStrategySetting.timeInMs = 16;
-         return "None...";
-      case TIME_EQUAL:
-         options.game.timeControl.timeSettings[0].totalTime = 300;
-         options.game.timeControl.timeSettings[0].increment = 0;
-         return "Equal...";
-      case TIME_ODDS:
-         options.game.timeControl.timeSettings[WHITE].totalTime = 300;
-         options.game.timeControl.timeSettings[WHITE].increment = 0;
-         options.game.timeControl.timeSettings[BLACK].totalTime = 60;
-         options.game.timeControl.timeSettings[BLACK].increment = 0;
-         return "Odds...";
-      default:
-         return "???";
-   }
+   return ( isOptionStr("coaching", "true") ? "On" : "Off");
 
 }
-#endif
+
+static char* gameOptionsMenu_pickTakeback(int dir)
+{
+   if( dir == 1 || dir == -1 )
+   {
+      if(isOptionStr("takeBack", "true"))
+      {
+         setOptionStr("takeBack", "false");
+      }
+      else
+      {
+         setOptionStr("takeBack", "true");
+      }
+   }
+
+   return ( isOptionStr("takeBack", "true") ? "On" : "Off");
+
+}
+

@@ -28,7 +28,7 @@ void topEntry( event_t ev )
       DPRINT("Program start\n");
 
       // set all options
-      loadOptions(&options);
+      loadOptions();
 
       // Set up the timer tic...
       timerInit();

@@ -48,6 +48,8 @@ static pthread_mutex_t LED_dataMutex;
 // Local functions
 static void *LED_FlashToggle ( void *arg );
 
+bool flippedBoard = false;
+
 // Initialize MAX chip, set all LEDs off and non-flashing
 void LED_Init( void )
 {
@@ -116,8 +118,19 @@ void LED_On (int led, bool_t flush)
 
    if(led > 63) return;
 
-   int row = 7 - (led / 8);
-   int colmask = 0x01 << ( 7 - (led % 8));
+   int row;
+   int colmask;
+
+   if(flippedBoard==false)
+   {
+      row = 7 - (led / 8);
+      colmask = 0x01 << ( 7 - (led % 8));
+   }
+   else
+   {
+      row = led / 8;
+      colmask = 0x01 << ( led % 8);
+   }
 
    pthread_mutex_lock(&LED_dataMutex);
 
@@ -139,8 +152,20 @@ void LED_Off (int led, bool_t flush)
 
    if(led > 63) return;
 
-   int row = 7 - (led / 8);
-   int colmask = 0x01 << ( 7 - (led % 8));
+   int row;
+   int colmask;
+
+   if(flippedBoard==false)
+   {
+      row = 7 - (led / 8);
+      colmask = 0x01 << ( 7 - (led % 8));
+   }
+   else
+   {
+      row = led / 8;
+      colmask = 0x01 << ( led % 8);
+   }
+
 
    pthread_mutex_lock(&LED_dataMutex);
 
@@ -187,8 +212,17 @@ void LED_Flash( int led )
 
    if(led > 63) return;
 
-   row = 7 - (led / 8);
-   colmask = 0x01 << ( 7 - (led % 8));
+   if(flippedBoard==false)
+   {
+      row = 7 - (led / 8);
+      colmask = 0x01 << ( 7 - (led % 8));
+   }
+   else
+   {
+      row = led / 8;
+      colmask = 0x01 << ( led % 8);
+   }
+
 
    pthread_mutex_lock(&LED_dataMutex);
 
@@ -209,7 +243,8 @@ void LED_SetGridState ( uint64_t bits )
 {
    int i;
 
-   bits = reverseBitOrder64(bits);
+   if(flippedBoard == false)
+      bits = reverseBitOrder64(bits);
 
    pthread_mutex_lock(&LED_dataMutex);
 
@@ -222,7 +257,7 @@ void LED_SetGridState ( uint64_t bits )
 
       // Shut off LEDs that are not already in a blinking state
       ledRowData[i].ledState &= ~(~mask & ~ledRowData[i].ledBlink);
-      
+
       ledRowData[i].rowDirty = TRUE;
    }
 
@@ -236,12 +271,12 @@ void LED_FlashGridState ( uint64_t bits )
 {
    int i;
 
+   if(flippedBoard == false)
+      bits = reverseBitOrder64(bits);
 
    // LED_AllOff();
 
    DPRINT("Flashing LED grid state to %016llX\n", bits);
-
-   bits = reverseBitOrder64(bits);
 
    pthread_mutex_lock(&LED_dataMutex);
 
@@ -339,4 +374,12 @@ void LED_SetBrightness( unsigned char level)
 	command[1] = level;
 	bcm2835_spi_writenb((char *)command, 2);
 
+}
+
+void LED_flipBoard( void )
+{
+  if(flippedBoard == false)
+    flippedBoard = true;
+  else
+    flippedBoard = false;
 }

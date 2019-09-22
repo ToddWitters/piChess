@@ -9,12 +9,12 @@
 #include <string.h>
 #include "constants.h"
 #include "st_fixBoard.h"
+#include "options.h"
 
 #include "diag.h"
 extern game_t game;
-
+extern options_t options;
 menu_t *inGameMenu = NULL;
-
 
 void inGameMenuEntry( event_t ev )
 {
@@ -24,7 +24,10 @@ void inGameMenuEntry( event_t ev )
 
       //          menu      offset      text                   press                  right   picker
       menuAddItem(inGameMenu, ADD_TO_END, "Back to Game",        EV_GOTO_PLAYING_GAME,  0,      NULL);
-      menuAddItem(inGameMenu, ADD_TO_END, "Take back move",      EV_TAKEBACK,           0,      NULL);
+
+      if(isOptionStr("takeBack", "true"))
+         menuAddItem(inGameMenu, ADD_TO_END, "Take back move",      EV_TAKEBACK,           0,      NULL);
+
       menuAddItem(inGameMenu, ADD_TO_END, "Abort Game",          EV_GOTO_MAIN_MENU,     0,      NULL);
       menuAddItem(inGameMenu, ADD_TO_END, "Verify Board",        EV_START_BOARD_CHECK,  0,      NULL);
    }

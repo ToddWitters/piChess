@@ -15,6 +15,7 @@
 #include <pthread.h>
 #include <unistd.h>
 
+
 //   BIT NUMBER FOR EACH SQUARE
 //
 //   +--+--+--+--+--+--+--+--+
@@ -117,6 +118,8 @@ static uint8_t checkRow(uint8_t row, uint8_t intPin, uint8_t portAddress, uint8_
 static uint64_t lastBitBoard = 0;
 static uint64_t bitBoard = 0;
 
+static bool flippedBoard = false;
+
 // Initialize switch stuff
 void switchInit( void )
 {
@@ -204,7 +207,7 @@ void switchPoll ( void )
       diff = debouncedState ^ (sampleState = getSwitchStates());
 
       // Walk through 1 bit at a time...
-      mask =0x0000000000000001;
+      mask = 0x0000000000000001;
 
       for(i=0;i<64;i++)
       {
@@ -322,6 +325,22 @@ void switchPoll ( void )
    pthread_mutex_unlock(&Switch_dataMutex);
 }
 
+void SW_flipBoard( void )
+{
+
+  if(flippedBoard == false)
+    flippedBoard = true;
+  else
+    flippedBoard = false;
+
+  // Zero all switch counters
+  memset(debounceCounters, 0x00, sizeof(debounceCounters));
+
+  // all bits to zero
+  debouncedState = 0xFFFFFFFFFFFFFFFF;
+
+}
+
 
 // Reed switch polling
 static uint64_t getSwitchStates( void )
@@ -337,8 +356,14 @@ static uint64_t getSwitchStates( void )
    ((uint8_t*)(&bitBoard))[6] = checkRow(2, ROW_2_SWITCH_INT_PIN, GPIOA_ADDR, GPIO_EXPANDER_21_ADDR);
    ((uint8_t*)(&bitBoard))[7] = checkRow(1, ROW_1_SWITCH_INT_PIN, GPIOB_ADDR, GPIO_EXPANDER_21_ADDR);
 
+   // NOTE:  This copy needs to happen BEFORE the flipping of the bits since it is used to
+   //   determine the previous reed switch states read from the gpio expanders.
+
    // Keep track for next time...
    lastBitBoard = bitBoard;
+
+   if(flippedBoard == true)
+      bitBoard = reverseBitOrder64(bitBoard);
 
    // Invert the logic, since GND = pressed
    bitBoard = ~bitBoard;
@@ -399,8 +424,8 @@ static void switchChanged(int sq, bool_t state)
    }
 
    evnt.data = sq;
-   putEvent(EVQ_EVENT_MANAGER, &evnt);
 
+   putEvent(EVQ_EVENT_MANAGER, &evnt);
 }
 
 void setButtonRepeat(uint8_t delay, uint8_t interval)

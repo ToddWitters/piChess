@@ -56,17 +56,19 @@ void SF_initEngine( void )
    // Set up our default parameters to Stockfish
    SF_setOption("Threads", "4");
 
-   sprintf(skillLevelText, "%d", options.engine.strength);
+   sprintf(skillLevelText, "%d", getOptionVal("engineStrength"));
    SF_setOption("Skill Level", skillLevelText);
 }
 
 void SF_closeEngine( void )
 {
+   pthread_cancel(enginePollThread);
    if(sfPipe != NULL)
    {
       fprintf(sfPipe, "quit\n");
       pclose(sfPipe);
       sfPipe = NULL;
+
    }
 }
 
@@ -181,13 +183,15 @@ void SF_go( void )
 // Another possibility...
 // http://www.tldp.org/LDP/lpg/node15.html#SECTION00730000000000000000
 
+extern bool_t computerMovePending;
+
 static void *enginePollTask ( void *arg )
 {
    while(1)
    {
       usleep(50000);
 
-      if( access( OUTPUT_FILE, R_OK ) != -1 )
+      if( computerMovePending == false && access( OUTPUT_FILE, R_OK ) != -1 )
       {
          event_t ev = {EV_PROCESS_COMPUTER_MOVE, 0};
          usleep(100000);

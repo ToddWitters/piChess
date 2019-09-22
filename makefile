@@ -15,6 +15,7 @@ sources = bcm2835.c      \
 			 gpio.c         \
 			 hsm.c          \
 			 hsmDefs.c      \
+			 hashTable.c    \
 			 i2c.c          \
 			 led.c          \
 			 main.c         \

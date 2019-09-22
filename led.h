@@ -49,4 +49,6 @@ void LED_FlashGridState ( unsigned long long bits );
 
 void LED_SetBrightness( unsigned char level);
 
+void LED_flipBoard( void );
+
 #endif

@@ -7,6 +7,7 @@ Date
 --------------------------
    Upgraded to Stockfish 8
    Added feature to recover if UI box unplugged and replugged
+   Added ability to flip the board so human can play black without turning board
 
 --------------------------
 -- In progress --
@@ -20,6 +21,14 @@ Date
    Saving/restoring options
    - Added hashtable.c
 
+---------------
+-- Bug Fixes --
+---------------
+   Corrected obscure problem that put up promotion option when capturing an
+   advancing pawn just before the last row
+
+   Corrected issues resulting from creating a new result polling thread every game and not
+   destroying the previous one
 
 +------------------------------------------------------------------------------+
 Release      1.2.1

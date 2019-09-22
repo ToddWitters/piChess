@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "types.h"
 
@@ -20,7 +21,7 @@ typedef struct gameOptions_s
 
 typedef struct engineOptions_s
 {
-   uint8_t strength;
+//   uint8_t strength;
    bool_t  ponder;
    bool_t  egtb;
 }engineOptions_t;
@@ -41,6 +42,14 @@ typedef struct options_s
 
 extern options_t options;
 
+char *getOptionStr(char *opt);
+void setOptionStr(char *opt, char *val);
 
-void loadOptions( options_t *options );
-void saveOptions( const options_t *options );
+int getOptionVal(char *opt);
+void setOptionVal(char *opt, int val);
+
+bool isOptionStr(char *opt, char *val);
+bool isOptionVal(char *opt, int val);
+
+void loadOptions( void );
+

@@ -150,26 +150,52 @@ void playerMoves_boardChange( event_t ev)
             ev.ev == EV_PIECE_LIFT &&
             (
                (
-                  game.brd.pieces[PAWN]  &
-                  game.brd.colors[WHITE] &
-                  squareMask[ev.data]    &
-                  rowMask[1]
+                  game.brd.toMove == WHITE &&
+                  (
+                     game.brd.pieces[PAWN]  &
+                     game.brd.colors[WHITE] &
+                     squareMask[ev.data]    &
+                     rowMask[1]
+                  )
                )
                ||
                (
-                  game.brd.pieces[PAWN]  &
-                  game.brd.colors[BLACK] &
-                  squareMask[ev.data]    &
-                  rowMask[6]
-                )
-            ) )
+                  game.brd.toMove == BLACK &&
+                  (
+                     game.brd.pieces[PAWN]  &
+                     game.brd.colors[BLACK] &
+                     squareMask[ev.data]    &
+                     rowMask[6]
+                  )
+               )
+            )
+         )
          {
             promoteInProgress = true;
             promotePiece = QUEEN;
             displayWriteLine(1, "Promote to: QUEEN", true);
          }
 
-         LED_SetGridState(dirtySquares);
+
+         if(isOptionStr("coaching", "true")                   && // Coaching is on
+            dirtySquares == squareMask[ev.data]             && // Only dirty square is the one just changed
+            (game.brd.colors[game.brd.toMove] & dirtySquares) )    // and it belongs to the player on move
+         {
+            uint64_t legalDestinations = 0;
+
+            int i=0;
+
+            for(; i<totalLegalMoves; i++)
+               if(legalMoves[i].from == ev.data)
+                  legalDestinations |= squareMask[legalMoves[i].to];
+
+            LED_SetGridState(legalDestinations);
+
+         }
+         else
+         {
+            LED_SetGridState(dirtySquares);
+         }
          break;
 
       case MV_ILLEGAL:

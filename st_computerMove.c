@@ -121,6 +121,8 @@ void computerMove_computerPicked( event_t ev)
    if(tmpFile != NULL)
    {
       fgets(engineResultLine, MAX_LINE_LEN, tmpFile);
+      fclose(tmpFile);
+      remove(OUTPUT_FILE);
 
       DPRINT("Found text in engine result file: [%s]\n", engineResultLine);
 
@@ -149,19 +151,17 @@ void computerMove_computerPicked( event_t ev)
          }
          else
          {
-            DPRINT("Error unexpected contents in %s", OUTPUT_FILE);
+            DPRINT("Error unexpected contents in %s\n", OUTPUT_FILE);
          }
       }
       else
       {
-         DPRINT("Error unexpected contents in %s", OUTPUT_FILE);
+         DPRINT("Error unexpected contents in %s\n", OUTPUT_FILE);
       }
-      fclose(tmpFile);
-      remove(OUTPUT_FILE);
    }
    else
    {
-      DPRINT("Error opening %s", OUTPUT_FILE);
+      DPRINT("Error opening %s\n", OUTPUT_FILE);
    }
 }
 

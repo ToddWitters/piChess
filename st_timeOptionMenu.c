@@ -118,8 +118,53 @@ void timeOptionNavButtonHandler( event_t ev)
                break;
 
             case SUBSTATE_EVEN:
+            {
+
+                  int  min;
+
+                  switch(pickRow)
+                  {
+                     case 1:
+                        // Intervals are 1-30   in increments of 1
+                        //              30-120  in increments of 5
+                        //             120-240  in increments of 15
+
+                        min = options.game.timeControl.timeSettings[period-1].totalTime / 60;
+
+
+                        if (min > 120) {
+                           min -= 15;
+                        } else if (min > 30) {
+                           min -= 5;
+                        } else {
+                           min--;
+                        }
+
+                        options.game.timeControl.timeSettings[period-1].totalTime = min * 60;
+
+                        displayTotalTime(min, 1);
+
+                        break;
+
+                     case 2:
+
+                        if(options.game.timeControl.timeSettings[period-1].increment != 0)
+                        {
+                           displayIncrement(--options.game.timeControl.timeSettings[period-1].increment, 2);
+                        }
+                        break;
+
+                     case 3:
+
+                        if(options.game.timeControl.timeSettings[period-1].moves != 0)
+                        {
+                           displayMoves(--options.game.timeControl.timeSettings[period-1].moves);
+                        }
+                        break;
+                  }
 
                break;
+            }
 
             case SUBSTATE_ODDS:
                {
@@ -257,7 +302,7 @@ void timeOptionNavButtonHandler( event_t ev)
 
                      case 3:
 
-                        if(options.game.timeControl.timeSettings[period-1].increment < 99)
+                        if(options.game.timeControl.timeSettings[period-1].moves < 99)
                         {
                            displayMoves(++options.game.timeControl.timeSettings[period-1].moves);
                         }
