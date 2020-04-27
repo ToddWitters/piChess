@@ -26,6 +26,9 @@ void SetSwitchCallback(cbPtr_t cb);
 
 void setButtonRepeat(uint8_t delay, uint8_t interval);
 
-void SW_flipBoard( void );
+void SW_SetFlip( bool_t state );
+
+bool_t SW_getFlippedState( void );
+
 
 #endif

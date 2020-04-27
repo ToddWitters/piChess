@@ -376,10 +376,7 @@ void LED_SetBrightness( unsigned char level)
 
 }
 
-void LED_flipBoard( void )
+void LED_SetFlip( bool_t state )
 {
-  if(flippedBoard == false)
-    flippedBoard = true;
-  else
-    flippedBoard = false;
+  flippedBoard = state;
 }

@@ -2,12 +2,13 @@
 #include "diag.h"
 #include "timer.h"
 #include "hashtable.h"
+#include "engine.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 
-static void setDefaultOptions( void );
+static void checkOptions( void );
 
 options_t options;
 hashtable_t *optionsHashTable = NULL;
@@ -19,26 +20,83 @@ void loadOptions( void )
    if(optionsHashTable == NULL)
       optionsHashTable = ht_create(50);
 
-   // Start with defaults
-   setDefaultOptions();
-
-   // Load in options file if it exists...will overwrite defaults
    ht_load(optionsHashTable, "options");
 
-   // Save result back....
+   // Ensure every option exists and has legal values
+   checkOptions();
+
+   // Save results
    ht_save(optionsHashTable, "options");
 
 }
 
-static void setDefaultOptions( void )
+static void checkOptions( void )
 {
 
    disableSaveOnChange = true;
-   setOptionVal("whitePlayer", PLAYER_HUMAN);
-   setOptionVal("blackPlayer", PLAYER_COMPUTER);
-   setOptionVal("timeControl", TIME_NONE);
-   setOptionStr("computerStrategy", "fixedDepth");
-   setOptionVal("searchDepth", 12);
+   long int depth;
+
+
+   if(
+       getOptionStr("whitePlayer") == NULL ||
+       (
+         !isOptionStr("whitePlayer","human") &&
+         !isOptionStr("whitePlayer","computer")
+       )
+     )
+   {
+      setOptionStr("whitePlayer", "human");
+   }
+
+   if(
+       getOptionStr("blackPlayer") == NULL ||
+       (
+         !isOptionStr("blackPlayer","human") &&
+         !isOptionStr("blackPlayer","computer")
+       )
+     )
+   {
+      setOptionStr("blackPlayer", "computer");
+   }
+
+   if(
+       getOptionStr("timeControl") == NULL ||
+       (
+         !isOptionStr("timeControl", "untimed") &&
+         !isOptionStr("timeControl", "equal")   &&
+         !isOptionStr("timeControl", "odds")
+       )
+     )
+   {
+      setOptionStr("timeControl", "untimed");
+   }
+
+
+   if(
+       getOptionStr("computerStrategy") == NULL ||
+       (
+         !isOptionStr("computerStrategy", "fixedDepth")  &&
+         !isOptionStr("computerStrategy", "fixedTime")   &&
+         !isOptionStr("computerStrategy", "tillButton")
+       )
+     )
+   {
+      setOptionStr("computerStrategy", "fixedDepth");
+   }
+
+
+   depth = getOptionVal("searchDepth");
+   if(
+       getOptionStr("searchDepth") == NULL ||
+       (
+         depth > MAX_PLY_DEPTH ||
+         depth < MIN_PLY_DEPTH
+       )
+     )
+   {
+      setOptionVal("searchDepth", DEFAULT_PLY_DEPTH );
+   }
+
    setOptionVal("searchTimeInMs", 3000);
    setOptionVal("timePeriod1.timeInSec", 180);
    setOptionVal("timePeriod1.increment", 0);
@@ -59,6 +117,7 @@ static void setDefaultOptions( void )
    setOptionVal("ledBrightness", 15);
    setOptionVal("engineStrength", 20);
    setOptionStr("ponder", "false");
+
    disableSaveOnChange = false;
 
 
@@ -66,12 +125,12 @@ static void setDefaultOptions( void )
 
    DPRINT("Setting all options to their default values\n");
 
-   options.game.white                                 = PLAYER_HUMAN;
-   options.game.black                                 = PLAYER_COMPUTER;
+//   options.game.white                                 = PLAYER_HUMAN;
+//   options.game.black                                 = PLAYER_COMPUTER;
 
-   options.game.timeControl.type = TIME_NONE;
-   options.game.timeControl.compStrategySetting.type  = STRAT_FIXED_DEPTH;
-   options.game.timeControl.compStrategySetting.depth = 12;
+//   options.game.timeControl.type = TIME_NONE;
+//   options.game.timeControl.compStrategySetting.type  = STRAT_FIXED_DEPTH;
+//   options.game.timeControl.compStrategySetting.depth = 12;
 
    options.game.timeControl.timeSettings[0].totalTime = 3*60;
    options.game.timeControl.timeSettings[0].increment = 0;
@@ -117,16 +176,23 @@ bool isOptionStr(char *opt, char *val)
    return(!strcmp(val, ht_getKey(optionsHashTable, opt)));
 }
 
-int getOptionVal(char *opt)
+long int getOptionVal(char *opt)
 {
-   return atoi(ht_getKey(optionsHashTable, opt));
+   char *resultPtr;
+
+   resultPtr = ht_getKey(optionsHashTable, opt);
+
+   if(resultPtr == NULL)
+      return 0;
+   else
+      return strtol(resultPtr, NULL, 10);
 }
 
-void setOptionVal(char *opt, int val)
+void setOptionVal(char *opt, long int val)
 {
    char str[20];
 
-   sprintf(str, "%d", val);
+   sprintf(str, "%ld", val);
 
    ht_setKey(optionsHashTable, opt, str);
 
@@ -136,7 +202,14 @@ void setOptionVal(char *opt, int val)
 
 bool isOptionVal(char *opt, int val)
 {
-   return (val == atoi(ht_getKey(optionsHashTable, opt)));
+   char *resultPtr;
+
+   resultPtr = ht_getKey(optionsHashTable, opt);
+
+   if(resultPtr == NULL)
+      return false;
+   else
+      return (val == strtol(resultPtr, NULL, 10));
 }
 
 

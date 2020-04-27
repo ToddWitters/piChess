@@ -34,13 +34,13 @@ void playingGameEntry( event_t ev )
    if(
        (
        (game.brd.toMove == WHITE &&
-       options.game.white == PLAYER_HUMAN)
+       isOptionStr("whitePlayer","human"))
        ||
        (game.brd.toMove == BLACK &&
-       options.game.black  == PLAYER_HUMAN)
+       isOptionStr("blackPlayer","human"))
        )
        &&
-       options.game.timeControl.type == TIME_NONE
+       isOptionStr("timeControl", "untimed")
       )
    {
       displayWriteLine(3, "Untimed Game", true);
@@ -48,22 +48,16 @@ void playingGameEntry( event_t ev )
 
 
    // If computer is on move with no clocks, note the strategy it is using...
-   else if(options.game.timeControl.type == TIME_NONE)
+   else if(isOptionStr("timeControl", "untimed"))
    {
-      switch(options.game.timeControl.compStrategySetting.type)
-      {
-         case STRAT_FIXED_TIME:
-            displayWriteLine(3, "Fixed time search", true);
-            break;
+      if(isOptionStr("computerStrategy", "fixedTime"))
+         displayWriteLine(3, "Fixed time search", true);
 
-         case STRAT_FIXED_DEPTH:
-            displayWriteLine(3, "Fixed depth search", true);
-            break;
+      else if(isOptionStr("computerStrategy", "fixedDepth"))
+         displayWriteLine(3, "Fixed depth search", true);
 
-         case STRAT_TILL_BUTTON:
-            displayWriteLine(3, "Search till button", true);
-            break;
-      }
+      else if(isOptionStr("computerStrategy", "tillButton"))
+         displayWriteLine(3, "Search till button", true);
    }
 
    // Display the last few moves...
@@ -115,7 +109,7 @@ void playingGame_processSelectedMove( move_t mv)
 
 
    // If this is an equal time setting, it may be time to move to a new period
-   if(options.game.timeControl.type == TIME_EQUAL)
+   if(isOptionStr("timeControl", "equal"))
    {
       uint8_t periodOneMoves;
 
@@ -212,8 +206,8 @@ void playingGame_processSelectedMove( move_t mv)
    // if(game.brd.halfMoves >= 100)
 
    // If a computer just finished,
-   if( (game.brd.toMove == WHITE && options.game.black == PLAYER_COMPUTER) ||
-       (game.brd.toMove == BLACK && options.game.white == PLAYER_COMPUTER))
+   if( (game.brd.toMove == WHITE && isOptionStr("blackPlayer", "computer")) ||
+       (game.brd.toMove == BLACK && isOptionStr("whitePlayer", "computer")))
    {
          // This will ultimately move us to the ST_MOVE_FOR_COMPUTER state
          ev.ev = EV_GOTO_PLAYING_GAME;
@@ -256,13 +250,13 @@ uint16_t playingGamePickSubstate( event_t ev)
       return ST_MOVE_FOR_COMPUTER;
 
    else if(game.brd.toMove == WHITE)
-      if(options.game.white == PLAYER_HUMAN)
+      if(isOptionStr("whitePlayer", "human"))
          return ST_PLAYER_MOVE;
       else
          return ST_COMPUTER_MOVE;
 
    else
-      if(options.game.black == PLAYER_HUMAN)
+      if(isOptionStr("blackPlayer", "human"))
          return ST_PLAYER_MOVE;
       else
          return ST_COMPUTER_MOVE;

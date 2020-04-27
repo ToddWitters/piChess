@@ -325,20 +325,14 @@ void switchPoll ( void )
    pthread_mutex_unlock(&Switch_dataMutex);
 }
 
-void SW_flipBoard( void )
+bool_t SW_getFlippedState( void )
 {
+  return flippedBoard;
+}
 
-  if(flippedBoard == false)
-    flippedBoard = true;
-  else
-    flippedBoard = false;
-
-  // Zero all switch counters
-  memset(debounceCounters, 0x00, sizeof(debounceCounters));
-
-  // all bits to zero
-  debouncedState = 0xFFFFFFFFFFFFFFFF;
-
+void SW_SetFlip( bool_t state )
+{
+  flippedBoard = state;
 }
 
 

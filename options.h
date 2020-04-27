@@ -45,8 +45,8 @@ extern options_t options;
 char *getOptionStr(char *opt);
 void setOptionStr(char *opt, char *val);
 
-int getOptionVal(char *opt);
-void setOptionVal(char *opt, int val);
+long int getOptionVal(char *opt);
+void setOptionVal(char *opt, long int val);
 
 bool isOptionStr(char *opt, char *val);
 bool isOptionVal(char *opt, int val);

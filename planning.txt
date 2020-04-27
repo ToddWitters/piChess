@@ -9,26 +9,14 @@ Date
    Added feature to recover if UI box unplugged and replugged
    Added ability to flip the board so human can play black without turning board
 
---------------------------
--- In progress --
---------------------------
-   Modify code for updates to HSM library
-   Add Doxygen comments
-
---------------------------
--- On deck --
---------------------------
-   Saving/restoring options
-   - Added hashtable.c
-
 ---------------
 -- Bug Fixes --
 ---------------
    Corrected obscure problem that put up promotion option when capturing an
    advancing pawn just before the last row
 
-   Corrected issues resulting from creating a new result polling thread every game and not
-   destroying the previous one
+   Corrected issues caused from creating a new result polling thread every game and not
+   destroying the previous one.
 
 +------------------------------------------------------------------------------+
 Release      1.2.1
@@ -117,30 +105,25 @@ Future Version Planning
 =======================
 
 - 1.3 -
-75 move rule detection
-5-fold repetition detection
-50-move draw claim arbitration (auto, manual)
-3-fold draw claim arbitration (auto, manual)
-Adjourn/restart
-   - Save board and options
-Resign gesture (lift/replace king 3 times in 5 seconds)
+Port all options into hashtable, remove options structure
+Add option to enforce 75 move rule (enable/disable)
+Add option to enforce 5-fold repetition rule (enable/disable)
+Add ability to claim 50-move draw condition (auto, claim)
+Add ability to claim 3-fold draw condition (auto, claim)
+Add Adjourn/restart (save board and options, resume later)
 Allow move takeback on last move (after checkmate/stalemate/draw)
+Fix blocked in-game menu when computer vs. computer.
+Fix occasional hang on start-up splash screen.
+
+- 2.0 -
+Auto-launch on Pi startup
+Tournament mode (take back disabled, once lifted a legal move must be completed)
 
 - FUTURE -
-Auto-launch on Pi startup
-Update to RPi3
-Sounds
-   Illegal Move
-   Computer Move
-   Notification of important screen contents
-Coaching and Tournament modes
-   Coaching   = show legal moves
-   Tournament = enforce touch rule, no move take-backs
 Pondering
-EGTB
-Odds games
+5-man EGTB support (!!)
+Odds games (material imbalance)
 Chess960
-Save position/games
-Gestures (resign / underprote / draw offer)
-Scriptable language
+Save positions/games
+Puzzles
 

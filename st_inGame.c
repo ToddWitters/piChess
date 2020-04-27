@@ -71,7 +71,7 @@ void inGameEntry( event_t ev )
       timerStart(TMR_GAME_CLOCK_TIC, 100, 100, EV_MOVE_CLOCK_TIC);
 
    // If either or both player is the computer, set up stockfish Engine and opening book
-   if( (options.game.white == PLAYER_COMPUTER) || (options.game.black == PLAYER_COMPUTER) )
+   if( isOptionStr("whitePlayer","computer") || isOptionStr("blackPlayer","computer"))
    {
       DPRINT("Starting Chess Engine\n");
       SF_initEngine();
@@ -106,12 +106,12 @@ uint16_t inGamePickSubstate( event_t ev)
 void inGame_moveClockTick( event_t ev)
 {
 
-   if(options.game.timeControl.type == TIME_NONE ) return;
+   if(isOptionStr("timeControl", "untimed")) return;
 
    // Don't move computer clock (or grace clock) when both players are computer
    //    and human is making the move for the computer
-   if(options.game.black == PLAYER_COMPUTER &&
-      options.game.white == PLAYER_COMPUTER &&
+   if(isOptionStr("whitePlayer","computer") &&
+      isOptionStr("blackPlayer","computer") &&
       computerMovePending) return;
 
    // bail if game is not playable
@@ -215,7 +215,7 @@ void inGame_udpateClocks( void )
    const char *timeString;
    char fullString[10];
 
-   if(options.game.timeControl.type == TIME_NONE ) return;
+   if(isOptionStr("timeControl", "untimed") ) return;
 
    if(inGameMenu != NULL) return;
 

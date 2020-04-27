@@ -8,6 +8,7 @@
 #include "event.h"
 #include "switch.h"
 #include "diag.h"
+#include "engine.h"
 
 uint8_t activeLine;
 extern game_t game;
@@ -60,19 +61,19 @@ void timeOptionNavButtonHandler( event_t ev)
                {
                   case 1:
                   default:
-                     options.game.timeControl.type = TIME_EQUAL;
+                     setOptionStr("timeControl", "equal");
                      period = 1;
                      subState = SUBSTATE_EVEN;
                      drawEvenScreen(period);
                      break;
                   case 2:
-                     options.game.timeControl.type = TIME_ODDS;
+                     setOptionStr("timeControl", "odds");
                      subState = SUBSTATE_ODDS;
                      pickRow = 0;
                      drawOddsScreen();
                      break;
                   case 3:
-                     options.game.timeControl.type = TIME_NONE;
+                     setOptionStr("timeControl", "untimed");
                      subState = SUBSTATE_UNTIMED;
                      pickRow = 1;
                      drawUntimedScreen();
@@ -212,10 +213,12 @@ void timeOptionNavButtonHandler( event_t ev)
             case SUBSTATE_UNTIMED:
                if(pickRow == 1)
                {
-                  if(options.game.timeControl.compStrategySetting.depth > 4)
+                  long int depth = getOptionVal("searchDepth");
+                  if(depth > MIN_PLY_DEPTH)
                   {
                      char temp[4];
-                     sprintf(temp,"%3d",--options.game.timeControl.compStrategySetting.depth);
+                     setOptionVal("searchDepth",depth-1);
+                     sprintf(temp,"%3ld",depth-1);
                      displayWriteChars(1,17,3,temp);
                   }
                }
@@ -248,12 +251,13 @@ void timeOptionNavButtonHandler( event_t ev)
                   displayWriteLine(2, " Time Odds", FALSE);
                   displayWriteLine(3, " No Time", FALSE);
 
-                  switch(options.game.timeControl.type)
-                  {
-                     case TIME_EQUAL: pickRow = 1; break;
-                     case TIME_ODDS:  pickRow = 2; break;
-                     case TIME_NONE:  pickRow = 3; break;
-                  }
+                  if(isOptionStr("timeControl", "equal"))
+                     pickRow = 1;
+                  else if(isOptionStr("timeControl", "odds"))
+                     pickRow = 2;
+                  else if(isOptionStr("timeControl", "untimed"))
+                     pickRow = 3;
+
                   displayWriteChars(pickRow,0,1,">");
                }
 
@@ -359,12 +363,17 @@ void timeOptionNavButtonHandler( event_t ev)
             case SUBSTATE_UNTIMED:
                if(pickRow == 1)
                {
-                  if(options.game.timeControl.compStrategySetting.depth < 30)
+
+                  long int depth = getOptionVal("searchDepth");
+
+                  if(depth < MAX_PLY_DEPTH)
                   {
                      char temp[4];
-                     sprintf(temp,"%3d",++options.game.timeControl.compStrategySetting.depth);
+                     setOptionVal("searchDepth",depth+1);
+                     sprintf(temp,"%3ld",depth+1);
                      displayWriteChars(1,17,3,temp);
                   }
+
                }
                else if(pickRow == 2)
                {
@@ -431,21 +440,20 @@ void timeOptionNavButtonHandler( event_t ev)
                   if(pickRow == 1)
                   {
                      char temp[4];
-                     options.game.timeControl.compStrategySetting.type = STRAT_FIXED_DEPTH;
-                     sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.depth);
+                     setOptionStr("computerStrategy", "fixedDepth");
+                     sprintf(temp,"%3ld",getOptionVal("searchDepth"));
                      displayWriteChars(pickRow,17,3,temp);
                   }
                   else if (pickRow == 2)
                   {
                      char temp[4];
-                     options.game.timeControl.compStrategySetting.type = STRAT_FIXED_TIME;
+                     setOptionStr("computerStrategy", "fixedTime");
                      sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.timeInMs / 1000);
                      displayWriteChars(pickRow,17,3,temp);
                   }
                   else
                   {
-                     options.game.timeControl.compStrategySetting.type = STRAT_TILL_BUTTON;
-
+                     setOptionStr("computerStrategy", "tillButton");
                   }
                }
                break;
@@ -503,20 +511,20 @@ void timeOptionNavButtonHandler( event_t ev)
                   if(pickRow == 1)
                   {
                      char temp[4];
-                     options.game.timeControl.compStrategySetting.type = STRAT_FIXED_DEPTH;
-                     sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.depth);
+                     setOptionStr("computerStrategy", "fixedDepth");
+                     sprintf(temp,"%3ld",getOptionVal("searchDepth"));
                      displayWriteChars(pickRow,17,3,temp);
                   }
                   else if (pickRow == 2)
                   {
                      char temp[4];
-                     options.game.timeControl.compStrategySetting.type = STRAT_FIXED_TIME;
+                     setOptionStr("computerStrategy", "fixedTime");
                      sprintf(temp,"%3d",options.game.timeControl.compStrategySetting.timeInMs / 1000);
                      displayWriteChars(pickRow,17,3,temp);
                   }
                   else
                   {
-                     options.game.timeControl.compStrategySetting.type = STRAT_TILL_BUTTON;
+                     setOptionStr("computerStrategy", "tillButton");
 
                   }
                }
@@ -540,27 +548,25 @@ static void drawStatusScreen( void )
 
    displayClear();
 
-   switch(options.game.timeControl.type)
+
+   if(isOptionStr("timeControl", "untimed"))
    {
-      case TIME_NONE:
          displayWriteLine(0, "Untimed Game", TRUE);
          displayWriteLine(1, "Computer will search", TRUE);
-         switch(options.game.timeControl.compStrategySetting.type)
-         {
-            case STRAT_FIXED_TIME:
-               sprintf(tempString,"for %d seconds", options.game.timeControl.compStrategySetting.timeInMs / 1000);
-               break;
-            case STRAT_FIXED_DEPTH:
-               sprintf(tempString,"for %d ply", options.game.timeControl.compStrategySetting.depth);
-               break;
-            case STRAT_TILL_BUTTON:
-               sprintf(tempString,"until button press");
-               break;
-         }
-         displayWriteLine(2, tempString, TRUE);
-         break;
 
-      case TIME_EQUAL:
+         if     (isOptionStr("computerStrategy", "fixedTime"))
+            sprintf(tempString,"for %d seconds", options.game.timeControl.compStrategySetting.timeInMs / 1000);
+         else if(isOptionStr("computerStrategy", "fixedDepth"))
+            sprintf(tempString,"for %ld ply", getOptionVal("searchDepth"));
+         else if(isOptionStr("computerStrategy", "tillButton"))
+            sprintf(tempString,"until button press");
+         else
+            sprintf(tempString, "???");
+
+         displayWriteLine(2, tempString, TRUE);
+   }
+   else if(isOptionStr("timeControl", "equal"))
+   {
 
          strcpy(lineString[0], createPeriodSummary(&options.game.timeControl.timeSettings[0]));
 
@@ -597,9 +603,9 @@ static void drawStatusScreen( void )
                break;
          }
 
-         break;
-
-      case TIME_ODDS:
+   }
+   else if(isOptionStr("timeControl", "odds"))
+   {
 
          displayWriteLine(0, "Time Odds Game", TRUE);
 
@@ -615,7 +621,7 @@ static void drawStatusScreen( void )
          displayWriteLine(1,lineString[WHITE],FALSE);
          displayWriteLine(2,lineString[BLACK],FALSE);
 
-         break;
+
    }
 
    displayWriteLine(3, "< ok        change >", TRUE);
@@ -688,9 +694,9 @@ static void drawUntimedScreen( void )
 
    displayWriteLine(0,"-Computer Strategy--", FALSE);
 
-   if(options.game.timeControl.compStrategySetting.type == STRAT_FIXED_DEPTH)
+   if(isOptionStr("computerStrategy", "fixedDepth"))
    {
-      sprintf(lineText, ">Fixed Depth(ply) %2d", options.game.timeControl.compStrategySetting.depth);
+      sprintf(lineText, ">Fixed Depth(ply) %2ld", getOptionVal("searchDepth"));
       pickRow = 1;
    }
    else
@@ -699,7 +705,7 @@ static void drawUntimedScreen( void )
    }
    displayWriteLine(1,lineText, FALSE);
 
-   if(options.game.timeControl.compStrategySetting.type == STRAT_FIXED_TIME)
+   if(isOptionStr("computerStrategy", "fixedTime"))
    {
       sprintf(lineText, ">Fixed Time(sec) %3d", options.game.timeControl.compStrategySetting.timeInMs / 1000);
       pickRow = 2;
@@ -710,7 +716,7 @@ static void drawUntimedScreen( void )
    }
    displayWriteLine(2,lineText, FALSE);
 
-   if(options.game.timeControl.compStrategySetting.type == STRAT_TILL_BUTTON)
+   if(isOptionStr("computerStrategy", "tillButton"))
    {
       displayWriteLine(3,">Until Button", FALSE);
       pickRow = 3;

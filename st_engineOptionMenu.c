@@ -7,6 +7,7 @@
 #include "stdio.h"
 
 static char *engineOptionsMenu_pickStrength( int dir );
+static char *engineOptionsMenu_pickBook( int dir );
 
 menu_t *engineOptionMenu;
 
@@ -16,8 +17,9 @@ void engineOptionMenuEntry( event_t ev )
    {
       engineOptionMenu = createMenu("---Engine Options---", EV_GOTO_OPTION_MENU);
 
-      menuAddItem(engineOptionMenu, ADD_TO_END, "Go Back",  EV_GOTO_OPTION_MENU, EV_GOTO_OPTION_MENU, NULL);
-      menuAddItem(engineOptionMenu, ADD_TO_END, "Strength",  0, 0, engineOptionsMenu_pickStrength);
+      menuAddItem(engineOptionMenu, ADD_TO_END, "Go Back",      EV_GOTO_OPTION_MENU, EV_GOTO_OPTION_MENU, NULL);
+      menuAddItem(engineOptionMenu, ADD_TO_END, "Strength",     0,                   0,                   engineOptionsMenu_pickStrength);
+      menuAddItem(engineOptionMenu, ADD_TO_END, "OpeningBook",  0,                   0,                   engineOptionsMenu_pickBook);
 
    }
 
@@ -31,6 +33,25 @@ void engineOptionMenuExit( event_t ev )
    engineOptionMenu = NULL;
 
 }
+
+static char* engineOptionsMenu_pickBook( int dir )
+{
+   if( dir == 1 || dir == -1 )
+   {
+      if(options.game.useOpeningBook == TRUE )
+      {
+         options.game.useOpeningBook = FALSE;
+      }
+      else
+      {
+         options.game.useOpeningBook = TRUE;
+      }
+   }
+
+   return (options.game.useOpeningBook == TRUE ? "On" : "Off");
+
+}
+
 
 static char *engineOptionsMenu_pickStrength( int dir )
 {

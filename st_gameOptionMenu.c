@@ -9,7 +9,6 @@
 
 static char* gameOptionsMenu_pickWhitePlayer( int dir );
 static char* gameOptionsMenu_pickBlackPlayer( int dir );
-static char* gameOptionsMenu_pickBook(int dir);
 static char* gameOptionsMenu_pickCoaching(int dir);
 static char* gameOptionsMenu_pickTakeback(int dir);
 // static char* gameOptionsMenu_pickTimeSetting(int dir);
@@ -27,7 +26,6 @@ void gameOptionMenuEntry( event_t ev )
       menuAddItem(gameOptionMenu, ADD_TO_END, "White",        0,                   0,                   gameOptionsMenu_pickWhitePlayer);
       menuAddItem(gameOptionMenu, ADD_TO_END, "Black",        0,                   0,                   gameOptionsMenu_pickBlackPlayer);
       menuAddItem(gameOptionMenu, ADD_TO_END, "Clocks...",    EV_GOTO_TIME_OPTIONS,      0,                   NULL);
-      menuAddItem(gameOptionMenu, ADD_TO_END, "OpeningBook",  0,                   0,                   gameOptionsMenu_pickBook);
       menuAddItem(gameOptionMenu, ADD_TO_END, "Coaching",     0,                   0,                   gameOptionsMenu_pickCoaching);
       menuAddItem(gameOptionMenu, ADD_TO_END, "Takeback",     0,                   0,                   gameOptionsMenu_pickTakeback);
 
@@ -48,17 +46,17 @@ static char* gameOptionsMenu_pickWhitePlayer( int dir )   // 0 = return current,
 
    if( dir == 1 || dir == -1 )
    {
-      if(options.game.white == PLAYER_HUMAN )
+      if(isOptionStr("whitePlayer", "human"))
       {
-         options.game.white = PLAYER_COMPUTER;
+         setOptionStr("whitePlayer", "computer");
       }
       else
       {
-         options.game.white = PLAYER_HUMAN;
+         setOptionStr("whitePlayer", "human");
       }
    }
 
-   return (options.game.white == PLAYER_HUMAN ? "Human" : "Computer");
+   return getOptionStr("whitePlayer");
 }
 
 static char* gameOptionsMenu_pickBlackPlayer( int dir )   // 0 = return current, 1 = set/return next, -1 = set/return prev.
@@ -66,35 +64,17 @@ static char* gameOptionsMenu_pickBlackPlayer( int dir )   // 0 = return current,
 
    if( dir == 1 || dir == -1 )
    {
-      if(options.game.black == PLAYER_HUMAN )
+      if(isOptionStr("blackPlayer", "human"))
       {
-         options.game.black = PLAYER_COMPUTER;
+         setOptionStr("blackPlayer", "computer");
       }
       else
       {
-         options.game.black = PLAYER_HUMAN;
+         setOptionStr("blackPlayer", "human");
       }
    }
 
-   return (options.game.black == PLAYER_HUMAN ? "Human" : "Computer");
-}
-
-static char* gameOptionsMenu_pickBook( int dir )
-{
-   if( dir == 1 || dir == -1 )
-   {
-      if(options.game.useOpeningBook == TRUE )
-      {
-         options.game.useOpeningBook = FALSE;
-      }
-      else
-      {
-         options.game.useOpeningBook = TRUE;
-      }
-   }
-
-   return (options.game.useOpeningBook == TRUE ? "On" : "Off");
-
+   return getOptionStr("blackPlayer");
 }
 
 static char* gameOptionsMenu_pickCoaching(int dir)

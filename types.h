@@ -204,8 +204,8 @@ typedef enum computerStrategy_e
 /// Parameters for computer strategy when clocks not used
 typedef struct compStrategySetting_s
 {
-   computerStrategy_t type;  ///< Type of strategy used
-   uint8_t  depth;           ///< Depth of search (if type == STRAT_FIXED_DEPTH)
+//   computerStrategy_t type;  ///< Type of strategy used
+//   uint8_t  depth;           ///< Depth of search (if type == STRAT_FIXED_DEPTH)
    uint32_t timeInMs;        ///< Time of search (if type == STRAT_FIXED_TIME)
 }compStrategySetting_t;
 

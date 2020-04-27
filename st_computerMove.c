@@ -44,34 +44,37 @@ void computerMoveEntry( event_t ev )
 
       SF_setPosition(game.startPos, game.moveRecord);
 
-      switch(options.game.timeControl.type)
+      if(isOptionStr("timeControl","untimed"))
       {
-         case TIME_NONE:
-            switch(options.game.timeControl.compStrategySetting.type)
-            {
-               case STRAT_FIXED_TIME:
-                  SF_findMoveFixedTime(options.game.timeControl.compStrategySetting.timeInMs);
-                  break;
-               case STRAT_FIXED_DEPTH:
-                  SF_findMoveFixedDepth(options.game.timeControl.compStrategySetting.depth);
-                  break;
-               case STRAT_TILL_BUTTON:
-                  waitingForButton = true;
-                  SF_go();
-                  break;
-            }
-            break;
-         case TIME_EQUAL:
-         case TIME_ODDS:
-
-            SF_findMove( game.wtime * 100, game.btime * 100, game.wIncrement * 100, game.bIncrement * 100 );
-            break;
+         if(isOptionStr("computerStrategy", "fixedTime"))
+         {
+            SF_findMoveFixedTime(options.game.timeControl.compStrategySetting.timeInMs);
+         }
+         else if(isOptionStr("computerStrategy", "fixedDepth"))
+         {
+            SF_findMoveFixedDepth((int)getOptionVal("searchDepth"));
+         }
+         else if(isOptionStr("computerStrategy", "tillButton"))
+         {
+            waitingForButton = true;
+            SF_go();
+         }
+         else
+         {
+            DPRINT("Unexpected Value [%s] for computerStrategy.  Setting to fixedDepth\n", getOptionStr("computerStrategy"));
+            setOptionStr("computerStrategy", "fixedDepth");
+         }
       }
+      else
+      {
+         SF_findMove( game.wtime * 100, game.btime * 100, game.wIncrement * 100, game.bIncrement * 100 );
+      }
+
 
       // timerStart(TMR_COMPUTER_POLL, 100, 100, EV_CHECK_COMPUTER_DONE);
 
       // If there is only one computer player...
-      if(options.game.white != options.game.black)
+      if(strcmp(getOptionStr("whitePlayer"),getOptionStr("blackPlayer")))
       {
          displayWriteLine(0, "Computer thinking...", true);
       }

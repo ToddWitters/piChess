@@ -56,7 +56,7 @@ void SF_initEngine( void )
    // Set up our default parameters to Stockfish
    SF_setOption("Threads", "4");
 
-   sprintf(skillLevelText, "%d", getOptionVal("engineStrength"));
+   sprintf(skillLevelText, "%ld", getOptionVal("engineStrength"));
    SF_setOption("Skill Level", skillLevelText);
 }
 

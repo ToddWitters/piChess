@@ -17,6 +17,7 @@
 #include "st_fixBoard.h"
 
 #include <stdio.h>
+#include <string.h>
 
 extern game_t game;
 
@@ -72,7 +73,7 @@ void playerMoveEntry( event_t ev )
 
    displayClearLine(0);
 
-   if(options.game.white != options.game.black)
+   if(strcmp(getOptionStr("whitePlayer"),getOptionStr("blackPlayer")))
       displayWriteLine(0, "Human's Move", TRUE);
    else if(game.brd.toMove == WHITE)
       displayWriteLine(0, "White's Move", TRUE);

@@ -11,6 +11,8 @@
 menu_t *boardOptionMenu;
 
 static char *boardOptionMen_pickLEDBrightness( int dir );
+static char *boardOptionMen_pickFlipBoard( int dir);
+
 
 void boardOptionMenuEntry( event_t ev )
 {
@@ -20,10 +22,11 @@ void boardOptionMenuEntry( event_t ev )
 
       menuAddItem(boardOptionMenu, ADD_TO_END, "Go Back",         EV_GOTO_OPTION_MENU, EV_GOTO_OPTION_MENU, NULL);
       menuAddItem(boardOptionMenu, ADD_TO_END, "LED Brightness",  0,                   0                  , boardOptionMen_pickLEDBrightness);
-//    TODO switch sensitivity?
+      menuAddItem(boardOptionMenu, ADD_TO_END, "Flip board",  0,                   0                  , boardOptionMen_pickFlipBoard);
    }
 
    drawMenu(boardOptionMenu);
+   LED_SetGridState(0x00000000000000FF);
 
 }
 
@@ -32,8 +35,34 @@ void boardOptionMenuExit( event_t ev )
    LED_AllOff();
    destroyMenu(boardOptionMenu);
    boardOptionMenu = NULL;
+   LED_SetGridState(0x0000000000000000);
 }
 
+
+static char *boardOptionMen_pickFlipBoard( int dir)
+{
+   static char valueString[4];
+
+   if(dir == 1 || dir == -1)
+   {
+      if(SW_getFlippedState() == true)
+      {
+         SW_SetFlip(false);
+         LED_SetFlip(false);
+      }
+      else
+      {
+         SW_SetFlip(true);
+         LED_SetFlip(true);
+      }
+
+      LED_SetGridState(0x00000000000000FF);
+   }
+   sprintf(valueString, "%s", (SW_getFlippedState() == true ? " on" : "off"));
+   valueString[3] = 0x00;
+
+   return valueString;
+}
 
 static char *boardOptionMen_pickLEDBrightness( int dir )
 {
